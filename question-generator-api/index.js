@@ -1,6 +1,7 @@
 import express from "express";
-import dotenv from "dotenv";
 import { FileUploader } from "./helpers/fileUploader.js";
+import { Publisher } from "./helpers/publisher.js";
+import dotenv from "dotenv";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,7 +31,10 @@ app.post("/file-upload", async (req, res) => {
       return res.status(400).json({ error: "No file uploaded." });
     }
     const uploader = new FileUploader();
-    await uploader.storeFile(fileBuffer, filename);
+    const publisher = new Publisher();
+    const {fileId, fileName} = await uploader.storeFile(fileBuffer, filename);
+    console.log(fileId, fileName);
+    await publisher.publish({ fileName: fileName, fileId: fileId });
     console.log("✅ Received filename:", filename);
     console.log("📦 File size:", fileSize, "MB");
     res.json({ message: "File received", filename });

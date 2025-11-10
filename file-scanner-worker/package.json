@@ -1,7 +1,7 @@
 {
-  "name": "question-generator-api",
+  "name": "file-scanner-worker",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "consumer.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,10 +10,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "appwrite": "^21.4.0",
     "clamscan": "^2.4.0",
     "dotenv": "^17.2.3",
-    "express": "^5.1.0",
     "node-appwrite": "^20.3.0",
     "redis": "^5.9.0"
   },
