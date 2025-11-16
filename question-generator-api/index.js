@@ -44,6 +44,18 @@ app.post("/file-upload", async (req, res) => {
   }
 });
 
+app.post("/generate-questions", async (req, res) => {
+  try {
+    // const { textContent, numQuestions } = req.body;
+    const publisher = new Publisher();
+    await publisher.publishToQuestionGenerationQueue({ fileName: "file1", fileId: "691a1a8d0038c14d5c8c" });
+    res.json({ message: "Question generation job queued." });
+  } catch (error) {
+    console.error("❌ Error generating questions:", error);
+    res.status(500).json({ error: "Failed to generate questions." });
+  }
+});
+
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
