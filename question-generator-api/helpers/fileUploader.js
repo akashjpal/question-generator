@@ -11,11 +11,16 @@ export class FileUploader {
 
       const storage = new Storage(client);
       const nodeFile = InputFile.fromBuffer(fileBuffer, filename);
+      const fileId = ID.unique();
       await storage.createFile({
         bucketId: process.env.APPWRITE_BUCKET_ID,
-        fileId: ID.unique(),
+        fileId: fileId,
         file: nodeFile,
       });
+      return {
+        fileId,
+        fileName:filename
+      }
     } catch (error) {
       console.error("❌ Error in FileUploader.storeFile:", error);
       throw error;

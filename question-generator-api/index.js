@@ -1,6 +1,7 @@
 import express from "express";
-import dotenv from "dotenv";
 import { FileUploader } from "./helpers/fileUploader.js";
+import { Publisher } from "./helpers/publisher.js";
+import dotenv from "dotenv";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,13 +31,28 @@ app.post("/file-upload", async (req, res) => {
       return res.status(400).json({ error: "No file uploaded." });
     }
     const uploader = new FileUploader();
-    await uploader.storeFile(fileBuffer, filename);
+    const publisher = new Publisher();
+    const {fileId, fileName} = await uploader.storeFile(fileBuffer, filename);
+    console.log(fileId, fileName);
+    await publisher.publish({ fileName: fileName, fileId: fileId });
     console.log("✅ Received filename:", filename);
     console.log("📦 File size:", fileSize, "MB");
     res.json({ message: "File received", filename });
   } catch (error) {
     console.error("❌ Error uploading file:", error);
     res.status(500).json({ error: "Failed to upload file." });
+  }
+});
+
+app.post("/generate-questions", async (req, res) => {
+  try {
+    // const { textContent, numQuestions } = req.body;
+    const publisher = new Publisher();
+    await publisher.publishToQuestionGenerationQueue({ fileName: "file1", fileId: "691a1a8d0038c14d5c8c" });
+    res.json({ message: "Question generation job queued." });
+  } catch (error) {
+    console.error("❌ Error generating questions:", error);
+    res.status(500).json({ error: "Failed to generate questions." });
   }
 });
 

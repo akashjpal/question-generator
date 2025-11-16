@@ -1,2 +1,7 @@
 /question-generator-api/node_modules
 /question-generator-api/.env
+/file-scanner-worker/node_modules
+/file-scanner-worker/.env
+/text-extractor/venv
+/text-extractor/.env
+/text-extractor/__pycache__
