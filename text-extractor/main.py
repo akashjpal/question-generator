@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 import pdfplumber
 import pytesseract
@@ -6,6 +7,7 @@ from pdf2image import convert_from_bytes
 import io
 import google.generativeai as genai
 from dotenv import load_dotenv
+import json
 load_dotenv()   # <-- THIS loads .env automatically
 
 
@@ -59,20 +61,22 @@ def generate_questions(chunk):
     {chunk}
     """
 
-
-    # response = openai.chat.completions.create(
-    #     model="gpt-4o-mini",
-    #     messages=[{"role": "user", "content": prompt}]
-    # )
-
-    # return response.choices[0].message.content
-
     model = genai.GenerativeModel("models/gemini-2.0-flash")  # fast + cheap
     response = model.generate_content(prompt)
 
-    return response.text
+    raw = response.text
 
-    # return "Sample questions for chunk."
+    # --- CLEAN THE JSON (remove ```json and ``` if present) ---
+    cleaned = re.sub(r"```json|```", "", raw).strip()
+
+    # Parse JSON safely
+    try:
+        questions_list = json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        print("❌ JSON parsing failed. Raw output:\n", raw)
+        raise e
+
+    return questions_list
 
 def chunk_text(text, max_words=1200):
     """
@@ -115,10 +119,7 @@ def create_questions_from_pdf_text(text):
         q = generate_questions(chunk)
         all_questions.append(q)
 
-    # Step 3: Combine all text
-    final = "\n\n".join(all_questions)
-
-    return final
+    return all_questions
 
 def main(data):
     fileId = data.get("fileId")

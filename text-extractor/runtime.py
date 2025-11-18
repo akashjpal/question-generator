@@ -19,12 +19,8 @@ try:
         _, payload = job_data
         job = json.loads(payload)
         print("✅ Job received:", job)
-        print(job)
         result = main(job)
-
-        print(result)
-
-        print(job)
+        print("✅ Job completed. Result:", result)
 
 except KeyboardInterrupt:
     print("\n🛑 Worker stopped by user (Ctrl+C).")
