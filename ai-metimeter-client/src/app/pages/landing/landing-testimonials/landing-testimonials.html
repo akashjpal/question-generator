@@ -1,0 +1,63 @@
+<section class="testimonials-section" id="testimonials">
+    <div class="section-container">
+        <!-- Header -->
+        <div class="section-header">
+            <span class="section-badge">
+                <mat-icon>star</mat-icon>
+                Testimonials
+            </span>
+            <h2 class="section-title">Loved by Educators Worldwide</h2>
+            <p class="section-subtitle">
+                See what teachers and professors are saying about AI Quick Analysis
+            </p>
+        </div>
+
+        <!-- Testimonial Carousel -->
+        <div class="testimonial-carousel">
+            <div class="testimonial-track" [style.transform]="'translateX(-' + (currentIndex * 100) + '%)'">
+                <div class="testimonial-card" *ngFor="let testimonial of testimonials">
+                    <div class="testimonial-content">
+                        <!-- Quote Icon -->
+                        <div class="quote-icon">
+                            <mat-icon>format_quote</mat-icon>
+                        </div>
+
+                        <!-- Rating -->
+                        <div class="rating">
+                            <mat-icon *ngFor="let star of getStars(testimonial.rating)">star</mat-icon>
+                        </div>
+
+                        <!-- Quote Text -->
+                        <p class="quote-text">"{{ testimonial.quote }}"</p>
+
+                        <!-- Author -->
+                        <div class="testimonial-author">
+                            <div class="author-avatar">{{ testimonial.avatar }}</div>
+                            <div class="author-info">
+                                <span class="author-name">{{ testimonial.name }}</span>
+                                <span class="author-role">{{ testimonial.role }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="carousel-nav">
+                <button class="nav-arrow prev" (click)="prev()">
+                    <mat-icon>chevron_left</mat-icon>
+                </button>
+
+                <div class="nav-dots">
+                    <button class="nav-dot" *ngFor="let t of testimonials; let i = index"
+                        [class.active]="i === currentIndex" (click)="goTo(i)">
+                    </button>
+                </div>
+
+                <button class="nav-arrow next" (click)="next()">
+                    <mat-icon>chevron_right</mat-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>

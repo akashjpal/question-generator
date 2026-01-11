@@ -1,0 +1,39 @@
+<section class="how-it-works-section" id="how-it-works">
+    <div class="section-container">
+        <!-- Header -->
+        <div class="section-header">
+            <span class="section-badge">
+                <mat-icon>lightbulb</mat-icon>
+                Simple Process
+            </span>
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">
+                Transform your documents into engaging quizzes in just 4 simple steps
+            </p>
+        </div>
+
+        <!-- Steps Timeline -->
+        <div class="steps-container">
+            <div class="timeline-line"></div>
+
+            <div class="step-card" *ngFor="let step of steps; let i = index" [style.--step-color]="step.color">
+                <!-- Step Number -->
+                <div class="step-number">{{ step.number }}</div>
+
+                <!-- Step Content -->
+                <div class="step-content">
+                    <div class="step-icon">
+                        <mat-icon>{{ step.icon }}</mat-icon>
+                    </div>
+                    <h3 class="step-title">{{ step.title }}</h3>
+                    <p class="step-description">{{ step.description }}</p>
+                </div>
+
+                <!-- Connector -->
+                <div class="step-connector" *ngIf="i < steps.length - 1">
+                    <mat-icon>arrow_forward</mat-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,52 @@
+<div class="auth-page">
+    <div class="auth-container">
+        <mat-card class="auth-card">
+            <mat-card-header>
+                <mat-card-title>Create Account</mat-card-title>
+                <mat-card-subtitle>Join thousands of educators today</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+                <form class="auth-form">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Full Name</mat-label>
+                        <input matInput placeholder="John Doe">
+                        <mat-icon matPrefix>person</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Email Address</mat-label>
+                        <input matInput placeholder="you@example.com" type="email">
+                        <mat-icon matPrefix>email</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Password</mat-label>
+                        <input matInput [type]="hidePassword ? 'password' : 'text'">
+                        <mat-icon matPrefix>lock</mat-icon>
+                        <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+                            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                        </button>
+                    </mat-form-field>
+
+                    <button mat-flat-button color="primary" class="submit-btn" routerLink="/dashboard">
+                        Create Account
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span>Or sign up with</span>
+                </div>
+
+                <button mat-stroked-button class="google-btn">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20">
+                    Google
+                </button>
+            </mat-card-content>
+
+            <mat-card-footer>
+                <p>Already have an account? <a routerLink="/auth/login">Sign in</a></p>
+            </mat-card-footer>
+        </mat-card>
+    </div>
+</div>

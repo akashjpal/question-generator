@@ -1,0 +1,31 @@
+<div class="quiz-container">
+    <div class="quiz-header">
+        <div class="timer">
+            <mat-icon>timer</mat-icon>
+            <span>14:30</span>
+        </div>
+        <mat-progress-bar mode="determinate" [value]="progress"></mat-progress-bar>
+        <div class="question-count">Question {{currentQuestionIndex + 1}} of {{questions.length}}</div>
+    </div>
+
+    <mat-card class="question-card">
+        <mat-card-content>
+            <h2 class="question-text">{{currentQuestion.text}}</h2>
+
+            <mat-radio-group class="options-group" [(ngModel)]="currentQuestion.selectedAnswer">
+                <mat-radio-button *ngFor="let option of currentQuestion.options; let i = index" [value]="i"
+                    class="option-button">
+                    {{option}}
+                </mat-radio-button>
+            </mat-radio-group>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+            <button mat-button (click)="previousQuestion()" [disabled]="currentQuestionIndex === 0">Previous</button>
+            <button mat-flat-button color="primary" (click)="nextQuestion()"
+                *ngIf="currentQuestionIndex < questions.length - 1">Next</button>
+            <button mat-flat-button color="accent" (click)="submitQuiz()"
+                *ngIf="currentQuestionIndex === questions.length - 1">Submit</button>
+        </mat-card-actions>
+    </mat-card>
+</div>

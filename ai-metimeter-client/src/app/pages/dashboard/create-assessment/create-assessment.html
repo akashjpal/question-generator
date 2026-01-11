@@ -1,0 +1,169 @@
+<div class="page-container">
+    <div class="page-header">
+        <h1>Create New Assessment</h1>
+        <p>Follow the steps to generate, review, and publish your quiz.</p>
+    </div>
+
+    <mat-stepper [linear]="false" #stepper class="custom-stepper">
+        <!-- Step 1: Configuration -->
+        <mat-step label="Configure & Generate">
+            <div class="step-content">
+                <mat-card class="form-card">
+                    <mat-card-header>
+                        <mat-icon mat-card-avatar color="primary">auto_awesome</mat-icon>
+                        <mat-card-title>AI Configuration</mat-card-title>
+                        <mat-card-subtitle>Define parameters for AI generation</mat-card-subtitle>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="form-grid">
+                            <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Assessment Title</mat-label>
+                                <input matInput [(ngModel)]="assessmentData.title" placeholder="e.g. World War II">
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline">
+                                <mat-label>Subject</mat-label>
+                                <mat-select [(ngModel)]="assessmentData.subject">
+                                    <mat-option *ngFor="let s of subjects" [value]="s">{{s}}</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline">
+                                <mat-label>Difficulty</mat-label>
+                                <mat-select [(ngModel)]="assessmentData.difficulty">
+                                    <mat-option *ngFor="let d of difficulties" [value]="d">{{d}}</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Topic / Prompt</mat-label>
+                                <textarea matInput rows="3" [(ngModel)]="assessmentData.topic"
+                                    placeholder="Describe what the quiz should be about..."></textarea>
+                            </mat-form-field>
+
+                            <div class="file-upload-section full-width">
+                                <span class="label">Upload Material (Optional)</span>
+                                <div class="upload-box" (click)="fileInput.click()" *ngIf="!selectedFile">
+                                    <mat-icon>cloud_upload</mat-icon>
+                                    <span class="text">Click to upload PDF</span>
+                                    <span class="sub-text">Max 5MB • PDF only</span>
+                                    <input #fileInput type="file" accept="application/pdf"
+                                        (change)="onFileSelected($event)" hidden>
+                                </div>
+
+                                <div class="file-preview" *ngIf="selectedFile">
+                                    <mat-icon class="pdf-icon">picture_as_pdf</mat-icon>
+                                    <div class="file-info">
+                                        <span class="name">{{selectedFile.name}}</span>
+                                        <span class="size">{{(selectedFile.size / 1024 / 1024) | number:'1.1-2'}}
+                                            MB</span>
+                                    </div>
+                                    <button mat-icon-button color="warn" (click)="removeFile()">
+                                        <mat-icon>close</mat-icon>
+                                    </button>
+                                </div>
+                                <mat-error *ngIf="fileError" class="file-error">{{fileError}}</mat-error>
+                            </div>
+
+                            <mat-form-field appearance="outline">
+                                <mat-label>Question Count</mat-label>
+                                <input matInput type="number" [(ngModel)]="assessmentData.questionsCount" min="1"
+                                    max="10">
+                            </mat-form-field>
+                        </div>
+                    </mat-card-content>
+                    <mat-card-actions align="end">
+                        <button mat-raised-button color="primary" (click)="generateQuestions(); stepper.next()">
+                            <mat-icon>auto_awesome</mat-icon>
+                            {{ isGenerating ? 'Generating...' : 'Generate Questions' }}
+                        </button>
+                    </mat-card-actions>
+                </mat-card>
+            </div>
+        </mat-step>
+
+        <!-- Step 2: Edit Questions -->
+        <mat-step label="Review & Edit">
+            <div class="step-content">
+                <div class="questions-list">
+                    <mat-accordion multi>
+                        <mat-expansion-panel *ngFor="let q of questions; let i = index" [expanded]="true">
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                    Question {{i + 1}}
+                                </mat-panel-title>
+                                <mat-panel-description>
+                                    {{q.text | slice:0:50}}{{q.text.length > 50 ? '...' : ''}}
+                                </mat-panel-description>
+                            </mat-expansion-panel-header>
+
+                            <div class="question-editor">
+                                <mat-form-field appearance="outline" class="full-width">
+                                    <mat-label>Question Text</mat-label>
+                                    <textarea matInput [(ngModel)]="q.text"></textarea>
+                                </mat-form-field>
+
+                                <div class="options-grid">
+                                    <mat-radio-group [(ngModel)]="q.correctAnswer" name="correct-{{i}}">
+                                        <div class="option-row" *ngFor="let opt of q.options; let optIndex = index">
+                                            <mat-radio-button [value]="optIndex"></mat-radio-button>
+                                            <mat-form-field appearance="outline" class="option-input">
+                                                <mat-label>Option {{optIndex + 1}}</mat-label>
+                                                <input matInput [(ngModel)]="q.options[optIndex]">
+                                            </mat-form-field>
+                                        </div>
+                                    </mat-radio-group>
+                                </div>
+
+                                <div class="action-row">
+                                    <button mat-button color="warn" (click)="removeQuestion(i)">Delete Question</button>
+                                </div>
+                            </div>
+                        </mat-expansion-panel>
+                    </mat-accordion>
+
+                    <button mat-stroked-button class="add-btn" (click)="addQuestion()">
+                        <mat-icon>add</mat-icon> Add Manual Question
+                    </button>
+                </div>
+
+                <div class="step-actions">
+                    <button mat-button matStepperPrevious>Back</button>
+                    <button mat-raised-button color="primary" matStepperNext>Next: Preview</button>
+                </div>
+            </div>
+        </mat-step>
+
+        <!-- Step 3: Preview -->
+        <mat-step label="Preview & Publish">
+            <div class="step-content">
+                <mat-card class="preview-card">
+                    <mat-card-header>
+                        <mat-card-title>{{assessmentData.title}}</mat-card-title>
+                        <mat-card-subtitle>{{assessmentData.subject}} • {{questions.length}}
+                            Questions</mat-card-subtitle>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="preview-questions">
+                            <div class="preview-item" *ngFor="let q of questions; let i = index">
+                                <p class="q-text"><strong>{{i+1}}.</strong> {{q.text}}</p>
+                                <div class="q-options">
+                                    <span class="option" [class.correct]="optIndex === q.correctAnswer"
+                                        *ngFor="let opt of q.options; let optIndex = index">
+                                        {{opt}}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                    <mat-card-actions align="end">
+                        <button mat-button matStepperPrevious>Back</button>
+                        <button mat-raised-button color="primary" (click)="publishAssessment()">
+                            <mat-icon>publish</mat-icon> Publish Assessment
+                        </button>
+                    </mat-card-actions>
+                </mat-card>
+            </div>
+        </mat-step>
+    </mat-stepper>
+</div>

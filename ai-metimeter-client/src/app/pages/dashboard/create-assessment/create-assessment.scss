@@ -1,0 +1,617 @@
+:host {
+    display: block;
+}
+
+// Page Container
+.page-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding-bottom: 4rem;
+}
+
+// Page Header
+.page-header {
+    margin-bottom: 2rem;
+
+    h1 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem;
+        letter-spacing: -0.02em;
+        transition: color 0.3s ease;
+    }
+
+    p {
+        font-size: 0.9375rem;
+        color: var(--text-secondary);
+        margin: 0;
+        transition: color 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+        text-align: center;
+
+        h1 {
+            font-size: 1.75rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        h1 {
+            font-size: 1.5rem;
+        }
+
+        p {
+            font-size: 0.875rem;
+        }
+    }
+}
+
+// Custom Stepper Styling
+.custom-stepper {
+    background: transparent !important;
+
+    ::ng-deep {
+        .mat-horizontal-stepper-header-container {
+            background: var(--stepper-bg, rgba(255, 255, 255, 0.02));
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .mat-step-header {
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+
+            &:hover {
+                background: var(--bg-card-hover);
+            }
+
+            &[aria-selected="true"] {
+                background: rgba(139, 92, 246, 0.12);
+            }
+
+            .mat-step-icon {
+                background: rgba(139, 92, 246, 0.15);
+                color: #8b5cf6;
+
+                &.mat-step-icon-selected {
+                    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+                    color: white;
+                }
+
+                &.mat-step-icon-state-done {
+                    background: rgba(34, 197, 94, 0.15);
+                    color: #22c55e;
+                }
+            }
+
+            .mat-step-label {
+                color: var(--text-secondary);
+                font-weight: 500;
+                transition: color 0.3s ease;
+
+                &.mat-step-label-active {
+                    color: var(--text-primary);
+                }
+
+                &.mat-step-label-selected {
+                    color: var(--text-primary);
+                    font-weight: 600;
+                }
+            }
+        }
+
+        .mat-horizontal-content-container {
+            padding: 0;
+        }
+
+        .mat-stepper-horizontal-line {
+            border-color: var(--border-subtle);
+        }
+    }
+}
+
+// Step Content
+.step-content {
+    padding-top: 0;
+}
+
+// Modern Cards
+.form-card,
+.preview-card {
+    background: var(--card-bg, rgba(255, 255, 255, 0.02)) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 16px !important;
+    padding: 1.5rem !important;
+    box-shadow: var(--card-shadow, none) !important;
+    color: var(--text-primary) !important;
+    transition: all 0.3s ease;
+
+    ::ng-deep {
+        .mat-mdc-card-header {
+            padding: 0 0 1rem 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .mat-mdc-card-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .mat-mdc-card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            transition: color 0.3s ease;
+        }
+
+        .mat-mdc-card-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            transition: color 0.3s ease;
+        }
+
+        .mat-mdc-card-content {
+            padding: 0;
+        }
+
+        .mat-mdc-card-actions {
+            padding: 1rem 0 0 0;
+            margin: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        padding: 1.25rem !important;
+    }
+
+    @media (max-width: 480px) {
+        padding: 1rem !important;
+        border-radius: 12px !important;
+    }
+}
+
+// Form Grid
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-top: 0.5rem;
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+// Form Fields - Dark Theme Override
+::ng-deep {
+    .mat-mdc-form-field {
+        .mdc-text-field--outlined {
+            background: var(--input-bg) !important;
+
+            .mdc-notched-outline__leading,
+            .mdc-notched-outline__notch,
+            .mdc-notched-outline__trailing {
+                border-color: var(--border-subtle) !important;
+            }
+        }
+
+        &.mat-focused .mdc-text-field--outlined {
+            background: var(--bg-card) !important;
+
+            .mdc-notched-outline__leading,
+            .mdc-notched-outline__notch,
+            .mdc-notched-outline__trailing {
+                border-color: #8b5cf6 !important;
+            }
+        }
+
+        .mat-mdc-form-field-flex {
+            border-radius: 10px;
+        }
+
+        .mdc-floating-label,
+        .mat-mdc-floating-label {
+            color: var(--text-secondary) !important;
+        }
+
+        .mdc-text-field__input,
+        .mat-mdc-input-element {
+            color: var(--text-primary) !important;
+            caret-color: #8b5cf6;
+
+            &::placeholder {
+                color: var(--text-muted) !important;
+            }
+        }
+
+        .mat-mdc-select-value,
+        .mat-mdc-select-arrow {
+            color: var(--text-primary) !important;
+        }
+    }
+
+
+}
+
+// File Upload Section
+.file-upload-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    .upload-box {
+        border: 2px dashed rgba(139, 92, 246, 0.3);
+        border-radius: 12px;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: rgba(139, 92, 246, 0.03);
+
+        &:hover {
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(139, 92, 246, 0.08);
+
+            mat-icon {
+                color: #8b5cf6;
+                transform: translateY(-2px);
+            }
+        }
+
+        mat-icon {
+            font-size: 2.5rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            color: #8b5cf6;
+            margin-bottom: 0.75rem;
+            opacity: 0.7;
+            transition: all 0.2s ease;
+        }
+
+        .text {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9375rem;
+        }
+
+        .sub-text {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+    }
+
+    .file-preview {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        gap: 1rem;
+
+        .pdf-icon {
+            font-size: 2rem;
+            width: 2rem;
+            height: 2rem;
+            color: #f87171;
+        }
+
+        .file-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+
+            .name {
+                font-weight: 500;
+                font-size: 0.9375rem;
+                color: var(--text-primary);
+            }
+
+            .size {
+                font-size: 0.8125rem;
+                color: var(--text-secondary);
+            }
+        }
+    }
+
+    .file-error {
+        font-size: 0.8125rem;
+        color: #f87171;
+    }
+}
+
+// Questions List
+.questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+
+    ::ng-deep {
+        .mat-expansion-panel {
+            background: var(--card-bg, rgba(255, 255, 255, 0.02)) !important;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px !important;
+            box-shadow: none !important;
+            margin-bottom: 0;
+
+            &.mat-expanded {
+                border-color: rgba(139, 92, 246, 0.2);
+            }
+        }
+
+        .mat-expansion-panel-header {
+            padding: 1rem 1.25rem;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.03) !important;
+            }
+
+            .mat-expansion-panel-header-title {
+                color: var(--text-primary);
+                font-weight: 600;
+            }
+
+            .mat-expansion-panel-header-description {
+                color: var(--text-secondary);
+                font-size: 0.875rem;
+            }
+
+            .mat-expansion-indicator::after {
+                color: #71717a;
+            }
+        }
+
+        .mat-expansion-panel-body {
+            padding: 0 1.25rem 1.25rem;
+        }
+    }
+
+    .question-editor {
+        margin-top: 1rem;
+
+        .full-width {
+            width: 100%;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+
+            .option-row {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+
+                ::ng-deep .mat-mdc-radio-button {
+                    margin-top: -16px;
+
+                    .mdc-radio__outer-circle {
+                        border-color: var(--text-secondary);
+                    }
+
+                    &.mat-mdc-radio-checked .mdc-radio__outer-circle {
+                        border-color: #8b5cf6;
+                    }
+
+                    &.mat-mdc-radio-checked .mdc-radio__inner-circle {
+                        background-color: #8b5cf6;
+                        border-color: #8b5cf6;
+                    }
+                }
+
+                .option-input {
+                    flex: 1;
+                }
+            }
+
+            @media (max-width: 768px) {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+    }
+
+    .add-btn {
+        align-self: flex-start;
+        margin-top: 1rem;
+        color: #8b5cf6 !important;
+        border-color: rgba(139, 92, 246, 0.3) !important;
+
+        &:hover {
+            background: rgba(139, 92, 246, 0.1) !important;
+        }
+
+        mat-icon {
+            color: #8b5cf6;
+        }
+    }
+}
+
+// Step Actions
+.step-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+
+    @media (max-width: 600px) {
+        flex-direction: column;
+
+        button {
+            width: 100%;
+        }
+    }
+}
+
+// Preview Card
+.preview-card {
+    .preview-questions {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-top: 1rem;
+
+        .preview-item {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+
+            .q-text {
+                font-size: 1rem;
+                margin: 0 0 0.75rem;
+                color: var(--text-primary);
+                line-height: 1.5;
+
+                strong {
+                    color: #8b5cf6;
+                }
+            }
+
+            .q-options {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+
+                .option {
+                    background: var(--bg-card);
+                    padding: 0.5rem 1rem;
+                    border-radius: 8px;
+                    font-size: 0.875rem;
+                    color: var(--text-secondary);
+                    border: 1px solid var(--border-subtle);
+
+                    &.correct {
+                        background: rgba(34, 197, 94, 0.15);
+                        color: #22c55e;
+                        border-color: rgba(34, 197, 94, 0.3);
+                        font-weight: 500;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Button Styling
+::ng-deep {
+    .mat-mdc-raised-button.mat-primary {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3) !important;
+        border-radius: 10px !important;
+        font-weight: 600;
+        padding: 0 1.5rem;
+        height: 44px;
+
+        &:hover {
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4) !important;
+        }
+
+        mat-icon {
+            margin-right: 0.5rem;
+        }
+    }
+
+    .mat-mdc-button {
+        color: var(--text-secondary) !important;
+        border-radius: 10px !important;
+
+        &:hover {
+            background: var(--bg-card-hover) !important;
+            color: var(--text-primary) !important;
+        }
+    }
+
+    .mat-mdc-outlined-button,
+    .mat-mdc-stroked-button {
+        border-color: var(--border-subtle) !important;
+        color: var(--text-secondary) !important;
+        border-radius: 10px !important;
+
+        &:hover {
+            background: var(--bg-card-hover) !important;
+            color: var(--text-primary) !important;
+        }
+    }
+
+    .mat-mdc-icon-button.mat-warn {
+        color: #f87171 !important;
+
+        &:hover {
+            background: rgba(248, 113, 113, 0.1) !important;
+        }
+    }
+}
+
+// Delete/Warn Button in Questions
+::ng-deep .mat-mdc-button.mat-warn {
+    color: #f87171 !important;
+
+    &:hover {
+        background: rgba(248, 113, 113, 0.1) !important;
+    }
+}
+
+// Responsive Adjustments
+@media (max-width: 480px) {
+    .page-container {
+        padding-bottom: 2rem;
+    }
+
+    .custom-stepper ::ng-deep {
+        .mat-horizontal-stepper-header-container {
+            padding: 0.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .mat-step-header {
+            padding: 0.5rem 0.75rem;
+
+            .mat-step-label {
+                font-size: 0.8125rem;
+            }
+        }
+    }
+}

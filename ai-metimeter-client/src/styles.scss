@@ -1,0 +1,328 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$ai-mentimeter-primary: mat.m2-define-palette(mat.$m2-indigo-palette);
+$ai-mentimeter-accent: mat.m2-define-palette(mat.$m2-pink-palette, A200, A100, A400);
+$ai-mentimeter-warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+$ai-mentimeter-theme: mat.m2-define-light-theme((color: (primary: $ai-mentimeter-primary,
+        accent: $ai-mentimeter-accent,
+        warn: $ai-mentimeter-warn,
+      )));
+
+@include mat.all-component-themes($ai-mentimeter-theme);
+
+// ============================================
+// CSS Custom Properties (Design Tokens)
+// ============================================
+:root {
+  // Colors
+  --color-primary: hsl(262, 83%, 58%);
+  --color-primary-light: hsl(262, 83%, 68%);
+  --color-primary-dark: hsl(262, 83%, 48%);
+  --color-accent: hsl(197, 92%, 59%);
+  --color-accent-dark: hsl(217, 91%, 60%);
+  --color-success: hsl(158, 64%, 52%);
+  --color-warning: hsl(43, 96%, 56%);
+
+  --bg-dark: hsl(240, 10%, 4%);
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
+  --dropdown-bg: #1e1e24;
+
+  --text-primary: hsl(0, 0%, 100%);
+  --text-secondary: hsl(240, 5%, 65%);
+  --text-muted: hsl(240, 4%, 46%);
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(255, 255, 255, 0.15);
+
+  // Typography
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  // Transitions
+  --transition-fast: 150ms ease;
+  --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  // Shadows
+  --shadow-glow-primary: 0 0 40px rgba(139, 92, 246, 0.3);
+  --shadow-glow-accent: 0 0 40px rgba(56, 189, 248, 0.3);
+}
+
+// ============================================
+// Light Theme Variables
+// ============================================
+body.light-theme {
+  --bg-dark: #f8fafc;
+  --bg-card: rgba(0, 0, 0, 0.02);
+  --bg-card-hover: rgba(0, 0, 0, 0.04);
+  --dropdown-bg: #ffffff;
+
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+
+  --border-subtle: rgba(0, 0, 0, 0.1);
+  --border-light: rgba(0, 0, 0, 0.15);
+
+  --shadow-glow-primary: 0 4px 20px rgba(139, 92, 246, 0.2);
+  --shadow-glow-accent: 0 4px 20px rgba(56, 189, 248, 0.2);
+
+  // Light theme specific colors
+  --sidenav-bg: #ffffff;
+  --sidenav-border: rgba(0, 0, 0, 0.1);
+  --topbar-bg: rgba(255, 255, 255, 0.98);
+  --input-bg: #f1f5f9;
+  --card-bg: #ffffff;
+
+  // Additional light theme contrasts
+  --icon-color: #374151;
+  --icon-active: #7c3aed;
+  --stepper-bg: #e5e7eb;
+  --stepper-text: #374151;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --header-gradient: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+}
+
+// Dark theme (default)
+body.dark-theme {
+  --sidenav-bg: linear-gradient(180deg, #0f0f12 0%, #09090b 100%);
+  --sidenav-border: rgba(255, 255, 255, 0.06);
+  --topbar-bg: rgba(15, 15, 18, 0.95);
+  --input-bg: rgba(255, 255, 255, 0.03);
+  --card-bg: rgba(255, 255, 255, 0.02);
+
+  // Dark theme specific
+  --icon-color: #a1a1aa;
+  --icon-active: #8b5cf6;
+  --stepper-bg: rgba(255, 255, 255, 0.05);
+  --stepper-text: #ffffff;
+  --card-shadow: none;
+  --header-gradient: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+}
+
+// ============================================
+// Global Resets & Base Styles
+// ============================================
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+// ============================================
+// Utility Classes
+// ============================================
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+}
+
+// ============================================
+// Animation Keyframes
+// ============================================
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.5);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ============================================
+// Animation Utility Classes
+// ============================================
+.animate-fade-in {
+  animation: fadeIn 0.6s var(--transition-smooth) forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s var(--transition-smooth) forwards;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.6s var(--transition-smooth) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.6s var(--transition-smooth) forwards;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+// Staggered delay utilities
+@for $i from 1 through 10 {
+  .delay-#{$i} {
+    animation-delay: #{$i * 0.1}s;
+  }
+}
+
+// ============================================
+// Scrollbar Styling
+// ============================================
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+// ============================================
+// Material Overrides
+// ============================================
+.mat-mdc-select-panel {
+  background: var(--dropdown-bg) !important;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-glow-primary) !important;
+
+  .mat-mdc-option {
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--bg-card-hover) !important;
+      color: var(--text-primary);
+    }
+
+    &.mdc-list-item--selected {
+      background: rgba(139, 92, 246, 0.15) !important;
+      color: var(--text-primary);
+    }
+  }
+}

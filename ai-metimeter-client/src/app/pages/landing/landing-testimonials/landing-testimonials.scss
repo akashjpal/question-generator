@@ -1,0 +1,237 @@
+:host {
+    display: block;
+}
+
+.testimonials-section {
+    padding: 120px 24px;
+    background: linear-gradient(180deg, #0f0f12 0%, #09090b 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.section-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+// Header
+.section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.section-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    border-radius: 99px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #fbbf24;
+    margin-bottom: 1.5rem;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 1rem;
+    letter-spacing: -0.02em;
+
+    @media (max-width: 768px) {
+        font-size: 2.25rem;
+    }
+}
+
+.section-subtitle {
+    font-size: 1.25rem;
+    color: #a1a1aa;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+// Carousel
+.testimonial-carousel {
+    position: relative;
+    overflow: hidden;
+}
+
+.testimonial-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.testimonial-card {
+    min-width: 100%;
+    padding: 0 1rem;
+}
+
+.testimonial-content {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 3rem;
+    text-align: center;
+    position: relative;
+    padding-top: 4rem;
+
+    @media (max-width: 768px) {
+        padding: 2rem;
+        padding-top: 4rem;
+    }
+}
+
+.quote-icon {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+
+    mat-icon {
+        font-size: 24px;
+        color: white;
+        transform: rotate(180deg);
+    }
+}
+
+.rating {
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+    margin-top: 1rem;
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #fbbf24;
+    }
+}
+
+.quote-text {
+    font-size: 1.375rem;
+    color: #e4e4e7;
+    line-height: 1.7;
+    margin: 0 0 2rem;
+    font-style: italic;
+
+    @media (max-width: 768px) {
+        font-size: 1.125rem;
+    }
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.author-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6 0%, #38bdf8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+}
+
+.author-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.author-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: white;
+}
+
+.author-role {
+    font-size: 0.875rem;
+    color: #a1a1aa;
+}
+
+// Navigation
+.carousel-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+}
+
+.nav-arrow {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    mat-icon {
+        font-size: 24px;
+        color: white;
+    }
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.05);
+    }
+}
+
+.nav-dots {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.nav-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+
+    &.active {
+        background: #8b5cf6;
+        transform: scale(1.2);
+    }
+
+    &:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.4);
+    }
+}

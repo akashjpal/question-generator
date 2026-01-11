@@ -1,0 +1,11 @@
+<div class="app-container" [class.landing-mode]="isLandingPage()">
+  @if (!isLandingPage()) {
+  <app-header></app-header>
+  }
+  <main class="content" [class.no-padding]="isLandingPage()">
+    <router-outlet></router-outlet>
+  </main>
+  @if (!isLandingPage()) {
+  <app-footer></app-footer>
+  }
+</div>

@@ -1,0 +1,223 @@
+<div class="my-quizzes-page">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1>My Quizzes</h1>
+                <p>Manage, analyze, and track your AI-generated assessments</p>
+            </div>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <span class="stat-value">{{ quizzes.length }}</span>
+                    <span class="stat-label">Total Quizzes</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">{{ getPublishedCount() }}</span>
+                    <span class="stat-label">Published</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">{{ getDraftCount() }}</span>
+                    <span class="stat-label">Drafts</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="actions-bar">
+        <div class="filter-tabs">
+            <button class="filter-tab" [class.active]="selectedFilter === 'All'" (click)="setFilter('All')">
+                All
+            </button>
+            <button class="filter-tab" [class.active]="selectedFilter === 'Published'" (click)="setFilter('Published')">
+                Published
+            </button>
+            <button class="filter-tab" [class.active]="selectedFilter === 'Draft'" (click)="setFilter('Draft')">
+                Drafts
+            </button>
+        </div>
+
+        <div class="view-actions">
+            <button class="view-btn" [class.active]="viewMode === 'grid'" (click)="setViewMode('grid')"
+                title="Grid view">
+                <mat-icon>grid_view</mat-icon>
+            </button>
+            <button class="view-btn" [class.active]="viewMode === 'list'" (click)="setViewMode('list')"
+                title="List view">
+                <mat-icon>view_list</mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="displayedQuizzes.length === 0">
+        <div class="empty-icon">
+            <mat-icon>quiz</mat-icon>
+        </div>
+        <h3>No quizzes found</h3>
+        <p>Create your first AI-powered assessment to get started</p>
+        <a class="create-btn" routerLink="/dashboard/create-assessment">
+            <mat-icon>add</mat-icon>
+            Create Assessment
+        </a>
+    </div>
+
+    <!-- Quizzes Grid View -->
+    <div class="quizzes-grid" *ngIf="displayedQuizzes.length > 0 && viewMode === 'grid'">
+        <div class="quiz-card" *ngFor="let quiz of displayedQuizzes">
+            <!-- Status Indicator -->
+            <div class="card-status" [class.published]="quiz.status === 'Published'"
+                [class.draft]="quiz.status === 'Draft'">
+                <span class="status-dot"></span>
+                {{ quiz.status }}
+            </div>
+
+            <!-- Card Menu -->
+            <button class="card-menu-btn" [matMenuTriggerFor]="menu">
+                <mat-icon>more_horiz</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu" class="card-menu">
+                <button mat-menu-item>
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit</span>
+                </button>
+                <button mat-menu-item>
+                    <mat-icon>content_copy</mat-icon>
+                    <span>Duplicate</span>
+                </button>
+                <button mat-menu-item>
+                    <mat-icon>share</mat-icon>
+                    <span>Share</span>
+                </button>
+                <button mat-menu-item [routerLink]="['/dashboard/reports', quiz.id]">
+                    <mat-icon>analytics</mat-icon>
+                    <span>View Report</span>
+                </button>
+                <mat-divider></mat-divider>
+                <button mat-menu-item class="delete-action">
+                    <mat-icon>delete</mat-icon>
+                    <span>Delete</span>
+                </button>
+            </mat-menu>
+
+            <!-- Card Content -->
+            <div class="card-content">
+                <div class="quiz-icon" [attr.data-subject]="getSubjectClass(quiz.subject)">
+                    <mat-icon>{{ getSubjectIcon(quiz.subject) }}</mat-icon>
+                </div>
+
+                <h3 class="quiz-title">{{ quiz.title }}</h3>
+                <span class="quiz-subject">{{ quiz.subject }}</span>
+
+                <!-- Stats -->
+                <div class="quiz-stats">
+                    <div class="quiz-stat">
+                        <mat-icon>help_outline</mat-icon>
+                        <span>{{ quiz.questionsCount }} questions</span>
+                    </div>
+                    <div class="quiz-stat">
+                        <mat-icon>schedule</mat-icon>
+                        <span>15 mins</span>
+                    </div>
+                    <div class="quiz-stat" *ngIf="quiz.status === 'Published'">
+                        <mat-icon>people</mat-icon>
+                        <span>24 attempts</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Footer -->
+            <div class="card-footer">
+                <span class="quiz-date">
+                    <mat-icon>calendar_today</mat-icon>
+                    {{ quiz.createdAt }}
+                </span>
+                <a class="view-btn-link" [routerLink]="['/dashboard/reports', quiz.id]">
+                    View Details
+                    <mat-icon>arrow_forward</mat-icon>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quizzes List View -->
+    <div class="quizzes-list" *ngIf="displayedQuizzes.length > 0 && viewMode === 'list'">
+        <div class="quiz-list-item" *ngFor="let quiz of displayedQuizzes">
+            <!-- Icon -->
+            <div class="list-item-icon" [attr.data-subject]="getSubjectClass(quiz.subject)">
+                <mat-icon>{{ getSubjectIcon(quiz.subject) }}</mat-icon>
+            </div>
+
+            <!-- Content -->
+            <div class="list-item-content">
+                <div class="list-item-header">
+                    <h3 class="quiz-title">{{ quiz.title }}</h3>
+                    <span class="list-status" [class.published]="quiz.status === 'Published'"
+                        [class.draft]="quiz.status === 'Draft'">
+                        <span class="status-dot"></span>
+                        {{ quiz.status }}
+                    </span>
+                </div>
+                <span class="quiz-subject">{{ quiz.subject }}</span>
+            </div>
+
+            <!-- Stats -->
+            <div class="list-item-stats">
+                <div class="list-stat">
+                    <mat-icon>help_outline</mat-icon>
+                    <span>{{ quiz.questionsCount }}</span>
+                </div>
+                <div class="list-stat">
+                    <mat-icon>schedule</mat-icon>
+                    <span>15m</span>
+                </div>
+                <div class="list-stat" *ngIf="quiz.status === 'Published'">
+                    <mat-icon>people</mat-icon>
+                    <span>24</span>
+                </div>
+            </div>
+
+            <!-- Date -->
+            <div class="list-item-date">
+                {{ quiz.createdAt }}
+            </div>
+
+            <!-- Actions -->
+            <div class="list-item-actions">
+                <a class="list-view-btn" [routerLink]="['/dashboard/reports', quiz.id]">
+                    View
+                </a>
+                <button class="list-menu-btn" [matMenuTriggerFor]="listMenu">
+                    <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #listMenu="matMenu" class="card-menu">
+                    <button mat-menu-item>
+                        <mat-icon>edit</mat-icon>
+                        <span>Edit</span>
+                    </button>
+                    <button mat-menu-item>
+                        <mat-icon>content_copy</mat-icon>
+                        <span>Duplicate</span>
+                    </button>
+                    <button mat-menu-item>
+                        <mat-icon>share</mat-icon>
+                        <span>Share</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item class="delete-action">
+                        <mat-icon>delete</mat-icon>
+                        <span>Delete</span>
+                    </button>
+                </mat-menu>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load More Button -->
+    <div class="load-more-section" *ngIf="hasMoreQuizzes">
+        <button class="load-more-btn" (click)="loadMore()">
+            <mat-icon>expand_more</mat-icon>
+            Load More ({{ remainingCount }} remaining)
+        </button>
+    </div>
+</div>

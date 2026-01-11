@@ -1,0 +1,21 @@
+<section class="stats-section">
+    <div class="stats-container">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-item" *ngFor="let stat of stats; let i = index" [style.animation-delay.ms]="i * 100">
+                <span class="stat-value">
+                    {{ stat.currentValue | number }}{{ stat.suffix }}
+                </span>
+                <span class="stat-label">{{ stat.label }}</span>
+            </div>
+        </div>
+
+        <!-- Trust Banner -->
+        <div class="trust-banner">
+            <span class="trust-label">Trusted by educators at</span>
+            <div class="trust-logos">
+                <span class="trust-logo" *ngFor="let company of trustedBy">{{ company }}</span>
+            </div>
+        </div>
+    </div>
+</section>
