@@ -1,0 +1,43 @@
+.join-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f8fafc;
+    padding: 20px;
+}
+
+.join-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 24px;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+
+    mat-card-header {
+        margin-bottom: 24px;
+        text-align: center;
+        justify-content: center;
+
+        mat-card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+    }
+}
+
+.join-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    mat-form-field {
+        width: 100%;
+    }
+}
+
+mat-card-actions {
+    padding: 16px 0 0 !important;
+    gap: 8px;
+}

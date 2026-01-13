@@ -1,0 +1,198 @@
+:host {
+    display: block;
+}
+
+.features-section {
+    padding: 120px 24px;
+    background-color: #09090b;
+    position: relative;
+    overflow: hidden;
+
+    // Gradient accent at top
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent);
+    }
+}
+
+.features-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+// Header
+.features-header {
+    text-align: center;
+    margin-bottom: 5rem;
+}
+
+.section-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 99px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #a78bfa;
+    margin-bottom: 1.5rem;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 1rem;
+    letter-spacing: -0.02em;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+
+    @media (max-width: 768px) {
+        font-size: 2.25rem;
+    }
+}
+
+.section-subtitle {
+    font-size: 1.25rem;
+    color: #a1a1aa;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+
+    @media (max-width: 768px) {
+        font-size: 1.125rem;
+    }
+}
+
+// Bento Grid
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+
+    @media (max-width: 968px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+// Feature Card
+.feature-card {
+    position: relative;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+
+    &.large {
+        grid-row: span 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        @media (max-width: 968px) {
+            grid-row: span 1;
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+
+            mat-icon {
+                font-size: 32px;
+                width: 32px;
+                height: 32px;
+            }
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+        }
+
+        .feature-description {
+            font-size: 1.0625rem;
+        }
+    }
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
+        transform: translateY(-8px);
+
+        .feature-icon {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px color-mix(in srgb, var(--accent-color) 40%, transparent);
+        }
+
+        .feature-glow {
+            opacity: 1;
+        }
+    }
+}
+
+.feature-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--accent-color) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-color) 25%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+
+    mat-icon {
+        font-size: 26px;
+        width: 26px;
+        height: 26px;
+        color: var(--accent-color);
+    }
+}
+
+.feature-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: white;
+    margin: 0 0 0.75rem;
+}
+
+.feature-description {
+    font-size: 0.9375rem;
+    color: #a1a1aa;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.feature-glow {
+    position: absolute;
+    bottom: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at center, color-mix(in srgb, var(--accent-color) 8%, transparent) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}

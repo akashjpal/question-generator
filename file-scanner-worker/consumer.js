@@ -6,7 +6,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const redis = createClient({ url: "redis://localhost:6379" });
+const redis = createClient({  url: "redis://localhost:6379",
+      password: "myStrongPassword", });
 await redis.connect();
 
 const appwrite = new Client()

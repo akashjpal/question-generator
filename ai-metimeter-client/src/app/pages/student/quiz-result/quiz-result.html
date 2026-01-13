@@ -1,0 +1,41 @@
+<div class="result-container">
+    <mat-card class="result-card">
+        <mat-card-header>
+            <div class="result-icon-wrapper" [class.passed]="score >= 70" [class.failed]="score < 70">
+                <mat-icon class="result-icon">{{score >= 70 ? 'emoji_events' : 'sentiment_dissatisfied'}}</mat-icon>
+            </div>
+            <mat-card-title>{{score >= 70 ? 'Congratulations!' : 'Keep Practicing'}}</mat-card-title>
+            <mat-card-subtitle>{{score >= 70 ? 'You passed the assessment.' : 'Don\'t give up, try
+                again!'}}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+            <div class="score-display">
+                <div class="score-circle" [class.passed]="score >= 70" [class.failed]="score < 70">
+                    <span class="score-value">{{score}}%</span>
+                    <span class="score-label">Score</span>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-item">
+                    <span class="value">3/3</span>
+                    <span class="label">Correct</span>
+                </div>
+                <div class="stat-item">
+                    <span class="value">14:30</span>
+                    <span class="label">Time</span>
+                </div>
+                <div class="stat-item">
+                    <span class="value">#1</span>
+                    <span class="label">Rank</span>
+                </div>
+            </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+            <button mat-stroked-button color="primary" routerLink="/dashboard">Review Answers</button>
+            <button mat-flat-button color="primary" routerLink="/">Back to Home</button>
+        </mat-card-actions>
+    </mat-card>
+</div>

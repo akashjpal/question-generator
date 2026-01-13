@@ -5,3 +5,7 @@
 /text-extractor/venv
 /text-extractor/.env
 /text-extractor/__pycache__
+/ai-metimeter-client/node_modules
+/ai-metimeter-client/dist
+/ai-metimeter-client/backend_requirements.md
+/ai-metimeter-client/.editorconfig

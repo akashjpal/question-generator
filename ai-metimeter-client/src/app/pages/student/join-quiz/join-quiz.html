@@ -1,0 +1,32 @@
+<div class="join-container">
+    <mat-card class="join-card">
+        <mat-card-header>
+            <mat-card-title>Join Assessment</mat-card-title>
+            <mat-card-subtitle>Enter your details to start</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+            <form class="join-form">
+                <mat-form-field appearance="outline">
+                    <mat-label>Student Name</mat-label>
+                    <input matInput [(ngModel)]="studentName" name="studentName" required placeholder="John Doe">
+                    <mat-icon matSuffix>person</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Assessment Code</mat-label>
+                    <input matInput [(ngModel)]="quizCode" name="quizCode" required placeholder="123456" maxlength="6">
+                    <mat-hint align="end">{{quizCode.length}} / 6</mat-hint>
+                    <mat-icon matSuffix>pin</mat-icon>
+                </mat-form-field>
+            </form>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+            <button mat-button routerLink="/">Cancel</button>
+            <button mat-flat-button color="primary" [disabled]="!isValid()" (click)="joinQuiz()">
+                Start Quiz
+            </button>
+        </mat-card-actions>
+    </mat-card>
+</div>

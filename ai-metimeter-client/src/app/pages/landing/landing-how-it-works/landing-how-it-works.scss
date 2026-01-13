@@ -1,0 +1,186 @@
+:host {
+    display: block;
+}
+
+.how-it-works-section {
+    padding: 120px 24px;
+    background-color: #09090b;
+    position: relative;
+    overflow: hidden;
+
+    // Grid pattern
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+}
+
+.section-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+// Header
+.section-header {
+    text-align: center;
+    margin-bottom: 5rem;
+}
+
+.section-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 99px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #a78bfa;
+    margin-bottom: 1.5rem;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 1rem;
+    letter-spacing: -0.02em;
+
+    @media (max-width: 768px) {
+        font-size: 2.25rem;
+    }
+}
+
+.section-subtitle {
+    font-size: 1.25rem;
+    color: #a1a1aa;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+
+    @media (max-width: 768px) {
+        font-size: 1.125rem;
+    }
+}
+
+// Steps Container
+.steps-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    position: relative;
+
+    @media (max-width: 1024px) {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+
+    @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.timeline-line {
+    display: none; // Hidden, using connectors instead
+}
+
+// Step Card
+.step-card {
+    position: relative;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.04);
+        transform: translateY(-8px);
+        border-color: rgba(255, 255, 255, 0.1);
+
+        .step-icon {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px color-mix(in srgb, var(--step-color) 30%, transparent);
+        }
+
+        .step-number {
+            color: var(--step-color);
+        }
+    }
+}
+
+.step-number {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.05);
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    transition: color 0.3s ease;
+}
+
+.step-content {
+    position: relative;
+    z-index: 2;
+}
+
+.step-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+
+    mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+        color: var(--step-color);
+    }
+}
+
+.step-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: white;
+    margin: 0 0 0.75rem;
+}
+
+.step-description {
+    font-size: 0.9375rem;
+    color: #a1a1aa;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.step-connector {
+    display: none; // Connectors hidden for cleaner look
+
+    @media (min-width: 1025px) {
+        position: absolute;
+        right: -1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 3;
+
+        mat-icon {
+            font-size: 20px;
+            color: #3f3f46;
+        }
+    }
+}

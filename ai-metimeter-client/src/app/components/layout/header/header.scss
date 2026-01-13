@@ -1,0 +1,55 @@
+.header-toolbar {
+    position: fixed; // Overlay style
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background: rgba(9, 9, 11, 0.5) !important; // More transparent
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.spacer {
+    flex: 1 1 auto;
+}
+
+.logo {
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+    font-family: 'Inter', sans-serif;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &:hover {
+        opacity: 0.9;
+    }
+}
+
+.login-btn {
+    margin-left: 16px;
+    background-color: white !important;
+    color: black !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 0 20px !important;
+
+    &:hover {
+        background-color: #f4f4f5 !important;
+    }
+}
+
+// Navigation Links
+[mat-button] {
+    color: #a1a1aa !important;
+    font-weight: 500;
+
+    &:hover {
+        color: white !important;
+        background: rgba(255, 255, 255, 0.05);
+    }
+}

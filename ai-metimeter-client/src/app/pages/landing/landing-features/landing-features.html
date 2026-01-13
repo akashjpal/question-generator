@@ -1,0 +1,31 @@
+<section class="features-section" id="features">
+    <div class="features-container">
+        <!-- Header -->
+        <div class="features-header">
+            <span class="section-badge">
+                <mat-icon>auto_awesome</mat-icon>
+                Features
+            </span>
+            <h2 class="section-title">Everything You Need to Create Amazing Assessments</h2>
+            <p class="section-subtitle">
+                Powerful features designed to save you time and engage your students like never before.
+            </p>
+        </div>
+
+        <!-- Bento Grid -->
+        <div class="bento-grid">
+            <div class="feature-card" *ngFor="let feature of features; let i = index"
+                [class.large]="feature.size === 'large'" [style.--accent-color]="feature.color">
+
+                <div class="feature-icon">
+                    <mat-icon>{{ feature.icon }}</mat-icon>
+                </div>
+
+                <h3 class="feature-title">{{ feature.title }}</h3>
+                <p class="feature-description">{{ feature.description }}</p>
+
+                <div class="feature-glow"></div>
+            </div>
+        </div>
+    </div>
+</section>

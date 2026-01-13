@@ -1,0 +1,47 @@
+<nav class="navbar" [class.scrolled]="isScrolled">
+    <div class="navbar-container">
+        <!-- Logo -->
+        <a class="navbar-logo" routerLink="/">
+            <div class="logo-icon">
+                <mat-icon>auto_awesome</mat-icon>
+            </div>
+            <span class="logo-text">AI Quick Analysis</span>
+        </a>
+
+        <!-- Desktop Navigation -->
+        <div class="navbar-links">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#how-it-works" class="nav-link">How it Works</a>
+            <a href="#pricing" class="nav-link">Pricing</a>
+            <a href="#testimonials" class="nav-link">Reviews</a>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="navbar-actions">
+            <a routerLink="/auth/login" class="nav-btn secondary">Sign In</a>
+            <a routerLink="/dashboard" class="nav-btn primary">
+                Get Started
+                <mat-icon>arrow_forward</mat-icon>
+            </a>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" [class.open]="isMobileMenuOpen">
+        <a href="#features" class="mobile-link" (click)="closeMobileMenu()">Features</a>
+        <a href="#how-it-works" class="mobile-link" (click)="closeMobileMenu()">How it Works</a>
+        <a href="#pricing" class="mobile-link" (click)="closeMobileMenu()">Pricing</a>
+        <a href="#testimonials" class="mobile-link" (click)="closeMobileMenu()">Reviews</a>
+        <div class="mobile-actions">
+            <a routerLink="/auth/login" class="nav-btn secondary" (click)="closeMobileMenu()">Sign In</a>
+            <a routerLink="/dashboard" class="nav-btn primary" (click)="closeMobileMenu()">Get Started</a>
+        </div>
+    </div>
+</nav>

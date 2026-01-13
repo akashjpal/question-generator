@@ -1,0 +1,68 @@
+<mat-sidenav-container class="sidenav-container">
+    <mat-sidenav #drawer class="sidenav" [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+        [mode]="(isHandset$ | async) ? 'over' : 'side'" [opened]="(isHandset$ | async) === false">
+
+        <!-- Brand Logo -->
+        <div class="brand-section">
+            <a routerLink="/" class="brand-logo">
+                <div class="logo-icon">
+                    <mat-icon>auto_awesome</mat-icon>
+                </div>
+                <span class="logo-text">AI Quick Analysis</span>
+            </a>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="nav-list">
+            <a class="nav-item" routerLink="/dashboard/my-quizzes" routerLinkActive="active">
+                <mat-icon>dashboard</mat-icon>
+                <span>My Quizzes</span>
+            </a>
+            <a class="nav-item" routerLink="/dashboard/reports" routerLinkActive="active">
+                <mat-icon>analytics</mat-icon>
+                <span>Reports</span>
+            </a>
+            <a class="nav-item" routerLink="/dashboard/settings" routerLinkActive="active">
+                <mat-icon>settings</mat-icon>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <!-- Create Button -->
+        <div class="nav-footer">
+            <a class="create-btn" routerLink="/dashboard/create-assessment">
+                <mat-icon>add</mat-icon>
+                <span>New Assessment</span>
+            </a>
+        </div>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <button type="button" class="menu-toggle" mat-icon-button (click)="drawer.toggle()"
+                *ngIf="isHandset$ | async">
+                <mat-icon>menu</mat-icon>
+            </button>
+
+            <div class="top-bar-search">
+                <mat-icon>search</mat-icon>
+                <input type="text" placeholder="Search quizzes, reports...">
+            </div>
+
+            <div class="top-bar-actions">
+                <button mat-icon-button class="action-btn">
+                    <mat-icon>notifications</mat-icon>
+                </button>
+                <button mat-icon-button class="action-btn profile-btn">
+                    <mat-icon>account_circle</mat-icon>
+                </button>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="content-wrapper">
+            <router-outlet></router-outlet>
+        </div>
+    </mat-sidenav-content>
+</mat-sidenav-container>

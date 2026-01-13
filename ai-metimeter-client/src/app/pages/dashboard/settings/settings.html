@@ -1,0 +1,230 @@
+<div class="settings-page">
+    <!-- Settings Sidebar -->
+    <aside class="settings-sidebar">
+        <nav class="settings-nav">
+            @for (section of settingsSections; track section.id) {
+            <button class="settings-nav-item" [class.active]="activeSection === section.id"
+                (click)="setActiveSection(section.id)">
+                <mat-icon>{{ section.icon }}</mat-icon>
+                <span>{{ section.label }}</span>
+            </button>
+            }
+        </nav>
+    </aside>
+
+    <!-- Settings Content -->
+    <main class="settings-content">
+        <!-- Profile Section -->
+        @if (activeSection === 'profile') {
+        <section class="settings-section">
+            <div class="section-header">
+                <h2>Profile</h2>
+                <p>Manage your personal information and account details.</p>
+            </div>
+
+            <div class="settings-card">
+                <div class="avatar-section">
+                    <div class="avatar">
+                        <span>DU</span>
+                    </div>
+                    <div class="avatar-info">
+                        <h3>Demo User</h3>
+                        <p>demo&#64;example.com</p>
+                    </div>
+                    <button class="btn-outline">Change Avatar</button>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h3 class="card-title">Personal Information</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" value="Demo" placeholder="Enter first name">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" value="User" placeholder="Enter last name">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Email Address</label>
+                        <input type="email" value="demo@example.com" placeholder="Enter email">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Bio</label>
+                        <textarea rows="3" placeholder="Tell us about yourself..."></textarea>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-secondary">Cancel</button>
+                    <button class="btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </section>
+        }
+
+        <!-- Preferences Section -->
+        @if (activeSection === 'preferences') {
+        <section class="settings-section" @fadeIn>
+            <div class="section-header">
+                <h2>Preferences</h2>
+                <p>Customize your app experience and behavior.</p>
+            </div>
+
+            <div class="settings-card">
+                <h3 class="card-title">Appearance</h3>
+                <div class="toggle-list">
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <mat-icon class="toggle-icon">dark_mode</mat-icon>
+                            <div>
+                                <span class="toggle-title">Dark Mode</span>
+                                <span class="toggle-desc">Use dark theme across the application</span>
+                            </div>
+                        </div>
+                        <mat-slide-toggle color="primary" [checked]="isDarkMode"
+                            (change)="onThemeToggle($event.checked)"></mat-slide-toggle>
+                    </div>
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <mat-icon class="toggle-icon">animation</mat-icon>
+                            <div>
+                                <span class="toggle-title">Reduce Motion</span>
+                                <span class="toggle-desc">Minimize animations for better accessibility</span>
+                            </div>
+                        </div>
+                        <mat-slide-toggle color="primary"></mat-slide-toggle>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h3 class="card-title">Language & Region</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Language</label>
+                        <select>
+                            <option>English (US)</option>
+                            <option>Spanish</option>
+                            <option>French</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Time Zone</label>
+                        <select>
+                            <option>UTC +5:30 (IST)</option>
+                            <option>UTC +0 (GMT)</option>
+                            <option>UTC -5 (EST)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+        }
+
+        <!-- Notifications Section -->
+        @if (activeSection === 'notifications') {
+        <section class="settings-section" @fadeIn>
+            <div class="section-header">
+                <h2>Notifications</h2>
+                <p>Configure how and when you receive updates.</p>
+            </div>
+
+            <div class="settings-card">
+                <h3 class="card-title">Email Notifications</h3>
+                <div class="toggle-list">
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <mat-icon class="toggle-icon">quiz</mat-icon>
+                            <div>
+                                <span class="toggle-title">Quiz Submissions</span>
+                                <span class="toggle-desc">Get notified when students submit quizzes</span>
+                            </div>
+                        </div>
+                        <mat-slide-toggle color="primary" [checked]="true"></mat-slide-toggle>
+                    </div>
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <mat-icon class="toggle-icon">analytics</mat-icon>
+                            <div>
+                                <span class="toggle-title">Weekly Reports</span>
+                                <span class="toggle-desc">Receive weekly summary of quiz performance</span>
+                            </div>
+                        </div>
+                        <mat-slide-toggle color="primary" [checked]="true"></mat-slide-toggle>
+                    </div>
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <mat-icon class="toggle-icon">campaign</mat-icon>
+                            <div>
+                                <span class="toggle-title">Product Updates</span>
+                                <span class="toggle-desc">Stay informed about new features</span>
+                            </div>
+                        </div>
+                        <mat-slide-toggle color="primary"></mat-slide-toggle>
+                    </div>
+                </div>
+            </div>
+        </section>
+        }
+
+        <!-- Security Section -->
+        @if (activeSection === 'security') {
+        <section class="settings-section" @fadeIn>
+            <div class="section-header">
+                <h2>Security</h2>
+                <p>Protect your account and manage security settings.</p>
+            </div>
+
+            <div class="settings-card">
+                <h3 class="card-title">Change Password</h3>
+                <div class="form-grid single-column">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" placeholder="Enter current password">
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" placeholder="Enter new password">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" placeholder="Confirm new password">
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-primary">Update Password</button>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h3 class="card-title">Two-Factor Authentication</h3>
+                <div class="toggle-list">
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <mat-icon class="toggle-icon">security</mat-icon>
+                            <div>
+                                <span class="toggle-title">Enable 2FA</span>
+                                <span class="toggle-desc">Add an extra layer of security to your account</span>
+                            </div>
+                        </div>
+                        <mat-slide-toggle color="primary"></mat-slide-toggle>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card danger-card">
+                <h3 class="card-title danger">Danger Zone</h3>
+                <div class="danger-content">
+                    <div class="danger-info">
+                        <span class="danger-title">Delete Account</span>
+                        <span class="danger-desc">Permanently delete your account and all associated data. This action
+                            cannot be undone.</span>
+                    </div>
+                    <button class="btn-danger">Delete Account</button>
+                </div>
+            </div>
+        </section>
+        }
+    </main>
+</div>

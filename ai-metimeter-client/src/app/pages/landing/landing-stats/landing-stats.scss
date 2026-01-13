@@ -1,0 +1,144 @@
+:host {
+    display: block;
+}
+
+.stats-section {
+    padding: 80px 24px;
+    background: linear-gradient(180deg, #09090b 0%, #0f0f12 100%);
+    position: relative;
+    overflow: hidden;
+
+    // Subtle gradient orbs
+    &::before {
+        content: '';
+        position: absolute;
+        top: -200px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 600px;
+        height: 400px;
+        background: radial-gradient(ellipse, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+        pointer-events: none;
+    }
+}
+
+.stats-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+// Stats Grid
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    margin-bottom: 4rem;
+
+    @media (max-width: 968px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+.stat-item {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.04);
+        transform: translateY(-4px);
+        border-color: rgba(139, 92, 246, 0.3);
+    }
+}
+
+.stat-value {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+
+    @media (max-width: 768px) {
+        font-size: 2.5rem;
+    }
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.9375rem;
+    color: #a1a1aa;
+    font-weight: 500;
+}
+
+// Trust Banner
+.trust-banner {
+    text-align: center;
+    padding-top: 3rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.trust-label {
+    display: block;
+    font-size: 0.875rem;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+}
+
+.trust-logos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+        gap: 1.5rem;
+    }
+}
+
+.trust-logo {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #52525b;
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: #a1a1aa;
+    }
+
+    @media (max-width: 768px) {
+        font-size: 0.9375rem;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

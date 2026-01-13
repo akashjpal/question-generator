@@ -2,6 +2,7 @@ import express from "express";
 import { FileUploader } from "./helpers/fileUploader.js";
 import { Publisher } from "./helpers/publisher.js";
 import dotenv from "dotenv";
+import cors from "cors";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,6 +18,9 @@ app.use(
     limit: "10mb",
   })
 );
+
+app.use(cors());
+
 
 app.get("/", (req, res) => {
   res.send("Question Generator API is running.");
@@ -37,18 +41,25 @@ app.post("/file-upload", async (req, res) => {
     await publisher.publish({ fileName: fileName, fileId: fileId });
     console.log("✅ Received filename:", filename);
     console.log("📦 File size:", fileSize, "MB");
-    res.json({ message: "File received", filename });
+    res.json({ message: "File received", filename, fileId });
   } catch (error) {
     console.error("❌ Error uploading file:", error);
     res.status(500).json({ error: "Failed to upload file." });
   }
 });
 
+// TODO: add file name and fileId
 app.post("/generate-questions", async (req, res) => {
   try {
     // const { textContent, numQuestions } = req.body;
+    const {
+      fileName,
+      fileId,
+      noOfQuestion
+    } = req.body;
     const publisher = new Publisher();
-    await publisher.publishToQuestionGenerationQueue({ fileName: "file1", fileId: "691a1a8d0038c14d5c8c" });
+    const jobId = await publisher.updateQuestionGenerationStatus(0);
+    await publisher.publishToQuestionGenerationQueue({ fileName: fileName, fileId: fileId, bucketId: process.env.APPWRITE_BUCKET_ID, numberOfQuestions: noOfQuestion, jobId: jobId });
     res.json({ message: "Question generation job queued." });
   } catch (error) {
     console.error("❌ Error generating questions:", error);

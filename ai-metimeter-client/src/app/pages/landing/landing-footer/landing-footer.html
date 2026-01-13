@@ -1,0 +1,74 @@
+<footer class="footer">
+    <div class="footer-container">
+        <!-- Main Footer Content -->
+        <div class="footer-grid">
+            <!-- Brand Column -->
+            <div class="footer-brand">
+                <a class="footer-logo" routerLink="/">
+                    <div class="logo-icon">
+                        <mat-icon>auto_awesome</mat-icon>
+                    </div>
+                    <span class="logo-text">AI Quick Analysis</span>
+                </a>
+                <p class="brand-description">
+                    Transform your documents into engaging, AI-powered assessments in seconds.
+                </p>
+                <div class="social-links">
+                    <a *ngFor="let social of socialLinks" [href]="social.href" target="_blank" class="social-link"
+                        [attr.aria-label]="social.label">
+                        <mat-icon>{{ social.icon }}</mat-icon>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Links Columns -->
+            <div class="footer-links-column">
+                <h4 class="column-title">Product</h4>
+                <ul class="column-links">
+                    <li *ngFor="let link of footerLinks.product">
+                        <a [href]="link.href">{{ link.label }}</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="footer-links-column">
+                <h4 class="column-title">Company</h4>
+                <ul class="column-links">
+                    <li *ngFor="let link of footerLinks.company">
+                        <a [href]="link.href">{{ link.label }}</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="footer-links-column">
+                <h4 class="column-title">Resources</h4>
+                <ul class="column-links">
+                    <li *ngFor="let link of footerLinks.resources">
+                        <a [href]="link.href">{{ link.label }}</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="footer-links-column">
+                <h4 class="column-title">Legal</h4>
+                <ul class="column-links">
+                    <li *ngFor="let link of footerLinks.legal">
+                        <a [href]="link.href">{{ link.label }}</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            <p class="copyright">
+                © {{ currentYear }} AI Quick Analysis. All rights reserved.
+            </p>
+            <div class="footer-bottom-links">
+                <a href="#">Privacy Policy</a>
+                <span class="separator">•</span>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+</footer>

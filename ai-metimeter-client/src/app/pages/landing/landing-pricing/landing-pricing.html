@@ -1,0 +1,70 @@
+<section class="pricing-section" id="pricing">
+    <div class="pricing-container">
+        <!-- Header -->
+        <div class="pricing-header">
+            <span class="section-badge">
+                <mat-icon>payments</mat-icon>
+                Pricing
+            </span>
+            <h2 class="section-title">Simple, Transparent Pricing</h2>
+            <p class="section-subtitle">
+                Choose the plan that fits your teaching needs. No hidden fees.
+            </p>
+
+            <!-- Billing Toggle -->
+            <div class="billing-toggle">
+                <span [class.active]="!isYearly">Monthly</span>
+                <button class="toggle-switch" (click)="toggleBilling()" [class.yearly]="isYearly">
+                    <span class="toggle-thumb"></span>
+                </button>
+                <span [class.active]="isYearly">
+                    Yearly
+                    <span class="savings-badge">Save {{ getSavings() }}%</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Pricing Grid -->
+        <div class="pricing-grid">
+            <div class="pricing-card" *ngFor="let plan of plans" [class.highlight]="plan.highlight">
+
+                <!-- Popular Tag -->
+                <div class="popular-tag" *ngIf="plan.highlight">
+                    <mat-icon>star</mat-icon>
+                    Most Popular
+                </div>
+
+                <!-- Plan Header -->
+                <div class="plan-header">
+                    <h3 class="plan-name">{{ plan.name }}</h3>
+                    <p class="plan-description">{{ plan.description }}</p>
+                </div>
+
+                <!-- Price -->
+                <div class="price-container">
+                    <span class="price">{{ getPrice(plan) }}</span>
+                    <span class="period" *ngIf="plan.monthlyPrice !== -1">{{ getPeriod(plan) }}</span>
+                </div>
+
+                <!-- Features -->
+                <ul class="feature-list">
+                    <li *ngFor="let feature of plan.features">
+                        <mat-icon>check_circle</mat-icon>
+                        <span>{{ feature }}</span>
+                    </li>
+                </ul>
+
+                <!-- CTA Button -->
+                <button class="plan-cta" [class.primary]="plan.highlight" [class.secondary]="!plan.highlight">
+                    {{ plan.cta }}
+                    <mat-icon>arrow_forward</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- FAQ Preview -->
+        <div class="faq-preview">
+            <p>Have questions? <a href="#">Check our FAQ</a> or <a href="#">contact us</a></p>
+        </div>
+    </div>
+</section>
