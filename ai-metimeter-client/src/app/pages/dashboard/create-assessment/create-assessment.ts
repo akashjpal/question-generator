@@ -60,7 +60,10 @@ export class CreateAssessment {
 
     isGenerating = false;
 
-    onFileSelected(event: any) {
+    fileId: string = '';
+    fileName: string = '';
+
+    async onFileSelected(event: any) {
         const file: File = event.target.files[0];
         this.fileError = '';
 
@@ -79,6 +82,28 @@ export class CreateAssessment {
 
             this.selectedFile = file;
         }
+        await this.uploadFile();
+    }
+
+    async uploadFile() {
+        if (!this.selectedFile) return;
+        const res = await fetch('http://localhost:3000/file-upload', {
+            method: 'POST',
+            body: this.selectedFile,
+            headers: {
+                'Content-Type': this.selectedFile.type,
+                'x-filename': this.selectedFile.name,
+                'content-length': this.selectedFile.size.toString()
+            }
+        });
+
+        console.log(res);
+        if (res.ok) {
+            const data = await res.json();
+            this.fileId = data.fileId;
+            this.fileName = this.selectedFile.name;
+            console.log('File uploaded with ID:', this.fileId);
+        }
     }
 
     removeFile() {
@@ -87,12 +112,26 @@ export class CreateAssessment {
     }
 
     // Simulation of AI Generation
-    generateQuestions() {
+    async generateQuestions() {
         if (this.assessmentData.questionsCount > 10) {
             this.assessmentData.questionsCount = 10;
         }
 
         this.isGenerating = true;
+
+        const res = await fetch('http://localhost:3000/generate-questions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                fileId: this.fileId,
+                fileName: this.fileName,
+                noOfQuestion: this.assessmentData.questionsCount,
+            })
+        });
+
+        console.log(res);
         console.log('Generating with:', {
             ...this.assessmentData,
             file: this.selectedFile ? this.selectedFile.name : 'No file'
