@@ -121,6 +121,25 @@
     padding-top: 0;
 }
 
+.loading-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+
+    mat-spinner {
+        margin-right: 1.5rem;
+    }
+
+    p {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+}
+
 // Modern Cards
 .form-card,
 .preview-card {
@@ -408,7 +427,7 @@
 
         .options-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 1rem;
 
             .option-row {

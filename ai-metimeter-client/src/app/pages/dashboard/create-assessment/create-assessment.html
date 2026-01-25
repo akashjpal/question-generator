@@ -73,7 +73,8 @@
                         </div>
                     </mat-card-content>
                     <mat-card-actions align="end">
-                        <button mat-raised-button color="primary" (click)="generateQuestions(); stepper.next()">
+                        <button mat-raised-button color="primary" (click)="generateQuestions(); stepper.next()"
+                            [disabled]="isGenerating">
                             <mat-icon>auto_awesome</mat-icon>
                             {{ isGenerating ? 'Generating...' : 'Generate Questions' }}
                         </button>
@@ -85,7 +86,11 @@
         <!-- Step 2: Edit Questions -->
         <mat-step label="Review & Edit">
             <div class="step-content">
-                <div class="questions-list">
+                <div *ngIf="isGenerating" class="loading-container">
+                    <mat-spinner diameter="50"></mat-spinner>
+                    <p>Generating questions...</p>
+                </div>
+                <div *ngIf="!isGenerating" class="questions-list">
                     <mat-accordion multi>
                         <mat-expansion-panel *ngFor="let q of questions; let i = index" [expanded]="true">
                             <mat-expansion-panel-header>
@@ -93,23 +98,24 @@
                                     Question {{i + 1}}
                                 </mat-panel-title>
                                 <mat-panel-description>
-                                    {{q.text | slice:0:50}}{{q.text.length > 50 ? '...' : ''}}
+                                    {{q.question_text | slice:0:50}}{{q.question_text.length > 50 ? '...' : ''}}
                                 </mat-panel-description>
                             </mat-expansion-panel-header>
 
                             <div class="question-editor">
                                 <mat-form-field appearance="outline" class="full-width">
                                     <mat-label>Question Text</mat-label>
-                                    <textarea matInput [(ngModel)]="q.text"></textarea>
+                                    <textarea matInput [(ngModel)]="q.question_text"></textarea>
                                 </mat-form-field>
 
                                 <div class="options-grid">
                                     <mat-radio-group [(ngModel)]="q.correctAnswer" name="correct-{{i}}">
-                                        <div class="option-row" *ngFor="let opt of q.options; let optIndex = index">
+                                        <div class="option-row"
+                                            *ngFor="let opt of q.filteredOptions; let optIndex = index">
                                             <mat-radio-button [value]="optIndex"></mat-radio-button>
                                             <mat-form-field appearance="outline" class="option-input">
                                                 <mat-label>Option {{optIndex + 1}}</mat-label>
-                                                <input matInput [(ngModel)]="q.options[optIndex]">
+                                                <input matInput [(ngModel)]="q.filteredOptions[optIndex]">
                                             </mat-form-field>
                                         </div>
                                     </mat-radio-group>
@@ -129,7 +135,8 @@
 
                 <div class="step-actions">
                     <button mat-button matStepperPrevious>Back</button>
-                    <button mat-raised-button color="primary" matStepperNext>Next: Preview</button>
+                    <button mat-raised-button color="primary" matStepperNext disabled="isGenerating">Next:
+                        Preview</button>
                 </div>
             </div>
         </mat-step>
@@ -146,7 +153,7 @@
                     <mat-card-content>
                         <div class="preview-questions">
                             <div class="preview-item" *ngFor="let q of questions; let i = index">
-                                <p class="q-text"><strong>{{i+1}}.</strong> {{q.text}}</p>
+                                <p class="q-text"><strong>{{i+1}}.</strong> {{q.question_text}}</p>
                                 <div class="q-options">
                                     <span class="option" [class.correct]="optIndex === q.correctAnswer"
                                         *ngFor="let opt of q.options; let optIndex = index">

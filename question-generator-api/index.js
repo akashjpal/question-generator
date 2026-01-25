@@ -1,8 +1,10 @@
 import express from "express";
 import { FileUploader } from "./helpers/fileUploader.js";
 import { Publisher } from "./helpers/publisher.js";
+import { statusFetcher } from "./helpers/statusFetcher.js";
 import dotenv from "dotenv";
 import cors from "cors";
+import { SupabaseOperator } from "./helpers/supabseOperator.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,24 +50,68 @@ app.post("/file-upload", async (req, res) => {
   }
 });
 
-// TODO: add file name and fileId
 app.post("/generate-questions", async (req, res) => {
   try {
     // const { textContent, numQuestions } = req.body;
     const {
       fileName,
       fileId,
-      noOfQuestion
+      noOfQuestion,
+      difficulty,
+      topic
     } = req.body;
+    console.log('Topic');
+    console.log(topic);
     const publisher = new Publisher();
     const jobId = await publisher.updateQuestionGenerationStatus(0);
-    await publisher.publishToQuestionGenerationQueue({ fileName: fileName, fileId: fileId, bucketId: process.env.APPWRITE_BUCKET_ID, numberOfQuestions: noOfQuestion, jobId: jobId });
-    res.json({ message: "Question generation job queued." });
+    await publisher.publishToQuestionGenerationQueue({ fileName: fileName, fileId: fileId, bucketId: process.env.APPWRITE_BUCKET_ID, numberOfQuestions: noOfQuestion, jobId: jobId, difficultyLevel: difficulty, topic: topic });
+    res.json({ message: "Question generation job queued.", jobId: jobId, topic: topic });
   } catch (error) {
     console.error("❌ Error generating questions:", error);
     res.status(500).json({ error: "Failed to generate questions." });
   }
 });
+
+app.get("/generate-questions-status/:id", async (req, res) => {
+  try {
+    const jobId = req.params.id;
+
+    if (!jobId) {
+      return res.status(400).json({
+        message: "jobId is not defined",
+      });
+    }
+
+    const statusData = await statusFetcher(jobId);
+
+    return res.status(200).json({
+      status: statusData,
+    });
+
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({
+      message: "Failed to fetch status",
+    });
+  }
+});
+
+app.get("/generated-questions/:id", async(req,res)=>{
+  try {
+    const jobId = req.params.id;
+    const operator = new SupabaseOperator();
+    const result = await operator.getGeneratedQuestions({ jobId: jobId });
+    console.log('generated questions');
+    console.log(result);
+    return res.status(200).json({
+      message: "Generated questions",
+      questions: result
+    })
+  }catch(error) {
+    console.error(error.message);
+  }
+})
+
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });

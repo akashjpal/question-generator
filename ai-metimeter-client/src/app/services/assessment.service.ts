@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, timer, fromEvent, throwError } from 'rxjs';
+import { switchMap, takeWhile, retryWhen, delayWhen, tap } from 'rxjs/operators';
 import {
     Assessment,
     AssessmentSummary,
     CreateAssessmentRequest,
     UpdateAssessmentRequest,
     GenerateAssessmentResponse,
+    GenerationStatusResponse,
     ApiResponse,
     PaginatedResponse
 } from '../models';
@@ -107,5 +109,32 @@ export class AssessmentService {
      */
     duplicateAssessment(id: string, newTitle?: string): Observable<Assessment> {
         return this.http.post<Assessment>(`${this.API_URL}/${id}/duplicate`, { title: newTitle });
+    }
+
+    /**
+     * Poll for question generation status
+     * Status 2 (Completed) or 3 (Failed) will stop the polling
+     * @param jobId The job ID to poll for
+     */
+    pollGenerationStatus(jobId: string): Observable<GenerationStatusResponse> {
+        return timer(0, 2000).pipe(
+            switchMap(() => this.http.get<GenerationStatusResponse>(`http://localhost:3000/generate-questions-status/${jobId}`)),
+            retryWhen(errors =>
+                errors.pipe(
+                    // Log the error to let the user know we act upon it
+                    tap(err => console.log('Polling failed (offline?), retrying when online...', err)),
+                    // Wait for the online event to trigger a retry
+                    delayWhen(() => {
+                        // If already online, just wait a bit (2s) to avoid spamming if server is down
+                        if (navigator.onLine) {
+                            return timer(2000);
+                        }
+                        // If offline, wait until the 'online' event fires
+                        return fromEvent(window, 'online');
+                    })
+                )
+            ),
+            takeWhile(response => response.status !== 2 && response.status !== 3, true)
+        );
     }
 }
