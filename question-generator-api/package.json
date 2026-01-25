@@ -10,7 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@supabase/supabase-js": "^2.90.1",
+    "@supabase/supabase-js": "^2.91.1",
     "appwrite": "^21.4.0",
     "clamscan": "^2.4.0",
     "cors": "^2.8.5",

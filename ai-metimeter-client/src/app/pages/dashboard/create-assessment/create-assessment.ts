@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
@@ -11,11 +11,17 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
+import { AssessmentService } from '../../../services/assessment.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 interface Question {
-    text: string;
-    options: string[];
-    correctAnswer: number; // Index of correct option
+    question_text: string;
+    options: string;
+    correct_options: string; // Index of correct option
+    correctAnswer: number;
+    filteredOptions: string[];
+    explanation: string;
 }
 
 @Component({
@@ -34,17 +40,25 @@ interface Question {
         MatStepperModule,
         MatExpansionModule,
         MatCheckboxModule,
-        MatRadioModule
+        MatRadioModule,
+        MatProgressSpinnerModule,
+        MatSnackBarModule
     ],
     templateUrl: './create-assessment.html',
     styleUrls: ['./create-assessment.scss']
 })
 export class CreateAssessment {
+    constructor(
+        private assessmentService: AssessmentService,
+        private cdr: ChangeDetectorRef,
+        private snackBar: MatSnackBar
+    ) { }
+
     subjects = ['Biology', 'History', 'Mathematics', 'Physics', 'Chemistry', 'Literature', 'General Knowledge'];
     difficulties = ['Easy', 'Medium', 'Hard', 'Expert'];
 
     // Step 1 Data
-    assessmentData = {
+    public assessmentData = {
         title: '',
         subject: '',
         difficulty: '',
@@ -128,31 +142,56 @@ export class CreateAssessment {
                 fileId: this.fileId,
                 fileName: this.fileName,
                 noOfQuestion: this.assessmentData.questionsCount,
+                difficulty: this.assessmentData.difficulty,
+                topic: this.assessmentData.topic
             })
         });
 
-        console.log(res);
-        console.log('Generating with:', {
-            ...this.assessmentData,
-            file: this.selectedFile ? this.selectedFile.name : 'No file'
-        });
+        const data = await res.json();
+        console.log('Job Started:', data);
 
-        // Mock API delay
-        setTimeout(() => {
-            this.questions = Array.from({ length: this.assessmentData.questionsCount }).map((_, i) => ({
-                text: `Generated Question ${i + 1} about ${this.assessmentData.subject}`,
-                options: ['Option A', 'Option B', 'Option C', 'Option D'],
-                correctAnswer: 0
-            }));
+        if (data.jobId) {
+            this.assessmentService.pollGenerationStatus(data.jobId).subscribe({
+                next: async (statusRes) => {
+                    console.log('Polling Status:', statusRes);
+                    if (statusRes.status === 2) {
+                        this.isGenerating = false;
+                        console.log('Generation Completed!');
+                        this.questions = await this.getGeneratedQuestions(data.jobId);
+
+                        // TODO: Fetch the actual generated questions here
+                        this.cdr.detectChanges();
+                    } else if (statusRes.status === 3) {
+                        this.isGenerating = false;
+                        console.error('Generation Failed:', statusRes.message);
+                        this.snackBar.open(
+                            'Generation failed. Please try changing the PDF content.',
+                            'Close',
+                            { duration: 5000, panelClass: ['error-snackbar'] }
+                        );
+                        this.cdr.detectChanges();
+                    }
+                },
+                error: (err) => {
+                    this.isGenerating = false;
+                    console.error('Polling Error:', err);
+                }
+            });
+        } else {
             this.isGenerating = false;
-        }, 1500);
+            console.error('No Job ID received');
+        }
+        this.cdr.detectChanges();
     }
 
     addQuestion() {
         this.questions.push({
-            text: 'New Question',
-            options: ['', '', '', ''],
-            correctAnswer: 0
+            question_text: 'New Question',
+            options: '',
+            correctAnswer: 0,
+            correct_options: '',
+            filteredOptions: [],
+            explanation: ''
         });
     }
 
@@ -167,4 +206,57 @@ export class CreateAssessment {
         });
         // TODO: Call backend to save
     }
+
+    async getGeneratedQuestions(jobId: number) {
+        // TODO: Implement fetching generated questions from backend
+        try {
+            const data = await fetch('http://localhost:3000/generated-questions/' + jobId);
+            const questions = await data.json();
+            return this.filterGeneratedQuestions(questions.questions);
+        } catch (error) {
+            console.error('Error fetching generated questions:', error);
+            return [];
+        }
+    }
+
+    filterGeneratedQuestions(questions: Question[]) {
+        questions.map((question) => {
+            const options = question.options;
+            const filteredOptions: string[] = this.parseOptions(options);
+            question.filteredOptions = filteredOptions;
+            question.explanation = question.explanation;
+        })
+        return questions;
+    }
+
+    parseOptions(options: string) {
+        if (Array.isArray(options)) {
+            return options.map((opt: string) => this.stripOptionPrefix(opt));
+        }
+
+        if (typeof options === 'string') {
+            try {
+                const parsed = JSON.parse(options);
+                console.log("parsed");
+                console.log(parsed);
+                if (Array.isArray(parsed)) {
+                    return parsed.map((opt: string) => this.stripOptionPrefix(opt));
+                }
+                return [];
+            } catch {
+                console.error('Invalid options format');
+                return [];
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * Removes leading option prefixes like "A. ", "B. ", "C. ", "D. " from option text
+     */
+    stripOptionPrefix(option: string): string {
+        return option.replace(/^[A-D]\.\s*/, '');
+    }
+
 }

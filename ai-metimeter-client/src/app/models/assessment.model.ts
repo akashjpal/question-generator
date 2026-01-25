@@ -96,3 +96,9 @@ export interface GenerateAssessmentResponse {
     generatedQuestions: Question[];
     suggestedTitle?: string;
 }
+
+export interface GenerationStatusResponse {
+    jobId: string;
+    status: number; // 1: processing, 2: completed, 3: failed
+    message?: string;
+}
