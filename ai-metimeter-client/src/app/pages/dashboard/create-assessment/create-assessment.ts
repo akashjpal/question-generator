@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
@@ -44,7 +45,8 @@ export class CreateAssessment {
     constructor(
         private assessmentService: AssessmentService,
         private cdr: ChangeDetectorRef,
-        private snackBar: MatSnackBar
+        private snackBar: MatSnackBar,
+        private router: Router
     ) { }
 
     subjects = ['Biology', 'History', 'Mathematics', 'Physics', 'Chemistry', 'Literature', 'General Knowledge'];
@@ -216,8 +218,19 @@ export class CreateAssessment {
             })
             const res = await data.json();
             console.log('Assessment publishing:', res);
+
+            // Show success message and navigate to my-quizzes
+            this.snackBar.open('Assessment published successfully!', 'Close', {
+                duration: 3000,
+                panelClass: ['success-snackbar']
+            });
+            this.router.navigate(['/dashboard/my-quizzes']);
         } catch (error) {
             console.error('Error publishing assessment:', error);
+            this.snackBar.open('Failed to publish assessment. Please try again.', 'Close', {
+                duration: 5000,
+                panelClass: ['error-snackbar']
+            });
         }
         // TODO: Call backend to save
     }
