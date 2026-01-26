@@ -122,6 +122,11 @@ app.post("/publish-assessment", async (req,res)=>{
         message: "Assessment data is missing"
         });
     }
+    console.log('Assessment Data Received:', assessment);
+    console.log('Publishing Assessment...');
+    const publisher = new Publisher();
+    await publisher.handleAssessmentPublishing(assessment);
+    console.log('Assessment Data Received:', assessment);
     
     return res.status(200).json({
       message: "publishing"
