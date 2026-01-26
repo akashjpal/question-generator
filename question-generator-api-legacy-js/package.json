@@ -19,5 +19,12 @@
     "node-appwrite": "^20.3.0",
     "redis": "^5.9.0"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "^1.3.6"
+  },
+  "private": true,
+  "peerDependencies": {
+    "typescript": "^5"
+  }
 }

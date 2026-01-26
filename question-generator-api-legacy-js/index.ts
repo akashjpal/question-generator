@@ -112,6 +112,18 @@ app.get("/generated-questions/:id", async(req,res)=>{
   }
 })
 
+app.post("/publish-assessment", async (req,res)=>{
+  try {
+    const { assessment } = req.body;
+    
+    return res.status(200).json({
+      message: "publishing"
+    })
+  }catch(error) {
+    console.error(error);
+  }
+})
+
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });

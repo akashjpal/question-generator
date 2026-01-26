@@ -121,6 +121,13 @@
                                     </mat-radio-group>
                                 </div>
 
+                                <mat-form-field appearance="outline" class="full-width explanation-field">
+                                    <mat-label>Explanation</mat-label>
+                                    <textarea matInput [(ngModel)]="q.explanation" rows="3"
+                                        placeholder="Explain why the correct answer is right..."></textarea>
+                                    <mat-icon matPrefix>lightbulb</mat-icon>
+                                </mat-form-field>
+
                                 <div class="action-row">
                                     <button mat-button color="warn" (click)="removeQuestion(i)">Delete Question</button>
                                 </div>

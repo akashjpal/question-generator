@@ -28,9 +28,9 @@ export interface Assessment {
     code?: string; // 6-digit join code (only when published)
     timeLimit?: number; // in minutes
     createdBy: string;
-    createdAt: string;
     updatedAt: string;
     publishedAt?: string;
+    fileId?: string;
 }
 
 /**
