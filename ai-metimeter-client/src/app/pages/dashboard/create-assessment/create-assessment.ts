@@ -14,15 +14,8 @@ import { MatRadioModule } from '@angular/material/radio';
 import { AssessmentService } from '../../../services/assessment.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-
-interface Question {
-    question_text: string;
-    options: string;
-    correct_options: string; // Index of correct option
-    correctAnswer: number;
-    filteredOptions: string[];
-    explanation: string;
-}
+import { Assessment } from '../../../models';
+import { Question } from '../../../models';
 
 @Component({
     selector: 'app-create-assessment',
@@ -58,12 +51,17 @@ export class CreateAssessment {
     difficulties = ['Easy', 'Medium', 'Hard', 'Expert'];
 
     // Step 1 Data
-    public assessmentData = {
+    public assessmentData: Assessment = {
         title: '',
         subject: '',
-        difficulty: '',
         topic: '',
-        questionsCount: 5
+        questionsCount: 5,
+        id: '',
+        difficulty: 'easy',
+        questions: [],
+        status: 'draft',
+        createdBy: '',
+        updatedAt: ''
     };
 
     // Step 2 Data
@@ -116,6 +114,7 @@ export class CreateAssessment {
             const data = await res.json();
             this.fileId = data.fileId;
             this.fileName = this.selectedFile.name;
+            this.assessmentData.fileId = this.fileId;
             console.log('File uploaded with ID:', this.fileId);
         }
     }
@@ -158,7 +157,7 @@ export class CreateAssessment {
                         this.isGenerating = false;
                         console.log('Generation Completed!');
                         this.questions = await this.getGeneratedQuestions(data.jobId);
-
+                        this.assessmentData.questions = this.questions;
                         // TODO: Fetch the actual generated questions here
                         this.cdr.detectChanges();
                     } else if (statusRes.status === 3) {
@@ -199,15 +198,31 @@ export class CreateAssessment {
         this.questions.splice(index, 1);
     }
 
-    publishAssessment() {
+    async publishAssessment() {
         console.log('Publishing assessment:', {
             meta: this.assessmentData,
             questions: this.questions
         });
+
+        try {
+            const data = await fetch("http://localhost:3000/publish-assessment", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    assessment: this.assessmentData
+                })
+            })
+            const res = await data.json();
+            console.log('Assessment publishing:', res);
+        } catch (error) {
+            console.error('Error publishing assessment:', error);
+        }
         // TODO: Call backend to save
     }
 
-    async getGeneratedQuestions(jobId: number) {
+    async getGeneratedQuestions(jobId: number): Promise<Question[]> {
         // TODO: Implement fetching generated questions from backend
         try {
             const data = await fetch('http://localhost:3000/generated-questions/' + jobId);
@@ -225,6 +240,7 @@ export class CreateAssessment {
             const filteredOptions: string[] = this.parseOptions(options);
             question.filteredOptions = filteredOptions;
             question.explanation = question.explanation;
+            question.correctAnswer = this.getCorrectOption(question);
         })
         return questions;
     }
@@ -257,6 +273,20 @@ export class CreateAssessment {
      */
     stripOptionPrefix(option: string): string {
         return option.replace(/^[A-D]\.\s*/, '');
+    }
+
+    getCorrectOption(questio: Question): number {
+        const correctOption = questio.correct_options;
+        if (correctOption === 'A') {
+            return 0;
+        } else if (correctOption === 'B') {
+            return 1;
+        } else if (correctOption === 'C') {
+            return 2;
+        } else if (correctOption === 'D') {
+            return 3;
+        }
+        return 0;
     }
 
 }

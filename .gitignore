@@ -9,3 +9,6 @@
 /ai-metimeter-client/dist
 /ai-metimeter-client/backend_requirements.md
 /ai-metimeter-client/.editorconfig
+/ai-metimeter-client/.angular
+/question-generator-api-ts/node_modules
+/question-generator-api-ts/.env

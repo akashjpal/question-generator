@@ -16,13 +16,12 @@ export interface QuestionOption {
  * Full question with correct answer (Teacher view)
  */
 export interface Question {
-    id: string;
-    text: string;
-    options: QuestionOption[];
-    correctAnswerIndex: number;
-    explanation?: string;
-    difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
-    points?: number;
+    question_text: string;
+    options: string;
+    correct_options: string; // Index of correct option
+    correctAnswer: number;
+    filteredOptions: string[];
+    explanation: string;
 }
 
 /**
