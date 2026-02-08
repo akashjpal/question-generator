@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,7 +6,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterModule } from '@angular/router';
+import { AssessmentService } from '../../../services/assessment.service';
+import { AssessmentListItem } from '../../../models';
 
 interface Quiz {
     id: string;
@@ -15,6 +18,7 @@ interface Quiz {
     createdAt: string;
     questionsCount: number;
     status: 'Published' | 'Draft';
+    difficulty: string;
     thumbnailUrl?: string;
 }
 
@@ -29,114 +33,61 @@ interface Quiz {
         MatChipsModule,
         MatMenuModule,
         MatDividerModule,
-        RouterModule
+        RouterModule,
+        MatProgressSpinnerModule
     ],
     templateUrl: './my-quizzes.html',
     styleUrl: './my-quizzes.scss'
 })
-export class MyQuizzes {
+export class MyQuizzes implements OnInit {
     viewMode: 'grid' | 'list' = 'grid';
     itemsPerPage = 10;
     displayedItems = 10;
+    isLoading = true;
 
-    quizzes: Quiz[] = [
-        {
-            id: '1',
-            title: 'Introduction to Photosynthesis',
-            subject: 'Biology',
-            createdAt: '2024-12-20',
-            questionsCount: 15,
-            status: 'Published',
-        },
-        {
-            id: '2',
-            title: 'World War II Timeline',
-            subject: 'History',
-            createdAt: '2024-12-18',
-            questionsCount: 10,
-            status: 'Draft',
-        },
-        {
-            id: '3',
-            title: 'Basic Algebra Concepts',
-            subject: 'Mathematics',
-            createdAt: '2024-12-15',
-            questionsCount: 20,
-            status: 'Published',
-        },
-        {
-            id: '4',
-            title: 'The Solar System',
-            subject: 'Science',
-            createdAt: '2024-12-10',
-            questionsCount: 12,
-            status: 'Published',
-        },
-        {
-            id: '5',
-            title: 'Cell Biology Fundamentals',
-            subject: 'Biology',
-            createdAt: '2024-12-08',
-            questionsCount: 18,
-            status: 'Published',
-        },
-        {
-            id: '6',
-            title: 'Ancient Civilizations',
-            subject: 'History',
-            createdAt: '2024-12-05',
-            questionsCount: 14,
-            status: 'Draft',
-        },
-        {
-            id: '7',
-            title: 'Geometry Basics',
-            subject: 'Mathematics',
-            createdAt: '2024-12-03',
-            questionsCount: 16,
-            status: 'Published',
-        },
-        {
-            id: '8',
-            title: 'Chemical Reactions',
-            subject: 'Chemistry',
-            createdAt: '2024-12-01',
-            questionsCount: 22,
-            status: 'Published',
-        },
-        {
-            id: '9',
-            title: 'English Literature',
-            subject: 'English',
-            createdAt: '2024-11-28',
-            questionsCount: 15,
-            status: 'Draft',
-        },
-        {
-            id: '10',
-            title: 'Physics Forces & Motion',
-            subject: 'Physics',
-            createdAt: '2024-11-25',
-            questionsCount: 20,
-            status: 'Published',
-        },
-        {
-            id: '11',
-            title: 'Geography World Map',
-            subject: 'Geography',
-            createdAt: '2024-11-22',
-            questionsCount: 12,
-            status: 'Published',
-        },
-        {
-            id: '12',
-            title: 'Computer Programming Intro',
-            subject: 'Computer Science',
-            createdAt: '2024-11-20',
-            questionsCount: 25,
-            status: 'Draft',
+    quizzes: Quiz[] = [];
+
+    constructor(private assessmentService: AssessmentService) { }
+
+    ngOnInit(): void {
+        this.loadAssessments();
+    }
+
+    loadAssessments(): void {
+        this.isLoading = true;
+        this.assessmentService.getAllAssessments().subscribe({
+            next: (response) => {
+                this.quizzes = response.data.map((item: AssessmentListItem) => this.mapToQuiz(item));
+                this.isLoading = false;
+                console.log('Loaded assessments:', this.quizzes);
+            },
+            error: (err) => {
+                console.error('Failed to load assessments:', err);
+                this.isLoading = false;
+            }
+        });
+    }
+
+    private mapToQuiz(item: AssessmentListItem): Quiz {
+        // Parse questions JSON to get count
+        let questionsCount = 0;
+        try {
+            const questions = JSON.parse(item.questions);
+            questionsCount = Array.isArray(questions) ? questions.length : 0;
+        } catch {
+            questionsCount = 0;
         }
-    ];
+
+        return {
+            id: item.id.toString(),
+            title: item.title,
+            subject: item.subject,
+            createdAt: new Date().toISOString().split('T')[0], // Use current date if not available
+            questionsCount: questionsCount,
+            status: item.status === 1 ? 'Published' : 'Draft',
+            difficulty: item.difficulty
+        };
+    }
 
     selectedFilter: 'All' | 'Draft' | 'Published' = 'All';
 

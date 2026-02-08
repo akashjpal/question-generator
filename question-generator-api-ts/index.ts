@@ -136,6 +136,19 @@ app.post("/publish-assessment", async (req,res)=>{
   }
 })
 
+app.get("/get-assessments", async(req,res)=>{
+  try {
+    const operator = new SupabaseOperator();
+    const data = await operator.getAllAssessments();
+    console.log(data);
+    return res.status(200).json({
+      data:data
+    });
+  }catch(error) {
+    console.error(error);
+  }
+});
+
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
