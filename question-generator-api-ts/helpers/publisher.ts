@@ -117,11 +117,13 @@ export class Publisher {
         subject: assessment.subject,
         createdBy: assessment.createdBy,
         questionsCount: assessment.questionsCount,
-        status: 0,
+        status: 1,
         questions: questions.map((q) => q.id),
         code: assessment.code,
         timeLimit: assessment.timeLimit,
-        updatedAt: assessment.updatedAt
+        fileId: assessment.fileId,
+        updatedAt: Date.now().toString(),
+        publishedAt: Date.now().toString()
       };
       await this.publishQuestion(publishQuestions);
       await this.publishAssessment(newAssessment);

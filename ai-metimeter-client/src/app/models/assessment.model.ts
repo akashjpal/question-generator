@@ -102,3 +102,24 @@ export interface GenerationStatusResponse {
     status: number; // 1: processing, 2: completed, 3: failed
     message?: string;
 }
+
+/**
+ * Assessment list item from GET /get-assessments API
+ */
+export interface AssessmentListItem {
+    id: number;
+    title: string;
+    subject: string;
+    questions: string; // JSON string of question IDs
+    status: number; // 0: draft, 1: published
+    difficulty: 'Easy' | 'Medium' | 'Hard';
+    timeLimit: number | null;
+    description: string | null;
+}
+
+/**
+ * Response from GET /get-assessments API
+ */
+export interface GetAssessmentsResponse {
+    data: AssessmentListItem[];
+}

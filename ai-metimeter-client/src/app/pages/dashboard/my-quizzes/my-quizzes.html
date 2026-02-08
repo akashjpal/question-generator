@@ -49,8 +49,14 @@
         </div>
     </div>
 
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Loading your quizzes...</p>
+    </div>
+
     <!-- Empty State -->
-    <div class="empty-state" *ngIf="displayedQuizzes.length === 0">
+    <div class="empty-state" *ngIf="!isLoading && displayedQuizzes.length === 0">
         <div class="empty-icon">
             <mat-icon>quiz</mat-icon>
         </div>
@@ -63,7 +69,7 @@
     </div>
 
     <!-- Quizzes Grid View -->
-    <div class="quizzes-grid" *ngIf="displayedQuizzes.length > 0 && viewMode === 'grid'">
+    <div class="quizzes-grid" *ngIf="!isLoading && displayedQuizzes.length > 0 && viewMode === 'grid'">
         <div class="quiz-card" *ngFor="let quiz of displayedQuizzes">
             <!-- Status Indicator -->
             <div class="card-status" [class.published]="quiz.status === 'Published'"
@@ -141,7 +147,7 @@
     </div>
 
     <!-- Quizzes List View -->
-    <div class="quizzes-list" *ngIf="displayedQuizzes.length > 0 && viewMode === 'list'">
+    <div class="quizzes-list" *ngIf="!isLoading && displayedQuizzes.length > 0 && viewMode === 'list'">
         <div class="quiz-list-item" *ngFor="let quiz of displayedQuizzes">
             <!-- Icon -->
             <div class="list-item-icon" [attr.data-subject]="getSubjectClass(quiz.subject)">

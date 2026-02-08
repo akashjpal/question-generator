@@ -5,10 +5,12 @@ import { switchMap, takeWhile, retryWhen, delayWhen, tap } from 'rxjs/operators'
 import {
     Assessment,
     AssessmentSummary,
+    AssessmentListItem,
     CreateAssessmentRequest,
     UpdateAssessmentRequest,
     GenerateAssessmentResponse,
     GenerationStatusResponse,
+    GetAssessmentsResponse,
     ApiResponse,
     PaginatedResponse
 } from '../models';
@@ -61,6 +63,14 @@ export class AssessmentService {
         if (options?.limit) params = params.set('limit', options.limit.toString());
 
         return this.http.get<PaginatedResponse<AssessmentSummary>>(this.API_URL, { params });
+    }
+
+    /**
+     * GET /get-assessments
+     * Get all assessments from the backend
+     */
+    getAllAssessments(): Observable<GetAssessmentsResponse> {
+        return this.http.get<GetAssessmentsResponse>('http://localhost:3000/get-assessments');
     }
 
     /**
