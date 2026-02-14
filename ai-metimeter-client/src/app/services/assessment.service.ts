@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, timer, fromEvent, throwError } from 'rxjs';
-import { switchMap, takeWhile, retryWhen, delayWhen, tap } from 'rxjs/operators';
+import { switchMap, takeWhile, retryWhen, delayWhen, tap, map } from 'rxjs/operators';
 import {
     Assessment,
     AssessmentSummary,
@@ -19,7 +19,7 @@ import {
     providedIn: 'root'
 })
 export class AssessmentService {
-    private readonly API_URL = '/api/assessments';
+    private readonly API_URL = 'http://localhost:3000/api/assessments';
 
     constructor(private http: HttpClient) { }
 
@@ -78,7 +78,9 @@ export class AssessmentService {
      * Get full assessment details including questions
      */
     getAssessment(id: string): Observable<Assessment> {
-        return this.http.get<Assessment>(`${this.API_URL}/${id}`);
+        return this.http.get<{ assessment: Assessment }>(`${this.API_URL}/${id}`).pipe(
+            map(response => response.assessment)
+        );
     }
 
     /**

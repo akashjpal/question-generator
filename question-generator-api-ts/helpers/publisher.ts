@@ -44,8 +44,6 @@ export class Publisher {
     if (error) {
       throw error;
     }
-
-    console.log("New job created:", data);
     return data.id;
   }
 
@@ -97,6 +95,91 @@ export class Publisher {
       console.log("Assessment published:", data);
     }catch(error) {
       console.error("❌ Error publishing assessment:", error);
+    }
+  }
+
+  async updateAssessmentStatus(id: number): Promise<Assessment | undefined> {
+    try{
+      const {data, error} = await supabase
+        .from("assessment_table")
+        .update({status: 1})
+        .eq("id", id);
+      if (error) {
+        throw error;
+      }
+      if(data && data.length > 0) {
+        return data[0] as Assessment;
+      }
+      return undefined;
+    }catch(error) {
+      console.error("Error while getting assessment", error);
+    }
+  }
+
+  async getAssessment(id: number): Promise<Assessment | undefined> {
+    try{
+      const {data, error} = await supabase
+        .from("assessment_table")
+        .select("*")
+        .eq("id", id);
+        if (error) {
+          throw error;
+        }
+        if(data) {
+        const assessment: Assessment = data[0];
+
+        let questionGuids: string[] = [];
+
+        if (typeof assessment.questions === 'string') {
+          try {
+            questionGuids = JSON.parse(assessment.questions);
+          } catch (jsonError) {
+            console.error("Error parsing questions JSON string:", jsonError);
+            questionGuids = [];
+          }
+        } else if (Array.isArray(assessment.questions)) {
+          questionGuids = assessment.questions as string[];
+        }
+
+        if (questionGuids.length > 0) {
+          const fetchedQuestions: Question[] | undefined = await this.parseQuestion(questionGuids);
+          if (fetchedQuestions) {
+            assessment.questions = fetchedQuestions; // This line assigns the array of Question objects
+          } else {
+            assessment.questions = [];
+          }
+        } else {
+            assessment.questions = [];
+        }
+        
+        return assessment;
+        }
+      return undefined;
+    }catch(error) {
+      console.error("Error while getting assessment", error);
+    }
+  }
+
+  async parseQuestion(qIds: string | null | undefined): Promise<Question[] | undefined> {
+    try {
+      console.log("data");
+      console.log(qIds, qIds?.length);
+      if (!qIds || qIds.length === 0) {
+        return undefined; // Return undefined if qIds is null, undefined, or empty
+      }
+      const {data, error} = await supabase
+      .from("ai-generated-questions")
+      .select("*")
+      .in("id", qIds);
+
+      console.log("data");
+      console.log(data);
+      if(error) {
+        throw error;
+      }
+      return data as Question[];
+    }catch(error) {
+      console.error("parsed questions");
     }
   }
 

@@ -113,8 +113,10 @@ export interface AssessmentListItem {
     questions: string; // JSON string of question IDs
     status: number; // 0: draft, 1: published
     difficulty: 'Easy' | 'Medium' | 'Hard';
-    timeLimit: number | null;
+    timeLimit?: number;
     description: string | null;
+    code?: string;
+    attemptsCount?: number;
 }
 
 /**
