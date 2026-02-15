@@ -14,5 +14,9 @@ export const routes: Routes = [
         path: 'auth',
         loadChildren: () => import('./pages/auth/auth.routes').then(m => m.AUTH_ROUTES)
     },
+    {
+        path: 'attempt/:id',
+        loadComponent: () => import('./pages/attempt/attempt').then(m => m.AttemptScreen)
+    },
     { path: '**', redirectTo: '' }
 ];

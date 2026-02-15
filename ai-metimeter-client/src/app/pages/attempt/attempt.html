@@ -1,0 +1,104 @@
+<div class="attempt-container">
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Loading assessment...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-state" *ngIf="error && !isLoading">
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ error }}</p>
+        <button mat-button routerLink="/">Go Home</button>
+    </div>
+
+    <!-- Verification Step -->
+    <div class="verify-step" *ngIf="!isLoading && !error && !isVerified">
+        <mat-card class="verify-card">
+            <mat-card-header>
+                <mat-card-title>{{ assessment?.title }}</mat-card-title>
+                <mat-card-subtitle>{{ assessment?.subject }} • {{ assessment?.questions?.length }}
+                    Questions</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <p class="instructions">
+                    Enter the access code to start the assessment.
+                    <br>
+                    <strong>Time Limit:</strong> {{ assessment?.timeLimit }} minutes
+                </p>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Access Code</mat-label>
+                    <input matInput [(ngModel)]="accessCode" placeholder="Enter 6-digit code">
+                </mat-form-field>
+            </mat-card-content>
+            <mat-card-actions align="end">
+                <button mat-raised-button color="primary" (click)="verifyCode()">Start Assessment</button>
+            </mat-card-actions>
+        </mat-card>
+    </div>
+
+    <!-- Quiz Interface -->
+    <div class="quiz-interface" *ngIf="isVerified && !isSubmitted">
+        <!-- Header with Timer -->
+        <div class="quiz-header">
+            <div class="progress-info">
+                Question {{ currentQuestionIndex + 1 }} of {{ assessment?.questions?.length }}
+            </div>
+            <div class="timer" [class.warning]="timeLeft < 60">
+                <mat-icon>timer</mat-icon>
+                {{ formatTime(timeLeft) }}
+            </div>
+        </div>
+
+        <!-- Question Card -->
+        <mat-card class="question-card">
+            <mat-card-content>
+                <h3 class="question-text">
+                    {{ assessment?.questions?.[currentQuestionIndex]?.question_text }}
+                </h3>
+
+                <div class="options-list">
+                    <div class="option-item"
+                        *ngFor="let opt of assessment?.questions?.[currentQuestionIndex]?.filteredOptions; let i = index"
+                        [class.selected]="answers[currentQuestionIndex] === i" (click)="selectOption(i)">
+                        <div class="option-marker">{{ ['A','B','C','D'][i] }}</div>
+                        <div class="option-text">{{ opt }}</div>
+                    </div>
+                </div>
+            </mat-card-content>
+            <mat-card-actions>
+                <button mat-button (click)="prevQuestion()" [disabled]="currentQuestionIndex === 0">Previous</button>
+
+                <span class="spacer"></span>
+
+                <button mat-raised-button color="primary"
+                    *ngIf="currentQuestionIndex < (assessment?.questions?.length || 0) - 1" (click)="nextQuestion()">
+                    Next
+                </button>
+
+                <button mat-raised-button color="accent"
+                    *ngIf="currentQuestionIndex === (assessment?.questions?.length || 0) - 1" (click)="submitQuiz()">
+                    Submit
+                </button>
+            </mat-card-actions>
+        </mat-card>
+    </div>
+
+    <!-- Results/Submitted Screen -->
+    <div class="results-screen" *ngIf="isSubmitted">
+        <mat-card class="result-card">
+            <div class="result-icon">
+                <mat-icon>check_circle</mat-icon>
+            </div>
+            <h2>Assessment Submitted!</h2>
+            <p>You have successfully completed the assessment.</p>
+
+            <div class="score-display">
+                <span class="score">{{ score }}</span>
+                <span class="total">/ {{ assessment?.questions?.length }}</span>
+            </div>
+
+            <button mat-raised-button color="primary" routerLink="/">Back to Home</button>
+        </mat-card>
+    </div>
+</div>

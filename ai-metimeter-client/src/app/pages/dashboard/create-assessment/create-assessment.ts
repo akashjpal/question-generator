@@ -115,10 +115,21 @@ export class CreateAssessment implements OnInit {
         id: '',
         difficulty: 'easy',
         questions: [],
+        code: '',
+        timeLimit: 15,
         status: 'draft',
         createdBy: '',
         updatedAt: ''
     };
+
+    generateCode() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 6; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        this.assessmentData.code = result;
+    }
 
     // Step 2 Data
     questions: Question[] = [];
@@ -309,7 +320,8 @@ export class CreateAssessment implements OnInit {
             topic: this.assessmentData.topic,
             difficulty: this.assessmentData.difficulty as any,
             questions: this.questions,
-            timeLimit: 15 // Default or from form
+            timeLimit: this.assessmentData.timeLimit || 15,
+            code: this.assessmentData.code
         };
 
         this.assessmentService.updateAssessment(this.editId, this.assessmentData).subscribe({

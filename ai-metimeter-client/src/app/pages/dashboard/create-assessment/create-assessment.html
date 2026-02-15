@@ -41,6 +41,26 @@
                                     placeholder="Describe what the quiz should be about..."></textarea>
                             </mat-form-field>
 
+                            <div class="row-fields">
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Time Limit (mins)</mat-label>
+                                    <input matInput type="number" [(ngModel)]="assessmentData.timeLimit" min="1"
+                                        max="30" placeholder="Max 30">
+                                    <mat-hint>Max 30 mins</mat-hint>
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Access Code</mat-label>
+                                    <input matInput [(ngModel)]="assessmentData.code" placeholder="e.g. A1B2C3"
+                                        maxlength="6">
+                                    <button mat-icon-button matSuffix (click)="generateCode()"
+                                        matTooltip="Generate Code">
+                                        <mat-icon>refresh</mat-icon>
+                                    </button>
+                                    <mat-hint>6-digit code</mat-hint>
+                                </mat-form-field>
+                            </div>
+
                             <div class="file-upload-section full-width">
                                 <span class="label">Upload Material (Optional)</span>
                                 <div class="upload-box" [class.disabled]="isEditMode"
