@@ -17,6 +17,7 @@ export const DASHBOARD_ROUTES: Routes = [
             { path: 'reports/:id', component: AssessmentReport },
             { path: 'settings', component: Settings },
             { path: 'create-assessment', component: CreateAssessment },
+            { path: 'create-assessment/:id', component: CreateAssessment }
         ]
     }
 ];

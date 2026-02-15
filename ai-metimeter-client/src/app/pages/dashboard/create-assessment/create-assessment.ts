@@ -1,5 +1,5 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
@@ -41,13 +41,67 @@ import { Question } from '../../../models';
     templateUrl: './create-assessment.html',
     styleUrls: ['./create-assessment.scss']
 })
-export class CreateAssessment {
+export class CreateAssessment implements OnInit {
+    isEditMode = false;
+    editId: string | null = null;
+
     constructor(
         private assessmentService: AssessmentService,
         private cdr: ChangeDetectorRef,
         private snackBar: MatSnackBar,
-        private router: Router
+        private router: Router,
+        private route: ActivatedRoute
     ) { }
+
+    ngOnInit() {
+        this.route.paramMap.subscribe(params => {
+            const id = params.get('id');
+            if (id) {
+                this.isEditMode = true;
+                this.editId = id;
+                this.loadAssessment(id);
+            }
+        });
+    }
+
+    loadAssessment(id: string) {
+        this.assessmentService.getAssessment(id).subscribe({
+            next: (data) => {
+                this.assessmentData = data;
+
+                // Handle questions parsing
+                let parsedQuestions: any[] = [];
+                if (typeof data.questions === 'string') {
+                    try {
+                        parsedQuestions = JSON.parse(data.questions);
+                    } catch (e) {
+                        console.error('Error parsing questions', e);
+                    }
+                } else if (Array.isArray(data.questions)) {
+                    parsedQuestions = data.questions;
+                }
+
+                // Map to Question type and ensure filteredOptions
+                this.questions = parsedQuestions.map((q: any) => {
+                    // Ensure each question has filteredOptions
+                    if (!q.filteredOptions) {
+                        q.filteredOptions = this.parseOptions(q.options || '[]');
+                    }
+                    // Ensure explanation exists
+                    if (!q.explanation) q.explanation = '';
+                    return q;
+                });
+
+                this.assessmentData.questions = this.questions;
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Failed to load assessment', err);
+                this.snackBar.open('Failed to load assessment', 'Close');
+                this.router.navigate(['/dashboard/my-quizzes']); // Redirect on error
+            }
+        });
+    }
 
     subjects = ['Biology', 'History', 'Mathematics', 'Physics', 'Chemistry', 'Literature', 'General Knowledge'];
     difficulties = ['Easy', 'Medium', 'Hard', 'Expert'];
@@ -207,6 +261,16 @@ export class CreateAssessment {
         });
 
         try {
+            if (this.isEditMode && this.editId) {
+                await this.updateAssessment();
+                // Show success message and navigate to my-quizzes
+                this.snackBar.open('Assessment updated successfully!', 'Close', {
+                    duration: 3000,
+                    panelClass: ['success-snackbar']
+                });
+                this.router.navigate(['/dashboard/my-quizzes']);
+                return; // Exit after update
+            }
             const data = await fetch("http://localhost:3000/publish-assessment", {
                 method: "POST",
                 headers: {
@@ -218,6 +282,7 @@ export class CreateAssessment {
             })
             const res = await data.json();
             console.log('Assessment publishing:', res);
+
 
             // Show success message and navigate to my-quizzes
             this.snackBar.open('Assessment published successfully!', 'Close', {
@@ -233,6 +298,26 @@ export class CreateAssessment {
             });
         }
         // TODO: Call backend to save
+    }
+
+    async updateAssessment() {
+        if (!this.editId) return;
+
+        const dataToUpdate: any = {
+            title: this.assessmentData.title,
+            subject: this.assessmentData.subject,
+            topic: this.assessmentData.topic,
+            difficulty: this.assessmentData.difficulty as any,
+            questions: this.questions,
+            timeLimit: 15 // Default or from form
+        };
+
+        this.assessmentService.updateAssessment(this.editId, this.assessmentData).subscribe({
+            next: () => {
+                console.log('Assessment updated');
+            },
+            error: (err) => console.error(err)
+        });
     }
 
     async getGeneratedQuestions(jobId: number): Promise<Question[]> {

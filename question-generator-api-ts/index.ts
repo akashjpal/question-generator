@@ -111,6 +111,9 @@ app.get("/generated-questions/:id", async(req,res)=>{
     })
   }catch(error: any) {
     console.error(error.message);
+    return res.status(500).json({
+      message: "not able to generate the question"
+    });
   }
 })
 
@@ -133,6 +136,28 @@ app.post("/publish-assessment", async (req,res)=>{
     })
   }catch(error) {
     console.error(error);
+    return res.status(500).json({
+      message: "not able to publish the assessments"
+    });
+  }
+})
+
+app.post("/api/assessments/:id/publish", async (req, res)=>{
+  try{
+    const {id} = req.params;
+    const publisher = new Publisher();
+    const assessment: Assessment | undefined = await publisher.getAssessment(parseInt(id));
+    if(assessment) {
+      // await publisher.handleAssessmentPublishing(assessment);
+      console.log(assessment);
+    }
+    return res.status(200).json({
+      message: "published successfully"
+    })
+  }catch(error) {
+    return res.status(500).json({
+      message: "getting error"
+    })
   }
 })
 
@@ -146,8 +171,77 @@ app.get("/get-assessments", async(req,res)=>{
     });
   }catch(error) {
     console.error(error);
+    return res.status(500).json({
+      message: "not able to fetch the assessments"
+    });
   }
 });
+
+app.get("/api/assessments/:id", async (req, res)=>{
+  try {
+    const { id } = req.params;
+    console.log(id);
+    const publisher = new Publisher();
+    const assessment: Assessment | undefined = await publisher.getAssessment(parseInt(id));
+    console.log(assessment);
+    if(assessment) {
+      return res.status(200).json({
+        assessment: assessment
+      });
+    }
+    return res.status(400).json({
+      message: `assessment not found with ${id}`
+    })
+  }catch(error) {
+    return res.status(500).json({
+      message: "getting error while fetching assessment"
+    })
+  }
+})
+
+app.put("/api/assessments/:id", async(req,res)=>{
+  console.log('putting here');
+  try{
+    const {id} = req.params;
+    const data = req.body;
+    if(data) {
+      const publisher = new Publisher();
+      await publisher.handleAssessmentPublishing(data, false);
+      return res.status(200).json({
+        message: `assessment published ${id}`
+      })
+    }else {
+      return res.status(400).json({
+        message: "No assessment data recieved"
+      })
+    }
+  }catch(error) {
+    return res.status(500).json({
+      message: "getting error while publishing"
+    })
+  }
+})
+
+app.delete("/api/assessments/:id", async (req, res)=>{
+  try {
+    const {id} = req.params;
+    if(id) {
+      const publisher = new Publisher();
+      await publisher.deleteAssessment(parseInt(id));
+      return res.status(200).json({
+        message: `assessment deleted ${id}`
+      });
+    }
+     return res.status(400).json({
+        message: `assessment cannot be deleted ${id}`
+      });
+  }catch(error) {
+    console.error(error);
+     return res.status(500).json({
+        message: `assessment deletion error`
+      });
+  }
+})
 
 
 app.get("/health", (req, res) => {

@@ -83,7 +83,11 @@
                 <mat-icon>more_horiz</mat-icon>
             </button>
             <mat-menu #menu="matMenu" class="card-menu">
-                <button mat-menu-item>
+                <button mat-menu-item *ngIf="quiz.status === 'Draft'" (click)="publishQuiz(quiz)">
+                    <mat-icon>publish</mat-icon>
+                    <span>Publish</span>
+                </button>
+                <button mat-menu-item (click)="editQuiz(quiz)">
                     <mat-icon>edit</mat-icon>
                     <span>Edit</span>
                 </button>
@@ -100,7 +104,7 @@
                     <span>View Report</span>
                 </button>
                 <mat-divider></mat-divider>
-                <button mat-menu-item class="delete-action">
+                <button mat-menu-item class="delete-action" (click)="deleteQuiz(quiz)">
                     <mat-icon>delete</mat-icon>
                     <span>Delete</span>
                 </button>
@@ -123,11 +127,11 @@
                     </div>
                     <div class="quiz-stat">
                         <mat-icon>schedule</mat-icon>
-                        <span>15 mins</span>
+                        <span>{{ quiz.timelimit }} mins</span>
                     </div>
                     <div class="quiz-stat" *ngIf="quiz.status === 'Published'">
                         <mat-icon>people</mat-icon>
-                        <span>24 attempts</span>
+                        <span>{{ quiz.attempts }} attempts</span>
                     </div>
                 </div>
             </div>
@@ -197,7 +201,11 @@
                     <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #listMenu="matMenu" class="card-menu">
-                    <button mat-menu-item>
+                    <button mat-menu-item *ngIf="quiz.status === 'Draft'" (click)="publishQuiz(quiz)">
+                        <mat-icon>publish</mat-icon>
+                        <span>Publish</span>
+                    </button>
+                    <button mat-menu-item (click)="editQuiz(quiz)">
                         <mat-icon>edit</mat-icon>
                         <span>Edit</span>
                     </button>
@@ -210,7 +218,7 @@
                         <span>Share</span>
                     </button>
                     <mat-divider></mat-divider>
-                    <button mat-menu-item class="delete-action">
+                    <button mat-menu-item class="delete-action" (click)="deleteQuiz(quiz)">
                         <mat-icon>delete</mat-icon>
                         <span>Delete</span>
                     </button>

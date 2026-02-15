@@ -8,7 +8,7 @@ export class SupabaseOperator {
       const { data, error } = await supabase
         .from("assessment_table")
         .select("id, title, subject, questions, status, difficulty, timeLimit, description")
-        .limit(10);
+        .select("*");
       if (error) {
         throw error;
       }
