@@ -163,6 +163,37 @@ export class MyQuizzes implements OnInit {
         }
     }
 
+    copyLink(quiz: Quiz, event: Event) {
+        event.stopPropagation();
+        const link = `${window.location.origin}/attempt/${quiz.id}`;
+
+        navigator.clipboard.writeText(link).then(() => {
+            alert('Link copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    }
+
+    createAttemptLink(quiz: Quiz) {
+        if (!quiz.code || !quiz.timelimit) {
+            if (confirm(`This assessment is missing a Code or Time Limit. Do you want to edit it now?`)) {
+                this.editQuiz(quiz);
+            }
+            return;
+        }
+
+        // Construct the link (assuming /attempt/:id route will exist)
+        const link = `${window.location.origin}/attempt/${quiz.id}`;
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(link).then(() => {
+            alert(`Attempt link copied to clipboard!\n\nCode: ${quiz.code}\nTime Limit: ${quiz.timelimit} mins`);
+        }).catch(err => {
+            console.error('Failed to copy link: ', err);
+            prompt('Copy this link:', link);
+        });
+    }
+
     editQuiz(quiz: Quiz) {
         this.router.navigate(['/dashboard/create-assessment', quiz.id]);
     }

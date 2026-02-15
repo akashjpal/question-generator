@@ -99,6 +99,10 @@
                     <mat-icon>share</mat-icon>
                     <span>Share</span>
                 </button>
+                <button mat-menu-item (click)="createAttemptLink(quiz)">
+                    <mat-icon>link</mat-icon>
+                    <span>Create Attempt Link</span>
+                </button>
                 <button mat-menu-item [routerLink]="['/dashboard/reports', quiz.id]">
                     <mat-icon>analytics</mat-icon>
                     <span>View Report</span>
@@ -135,6 +139,21 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Attempt Link Display -->
+            <div class="attempt-link-display" *ngIf="quiz.code && quiz.timelimit">
+                <div class="link-label">
+                    <mat-icon>link</mat-icon>
+                    <span>Attempt Link</span>
+                </div>
+                <div class="link-actions">
+                    <span class="code-badge">{{ quiz.code }}</span>
+                    <button class="copy-btn" (click)="copyLink(quiz, $event)" title="Copy Link">
+                        <mat-icon>content_copy</mat-icon>
+                    </button>
+                </div>
+            </div>
+
 
             <!-- Card Footer -->
             <div class="card-footer">
