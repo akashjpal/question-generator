@@ -86,13 +86,31 @@ export class Publisher {
 
   async publishAssessment(assessment: AssessmentPublishModel) {
     try {
-      const { data, error } = await supabase
-        .from("assessment_table")
-        .insert(assessment);
+      // If an id is present, update the existing assessment, otherwise insert a new one
+      const id = (assessment as any).id;
+      let data: any = null;
+      let error: any = null;
+      if (id !== undefined && id !== null) {
+        const res = await supabase
+          .from("assessment_table")
+          .update(assessment)
+          .eq("id", id)
+          .select();
+        data = res.data;
+        error = res.error;
+      } else {
+        const res = await supabase
+          .from("assessment_table")
+          .insert([assessment])
+          .select();
+        data = res.data;
+        error = res.error;
+      }
       if (error) {
         throw error;
       }
       console.log("Assessment published:", data);
+      return data;
     }catch(error) {
       console.error("❌ Error publishing assessment:", error);
     }
@@ -183,7 +201,7 @@ export class Publisher {
     }
   }
 
-  async handleAssessmentPublishing(assessment: Assessment) {
+  async handleAssessmentPublishing(assessment: Assessment, isQuestionPublish: true | false = true) {
     try {
       const questions = assessment.questions;
       const publishQuestions: PublishQuestionModel[] = questions.map((q) => ({
@@ -208,10 +226,35 @@ export class Publisher {
         updatedAt: Date.now().toString(),
         publishedAt: Date.now().toString()
       };
-      await this.publishQuestion(publishQuestions);
+      if(isQuestionPublish) {
+        await this.publishQuestion(publishQuestions);
+      }
+      if(!isQuestionPublish) {
+        newAssessment.id = assessment.id;
+      }
       await this.publishAssessment(newAssessment);
     }catch(error) {
       console.error("❌ Error handling assessment publishing:", error);
+    }
+  }
+
+  async deleteAssessment(id: number): Promise<Assessment | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from("assessment_table")
+        .delete()
+        .eq("id", id)
+        .select();
+      if (error) {
+        throw error;
+      }
+      if (data && data.length > 0) {
+        console.log(data[0]);
+        return data[0] as Assessment;
+      }
+      return undefined;
+    } catch (error) {
+      console.error(error);
     }
   }
 }

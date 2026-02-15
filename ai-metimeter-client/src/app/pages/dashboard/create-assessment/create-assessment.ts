@@ -261,6 +261,16 @@ export class CreateAssessment implements OnInit {
         });
 
         try {
+            if (this.isEditMode && this.editId) {
+                await this.updateAssessment();
+                // Show success message and navigate to my-quizzes
+                this.snackBar.open('Assessment updated successfully!', 'Close', {
+                    duration: 3000,
+                    panelClass: ['success-snackbar']
+                });
+                this.router.navigate(['/dashboard/my-quizzes']);
+                return; // Exit after update
+            }
             const data = await fetch("http://localhost:3000/publish-assessment", {
                 method: "POST",
                 headers: {
@@ -273,10 +283,6 @@ export class CreateAssessment implements OnInit {
             const res = await data.json();
             console.log('Assessment publishing:', res);
 
-            if (this.isEditMode && this.editId) {
-                await this.updateAssessment();
-                return; // Exit after update
-            }
 
             // Show success message and navigate to my-quizzes
             this.snackBar.open('Assessment published successfully!', 'Close', {
@@ -306,7 +312,7 @@ export class CreateAssessment implements OnInit {
             timeLimit: 15 // Default or from form
         };
 
-        this.assessmentService.updateAssessment(this.editId, dataToUpdate).subscribe({
+        this.assessmentService.updateAssessment(this.editId, this.assessmentData).subscribe({
             next: () => {
                 console.log('Assessment updated');
             },

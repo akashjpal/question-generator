@@ -87,7 +87,7 @@ export class AssessmentService {
      * PUT /api/assessments/:id
      * Update an existing assessment
      */
-    updateAssessment(id: string, data: UpdateAssessmentRequest): Observable<Assessment> {
+    updateAssessment(id: string, data: Assessment): Observable<Assessment> {
         return this.http.put<Assessment>(`${this.API_URL}/${id}`, data);
     }
 

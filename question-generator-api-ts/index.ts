@@ -199,6 +199,50 @@ app.get("/api/assessments/:id", async (req, res)=>{
   }
 })
 
+app.put("/api/assessments/:id", async(req,res)=>{
+  console.log('putting here');
+  try{
+    const {id} = req.params;
+    const data = req.body;
+    if(data) {
+      const publisher = new Publisher();
+      await publisher.handleAssessmentPublishing(data, false);
+      return res.status(200).json({
+        message: `assessment published ${id}`
+      })
+    }else {
+      return res.status(400).json({
+        message: "No assessment data recieved"
+      })
+    }
+  }catch(error) {
+    return res.status(500).json({
+      message: "getting error while publishing"
+    })
+  }
+})
+
+app.delete("/api/assessments/:id", async (req, res)=>{
+  try {
+    const {id} = req.params;
+    if(id) {
+      const publisher = new Publisher();
+      await publisher.deleteAssessment(parseInt(id));
+      return res.status(200).json({
+        message: `assessment deleted ${id}`
+      });
+    }
+     return res.status(400).json({
+        message: `assessment cannot be deleted ${id}`
+      });
+  }catch(error) {
+    console.error(error);
+     return res.status(500).json({
+        message: `assessment deletion error`
+      });
+  }
+})
+
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });

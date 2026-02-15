@@ -146,6 +146,23 @@ export class MyQuizzes implements OnInit {
         }
     }
 
+    deleteQuiz(quiz: Quiz) {
+        if (confirm(`Are you sure you want to delete "${quiz.title}"? This action cannot be undone.`)) {
+            this.assessmentService.deleteAssessment(quiz.id).subscribe({
+                next: () => {
+                    this.loadAssessments(); // Reload list
+                    // Alternatively, remove locally:
+                    // this.quizzes = this.quizzes.filter(q => q.id !== quiz.id);
+                    // this.cdr.detectChanges();
+                },
+                error: (err) => {
+                    console.error('Failed to delete quiz:', err);
+                    alert('Failed to delete assessment');
+                }
+            });
+        }
+    }
+
     editQuiz(quiz: Quiz) {
         this.router.navigate(['/dashboard/create-assessment', quiz.id]);
     }

@@ -104,7 +104,7 @@
                     <span>View Report</span>
                 </button>
                 <mat-divider></mat-divider>
-                <button mat-menu-item class="delete-action">
+                <button mat-menu-item class="delete-action" (click)="deleteQuiz(quiz)">
                     <mat-icon>delete</mat-icon>
                     <span>Delete</span>
                 </button>
@@ -218,7 +218,7 @@
                         <span>Share</span>
                     </button>
                     <mat-divider></mat-divider>
-                    <button mat-menu-item class="delete-action">
+                    <button mat-menu-item class="delete-action" (click)="deleteQuiz(quiz)">
                         <mat-icon>delete</mat-icon>
                         <span>Delete</span>
                     </button>
