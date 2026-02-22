@@ -36,6 +36,6 @@ export class App {
     // Hide header/footer on landing page (root path) and dashboard pages (which have their own nav)
     // Strip hash fragment to properly detect landing page with anchor navigation (e.g., /#testimonials)
     const urlWithoutHash = url.split('#')[0];
-    this.isLandingPage.set(urlWithoutHash === '/' || urlWithoutHash === '' || url.startsWith('/dashboard'));
+    this.isLandingPage.set(urlWithoutHash === '/' || urlWithoutHash === '' || url.startsWith('/dashboard') || url.startsWith('/attempt'));
   }
 }
