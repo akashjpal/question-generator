@@ -1,104 +1,286 @@
-<div class="attempt-container">
-    <!-- Loading State -->
-    <div class="loading-state" *ngIf="isLoading">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Loading assessment...</p>
+<div class="attempt-wrapper">
+
+    <!-- ==================== LOADING STATE ==================== -->
+    <div class="state-screen" *ngIf="isLoading">
+        <div class="loader-container animate-fade-in">
+            <div class="loader-ring"></div>
+            <p class="loader-text">Loading assessment...</p>
+        </div>
     </div>
 
-    <!-- Error State -->
-    <div class="error-state" *ngIf="error && !isLoading">
-        <mat-icon color="warn">error</mat-icon>
-        <p>{{ error }}</p>
-        <button mat-button routerLink="/">Go Home</button>
-    </div>
-
-    <!-- Verification Step -->
-    <div class="verify-step" *ngIf="!isLoading && !error && !isVerified">
-        <mat-card class="verify-card">
-            <mat-card-header>
-                <mat-card-title>{{ assessment?.title }}</mat-card-title>
-                <mat-card-subtitle>{{ assessment?.subject }} • {{ assessment?.questions?.length }}
-                    Questions</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-                <p class="instructions">
-                    Enter the access code to start the assessment.
-                    <br>
-                    <strong>Time Limit:</strong> {{ assessment?.timeLimit }} minutes
-                </p>
-                <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Access Code</mat-label>
-                    <input matInput [(ngModel)]="accessCode" placeholder="Enter 6-digit code">
-                </mat-form-field>
-            </mat-card-content>
-            <mat-card-actions align="end">
-                <button mat-raised-button color="primary" (click)="verifyCode()">Start Assessment</button>
-            </mat-card-actions>
-        </mat-card>
-    </div>
-
-    <!-- Quiz Interface -->
-    <div class="quiz-interface" *ngIf="isVerified && !isSubmitted">
-        <!-- Header with Timer -->
-        <div class="quiz-header">
-            <div class="progress-info">
-                Question {{ currentQuestionIndex + 1 }} of {{ assessment?.questions?.length }}
+    <!-- ==================== ERROR STATE ==================== -->
+    <div class="state-screen" *ngIf="error && !isLoading">
+        <div class="error-card glass animate-scale-in">
+            <div class="error-icon-wrap">
+                <mat-icon>error_outline</mat-icon>
             </div>
-            <div class="timer" [class.warning]="timeLeft < 60">
-                <mat-icon>timer</mat-icon>
-                {{ formatTime(timeLeft) }}
-            </div>
+            <h2>Something went wrong</h2>
+            <p>{{ error }}</p>
+            <button class="btn btn-primary" routerLink="/">
+                <mat-icon>home</mat-icon>
+                Go Home
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== JOIN SCREEN ==================== -->
+    <div class="join-screen" *ngIf="!isLoading && !error && !isVerified">
+        <!-- Animated background -->
+        <div class="join-bg">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
         </div>
 
-        <!-- Question Card -->
-        <mat-card class="question-card">
-            <mat-card-content>
-                <h3 class="question-text">
-                    {{ assessment?.questions?.[currentQuestionIndex]?.question_text }}
-                </h3>
+        <div class="join-card glass animate-scale-in">
+            <!-- Header -->
+            <div class="join-header">
+                <div class="join-icon-wrap">
+                    <mat-icon>school</mat-icon>
+                </div>
+                <h1 class="join-title">Ready to begin?</h1>
+                <p class="join-subtitle">Enter your details to join the assessment.</p>
+            </div>
 
-                <div class="options-list">
-                    <div class="option-item"
-                        *ngFor="let opt of assessment?.questions?.[currentQuestionIndex]?.filteredOptions; let i = index"
-                        [class.selected]="answers[currentQuestionIndex] === i" (click)="selectOption(i)">
-                        <div class="option-marker">{{ ['A','B','C','D'][i] }}</div>
-                        <div class="option-text">{{ opt }}</div>
+            <!-- Assessment Info Chips -->
+            <div class="assessment-info-chips" *ngIf="assessment">
+                <div class="info-chip">
+                    <mat-icon>quiz</mat-icon>
+                    <span>{{ assessment.title }}</span>
+                </div>
+                <div class="info-chip">
+                    <mat-icon>category</mat-icon>
+                    <span>{{ assessment.subject }}</span>
+                </div>
+                <div class="info-chip">
+                    <mat-icon>help_outline</mat-icon>
+                    <span>{{ assessment.questions?.length || 0 }} Questions</span>
+                </div>
+                <div class="info-chip" *ngIf="assessment.timeLimit">
+                    <mat-icon>timer</mat-icon>
+                    <span>{{ assessment.timeLimit }} min</span>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <div class="join-form">
+                <div class="input-group">
+                    <label for="participantName">Your Name</label>
+                    <div class="input-wrapper">
+                        <mat-icon class="input-icon">person</mat-icon>
+                        <input type="text" id="participantName" [(ngModel)]="participantName"
+                            placeholder="Enter your full name" autocomplete="off" />
+                    </div>
+                    <span class="input-hint">
+                        <mat-icon>info</mat-icon>
+                        Name must be unique for this assessment session.
+                    </span>
+                </div>
+
+                <div class="input-group">
+                    <label for="accessCode">Access Code</label>
+                    <div class="input-wrapper">
+                        <mat-icon class="input-icon">lock</mat-icon>
+                        <input type="text" id="accessCode" [(ngModel)]="accessCode" placeholder="Enter 6-digit code"
+                            maxlength="6" autocomplete="off" />
                     </div>
                 </div>
-            </mat-card-content>
-            <mat-card-actions>
-                <button mat-button (click)="prevQuestion()" [disabled]="currentQuestionIndex === 0">Previous</button>
 
-                <span class="spacer"></span>
-
-                <button mat-raised-button color="primary"
-                    *ngIf="currentQuestionIndex < (assessment?.questions?.length || 0) - 1" (click)="nextQuestion()">
-                    Next
+                <button class="btn btn-join" (click)="verifyCode()"
+                    [disabled]="!participantName.trim() || !accessCode.trim()">
+                    <span>Join Assessment</span>
+                    <mat-icon>arrow_forward</mat-icon>
                 </button>
+            </div>
 
-                <button mat-raised-button color="accent"
-                    *ngIf="currentQuestionIndex === (assessment?.questions?.length || 0) - 1" (click)="submitQuiz()">
-                    Submit
-                </button>
-            </mat-card-actions>
-        </mat-card>
+            <!-- Footer -->
+            <div class="join-footer">
+                <p>Are you an instructor? <a routerLink="/auth/login" class="link-accent">Sign in here</a></p>
+            </div>
+        </div>
     </div>
 
-    <!-- Results/Submitted Screen -->
-    <div class="results-screen" *ngIf="isSubmitted">
-        <mat-card class="result-card">
-            <div class="result-icon">
+    <!-- ==================== ASSESSMENT PREVIEW ==================== -->
+    <div class="assessment-layout" *ngIf="isVerified && !isSubmitted">
+        <!-- Top Bar -->
+        <header class="assessment-topbar">
+            <div class="topbar-left">
+                <h2 class="topbar-title">{{ assessment?.title }}</h2>
+                <span class="subject-pill">{{ assessment?.subject }}</span>
+            </div>
+            <div class="topbar-right">
+                <app-countdown-timer *ngIf="assessment?.timeLimit && timeLeft > 0" [totalSeconds]="timeLeft"
+                    (timerEnd)="submitQuiz()" (timeUpdate)="timeLeft = $event">
+                </app-countdown-timer>
+                <button class="flag-topbar-btn" (click)="toggleFlag()"
+                    [class.flag-active]="isQuestionFlagged(currentQuestionIndex)">
+                    <mat-icon>{{ isQuestionFlagged(currentQuestionIndex) ? 'flag' : 'outlined_flag' }}</mat-icon>
+                    <span>Flag</span>
+                </button>
+                <div class="user-badge">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ participantName }}</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Split Content -->
+        <div class="assessment-content">
+            <!-- Main Question Area -->
+            <main class="question-area">
+                <div class="question-card glass animate-fade-in-up">
+                    <div class="question-header">
+                        <div class="question-header-left">
+                            <span class="question-number">Question {{ currentQuestionIndex + 1 }}</span>
+                            <span class="question-total">of {{ assessment?.questions?.length }}</span>
+                        </div>
+                        <button class="flag-question-btn" (click)="toggleFlag()"
+                            [class.flag-active]="isQuestionFlagged(currentQuestionIndex)"
+                            [attr.title]="isQuestionFlagged(currentQuestionIndex) ? 'Unflag question' : 'Flag for review'">
+                            <mat-icon>{{ isQuestionFlagged(currentQuestionIndex) ? 'flag' : 'outlined_flag'
+                                }}</mat-icon>
+                        </button>
+                    </div>
+
+                    <h3 class="question-text">
+                        {{ assessment?.questions?.[currentQuestionIndex]?.question_text }}
+                    </h3>
+
+                    <div class="options-grid">
+                        <button class="option-card"
+                            *ngFor="let opt of assessment?.questions?.[currentQuestionIndex]?.filteredOptions; let i = index"
+                            [class.option-selected]="answers[currentQuestionIndex] === i" (click)="selectOption(i)">
+                            <span class="option-marker">{{ ['A','B','C','D'][i] }}</span>
+                            <span class="option-text">{{ opt }}</span>
+                            <span class="option-check" *ngIf="answers[currentQuestionIndex] === i">
+                                <mat-icon>check</mat-icon>
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="question-nav">
+                        <button class="btn btn-outline" (click)="prevQuestion()"
+                            [disabled]="currentQuestionIndex === 0">
+                            <mat-icon>chevron_left</mat-icon>
+                            Previous
+                        </button>
+
+                        <button class="btn btn-primary"
+                            *ngIf="currentQuestionIndex < (assessment?.questions?.length || 0) - 1"
+                            (click)="nextQuestion()">
+                            Next
+                            <mat-icon>chevron_right</mat-icon>
+                        </button>
+
+                        <button class="btn btn-accent"
+                            *ngIf="currentQuestionIndex === (assessment?.questions?.length || 0) - 1"
+                            (click)="submitQuiz()">
+                            <mat-icon>send</mat-icon>
+                            Submit
+                        </button>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Sidebar Navigator -->
+            <aside class="question-sidebar">
+                <div class="sidebar-card glass">
+                    <h4 class="sidebar-title">
+                        <mat-icon>grid_view</mat-icon>
+                        Question Navigator
+                    </h4>
+
+                    <div class="navigator-grid">
+                        <button class="nav-dot" *ngFor="let q of assessment?.questions; let i = index"
+                            [class.nav-current]="i === currentQuestionIndex"
+                            [class.nav-answered]="isQuestionAnswered(i)" [class.nav-flagged]="isQuestionFlagged(i)"
+                            (click)="goToQuestion(i)">
+                            {{ i + 1 }}
+                            <span class="flag-indicator" *ngIf="isQuestionFlagged(i)"></span>
+                        </button>
+                    </div>
+
+                    <div class="sidebar-progress">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span class="progress-count">{{ answeredCount }} / {{ assessment?.questions?.length
+                                }}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill"
+                                [style.width.%]="(answeredCount / (assessment?.questions?.length || 1)) * 100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot legend-current"></span>
+                            <span>Current</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot legend-answered"></span>
+                            <span>Answered</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot legend-flagged"></span>
+                            <span>Flagged</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot legend-unanswered"></span>
+                            <span>Not Visited</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-submit-sidebar" (click)="submitQuiz()">
+                        <mat-icon>send</mat-icon>
+                        Submit Assessment
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- ==================== RESULTS ==================== -->
+    <div class="state-screen" *ngIf="isSubmitted">
+        <div class="result-card glass animate-scale-in">
+            <div class="result-particles">
+                <span *ngFor="let p of [1,2,3,4,5,6,7,8]" class="particle particle-{{p}}"></span>
+            </div>
+            <div class="result-icon-wrap">
                 <mat-icon>check_circle</mat-icon>
             </div>
-            <h2>Assessment Submitted!</h2>
-            <p>You have successfully completed the assessment.</p>
+            <h2 class="result-heading">Assessment Complete!</h2>
+            <p class="result-subtitle">Great job, {{ participantName }}! You've completed the assessment.</p>
 
-            <div class="score-display">
-                <span class="score">{{ score }}</span>
-                <span class="total">/ {{ assessment?.questions?.length }}</span>
+            <div class="score-ring">
+                <div class="score-value">
+                    <span class="score-num">{{ score }}</span>
+                    <span class="score-denom">/ {{ assessment?.questions?.length }}</span>
+                </div>
+                <p class="score-label">Your Score</p>
             </div>
 
-            <button mat-raised-button color="primary" routerLink="/">Back to Home</button>
-        </mat-card>
+            <div class="result-stats">
+                <div class="result-stat">
+                    <mat-icon>help_outline</mat-icon>
+                    <span>{{ assessment?.questions?.length }} Questions</span>
+                </div>
+                <div class="result-stat">
+                    <mat-icon>check</mat-icon>
+                    <span>{{ score }} Correct</span>
+                </div>
+                <div class="result-stat">
+                    <mat-icon>percent</mat-icon>
+                    <span>{{ ((score / (assessment?.questions?.length || 1)) * 100).toFixed(0) }}%</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" routerLink="/">
+                <mat-icon>home</mat-icon>
+                Back to Home
+            </button>
+        </div>
     </div>
 </div>

@@ -1,44 +1,43 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { timeout, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { AssessmentService } from '../../services/assessment.service';
 import { Assessment } from '../../models';
+import { CountdownTimerComponent } from '../../components/countdown-timer/countdown-timer';
 
 @Component({
     selector: 'app-attempt',
     standalone: true,
     imports: [
         CommonModule,
-        MatCardModule,
-        MatInputModule,
-        MatButtonModule,
         MatIconModule,
         FormsModule,
-        MatProgressSpinnerModule
+        RouterModule,
+        CountdownTimerComponent
     ],
     templateUrl: './attempt.html',
     styleUrls: ['./attempt.scss']
 })
-export class AttemptScreen implements OnInit {
+export class AttemptScreen implements OnInit, OnDestroy {
     assessmentId: string | null = null;
     assessment: Assessment | null = null;
     isLoading = true;
     error = '';
 
-    // Auth Step
+    // Join Step
+    participantName = '';
     accessCode = '';
     isVerified = false;
 
     // Quiz Step
     currentQuestionIndex = 0;
-    answers: number[] = []; // Store selected option index
-    timeLeft = 0; // in seconds
+    answers: number[] = [];
+    flaggedQuestions: Set<number> = new Set();
+    timeLeft = 0;
     timerInterval: any;
     isSubmitted = false;
 
@@ -58,46 +57,146 @@ export class AttemptScreen implements OnInit {
         }
     }
 
+    ngOnDestroy() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+        }
+    }
+
     loadAssessment(id: string) {
-        this.assessmentService.getAssessment(id).subscribe({
-            next: (data) => {
-                this.assessment = data;
-                this.isLoading = false;
+        // TODO: Uncomment when backend is available
+        // this.assessmentService.getAssessment(id).pipe(
+        //     timeout(3000),
+        //     catchError(err => {
+        //         console.warn('API unavailable, loading dummy data', err);
+        //         return of(this.getDummyAssessment());
+        //     })
+        // ).subscribe({
+        //     next: (data) => {
+        //         this.initAssessment(data);
+        //     }
+        // });
 
-                // Parse questions if needed
-                if (typeof this.assessment.questions === 'string') {
-                    try {
-                        this.assessment.questions = JSON.parse(this.assessment.questions as any);
-                    } catch (e) {
-                        console.error('Failed to parse questions');
-                        this.assessment.questions = [];
-                    }
-                }
+        // Load dummy data directly (no backend needed)
+        this.initAssessment(this.getDummyAssessment());
+    }
 
-                // Ensure filteredOptions are available for all questions
-                if (this.assessment.questions && Array.isArray(this.assessment.questions)) {
-                    this.assessment.questions.forEach(q => {
-                        if (!q.filteredOptions) {
-                            q.filteredOptions = this.parseOptions(q.options || '[]');
-                        }
-                    });
-                }
-            },
-            error: (err) => {
-                console.error('Failed to load assessment', err);
-                this.error = 'Failed to load assessment';
-                this.isLoading = false;
+    private initAssessment(data: Assessment) {
+        this.assessment = data;
+        this.isLoading = false;
+
+        // Parse questions if needed
+        if (typeof this.assessment.questions === 'string') {
+            try {
+                this.assessment.questions = JSON.parse(this.assessment.questions as any);
+            } catch (e) {
+                console.error('Failed to parse questions');
+                this.assessment.questions = [];
             }
-        });
+        }
+
+        // Ensure filteredOptions are available for all questions
+        if (this.assessment.questions && Array.isArray(this.assessment.questions)) {
+            this.assessment.questions.forEach(q => {
+                if (!q.filteredOptions) {
+                    q.filteredOptions = this.parseOptions(q.options || '[]');
+                }
+            });
+        }
+    }
+
+    private getDummyAssessment(): Assessment {
+        return {
+            id: '34',
+            title: 'Mid-Term Physics Assessment',
+            subject: 'Physics',
+            topic: 'Kinematics',
+            difficulty: 'medium',
+            description: 'Section 2: Kinematics — Projectile Motion & Newton\'s Laws',
+            questionsCount: 5,
+            status: 'published',
+            code: '123456',
+            timeLimit: 30,
+            createdBy: 'instructor',
+            updatedAt: new Date().toISOString(),
+            questions: [
+                {
+                    question_text: 'A projectile is launched at an angle of 45° relative to the horizontal plane with an initial velocity of 20 m/s. Which vector component remains constant throughout the flight (ignoring air resistance)?',
+                    options: '[]',
+                    correct_options: 'A',
+                    correctAnswer: 0,
+                    explanation: 'The horizontal component of velocity remains constant when air resistance is ignored.',
+                    filteredOptions: [
+                        'Horizontal velocity',
+                        'Vertical velocity',
+                        'Net acceleration',
+                        'Displacement magnitude'
+                    ]
+                },
+                {
+                    question_text: 'An object is thrown vertically upward with an initial velocity of 30 m/s. What is the maximum height reached? (g = 10 m/s²)',
+                    options: '[]',
+                    correct_options: 'B',
+                    correctAnswer: 1,
+                    explanation: 'Using v² = u² − 2gh, h = u²/(2g) = 900/20 = 45 m.',
+                    filteredOptions: [
+                        '30 m',
+                        '45 m',
+                        '60 m',
+                        '90 m'
+                    ]
+                },
+                {
+                    question_text: 'Newton\'s Third Law states that for every action there is an equal and opposite reaction. Which scenario best illustrates this law?',
+                    options: '[]',
+                    correct_options: 'C',
+                    correctAnswer: 2,
+                    explanation: 'A swimmer pushes water backward and the water pushes them forward — action/reaction pair.',
+                    filteredOptions: [
+                        'A ball rolling down a hill',
+                        'A car accelerating on a highway',
+                        'A swimmer pushing water backward to move forward',
+                        'A satellite orbiting the Earth'
+                    ]
+                },
+                {
+                    question_text: 'A 5 kg block is placed on a frictionless surface and a force of 20 N is applied horizontally. What is the acceleration of the block?',
+                    options: '[]',
+                    correct_options: 'B',
+                    correctAnswer: 1,
+                    explanation: 'F = ma → a = F/m = 20/5 = 4 m/s².',
+                    filteredOptions: [
+                        '2 m/s²',
+                        '4 m/s²',
+                        '5 m/s²',
+                        '10 m/s²'
+                    ]
+                },
+                {
+                    question_text: 'Two objects of masses 2 kg and 4 kg are dropped from the same height in vacuum. Which statement is correct?',
+                    options: '[]',
+                    correct_options: 'A',
+                    correctAnswer: 0,
+                    explanation: 'In a vacuum, all objects fall with the same acceleration regardless of mass.',
+                    filteredOptions: [
+                        'Both reach the ground at the same time',
+                        'The heavier object reaches first',
+                        'The lighter object reaches first',
+                        'They reach at different times depending on shape'
+                    ]
+                }
+            ]
+        };
     }
 
     verifyCode() {
         if (!this.assessment) return;
+        if (!this.participantName.trim() || !this.accessCode.trim()) return;
 
         if (this.accessCode === this.assessment.code) {
             this.startQuiz();
         } else {
-            alert('Invalid Access Code');
+            alert('Invalid Access Code. Please check and try again.');
         }
     }
 
@@ -108,27 +207,10 @@ export class AttemptScreen implements OnInit {
         // Initialize answers array
         this.answers = new Array(this.assessment?.questions.length || 0).fill(-1);
 
-        // Start Timer
+        // Set timer seconds (CountdownTimerComponent handles the countdown)
         if (this.assessment?.timeLimit) {
             this.timeLeft = this.assessment.timeLimit * 60;
-            this.startTimer();
         }
-    }
-
-    startTimer() {
-        this.timerInterval = setInterval(() => {
-            if (this.timeLeft > 0) {
-                this.timeLeft--;
-            } else {
-                this.submitQuiz();
-            }
-        }, 1000);
-    }
-
-    formatTime(seconds: number): string {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
 
     selectOption(optionIndex: number) {
@@ -147,17 +229,44 @@ export class AttemptScreen implements OnInit {
         }
     }
 
+    goToQuestion(index: number) {
+        this.currentQuestionIndex = index;
+    }
+
+    isQuestionAnswered(index: number): boolean {
+        return this.answers[index] !== undefined && this.answers[index] !== -1;
+    }
+
+    get answeredCount(): number {
+        return this.answers.filter(a => a !== -1).length;
+    }
+
+    toggleFlag(index?: number) {
+        const idx = index !== undefined ? index : this.currentQuestionIndex;
+        if (this.flaggedQuestions.has(idx)) {
+            this.flaggedQuestions.delete(idx);
+        } else {
+            this.flaggedQuestions.add(idx);
+        }
+    }
+
+    isQuestionFlagged(index: number): boolean {
+        return this.flaggedQuestions.has(index);
+    }
+
+    get flaggedCount(): number {
+        return this.flaggedQuestions.size;
+    }
+
     submitQuiz() {
         clearInterval(this.timerInterval);
         this.isSubmitted = true;
-        // Logic to calculate score or save attempt would go here
     }
 
     get score(): number {
         if (!this.assessment) return 0;
         let correct = 0;
         this.assessment.questions.forEach((q, index) => {
-            // Need to parse correct answer index from string/number
             const correctIndex = this.getCorrectOptionIndex(q);
             if (this.answers[index] === correctIndex) {
                 correct++;
@@ -166,10 +275,8 @@ export class AttemptScreen implements OnInit {
         return correct;
     }
 
-    // Helper from create-assessment (should be shared utility in future)
     getCorrectOptionIndex(question: any): number {
         if (typeof question.correctAnswer === 'number') return question.correctAnswer;
-
         const map: any = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
         return map[question.correct_options] ?? 0;
     }
