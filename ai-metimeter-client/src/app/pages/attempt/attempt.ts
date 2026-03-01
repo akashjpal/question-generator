@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,7 +8,15 @@ import { of } from 'rxjs';
 import { AssessmentService } from '../../services/assessment.service';
 import { Assessment } from '../../models';
 import { CountdownTimerComponent } from '../../components/countdown-timer/countdown-timer';
+import { ReportService } from '../../services/report.service';
+import { interval, Subject, switchMap, takeUntil, takeWhile } from 'rxjs';
 
+export enum AttemptStatus {
+    NOT_STARTED = 0,
+    IN_PROGRESS = 1,
+    COMPLETED = 2,
+    ERROR = 3
+};
 @Component({
     selector: 'app-attempt',
     standalone: true,
@@ -27,6 +35,7 @@ export class AttemptScreen implements OnInit, OnDestroy {
     assessment: Assessment | null = null;
     isLoading = true;
     error = '';
+    interval: any;
 
     // Join Step
     participantName = '';
@@ -40,11 +49,14 @@ export class AttemptScreen implements OnInit, OnDestroy {
     timeLeft = 0;
     timerInterval: any;
     isSubmitted = false;
+    private destroy$ = new Subject<void>();
 
     constructor(
         private route: ActivatedRoute,
         private router: Router,
-        private assessmentService: AssessmentService
+        private assessmentService: AssessmentService,
+        private cdr: ChangeDetectorRef,
+        private reportService: ReportService
     ) { }
 
     ngOnInit() {
@@ -61,24 +73,21 @@ export class AttemptScreen implements OnInit, OnDestroy {
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
         }
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 
     loadAssessment(id: string) {
         // TODO: Uncomment when backend is available
-        // this.assessmentService.getAssessment(id).pipe(
-        //     timeout(3000),
-        //     catchError(err => {
-        //         console.warn('API unavailable, loading dummy data', err);
-        //         return of(this.getDummyAssessment());
-        //     })
-        // ).subscribe({
-        //     next: (data) => {
-        //         this.initAssessment(data);
-        //     }
-        // });
-
+        this.assessmentService.getAssessment(id).subscribe({
+            next: (data) => {
+                this.initAssessment(data);
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            }
+        });
         // Load dummy data directly (no backend needed)
-        this.initAssessment(this.getDummyAssessment());
+        // this.initAssessment(this.getDummyAssessment());
     }
 
     private initAssessment(data: Assessment) {
@@ -105,99 +114,58 @@ export class AttemptScreen implements OnInit, OnDestroy {
         }
     }
 
-    private getDummyAssessment(): Assessment {
-        return {
-            id: '34',
-            title: 'Mid-Term Physics Assessment',
-            subject: 'Physics',
-            topic: 'Kinematics',
-            difficulty: 'medium',
-            description: 'Section 2: Kinematics — Projectile Motion & Newton\'s Laws',
-            questionsCount: 5,
-            status: 'published',
-            code: '123456',
-            timeLimit: 30,
-            createdBy: 'instructor',
-            updatedAt: new Date().toISOString(),
-            questions: [
-                {
-                    question_text: 'A projectile is launched at an angle of 45° relative to the horizontal plane with an initial velocity of 20 m/s. Which vector component remains constant throughout the flight (ignoring air resistance)?',
-                    options: '[]',
-                    correct_options: 'A',
-                    correctAnswer: 0,
-                    explanation: 'The horizontal component of velocity remains constant when air resistance is ignored.',
-                    filteredOptions: [
-                        'Horizontal velocity',
-                        'Vertical velocity',
-                        'Net acceleration',
-                        'Displacement magnitude'
-                    ]
-                },
-                {
-                    question_text: 'An object is thrown vertically upward with an initial velocity of 30 m/s. What is the maximum height reached? (g = 10 m/s²)',
-                    options: '[]',
-                    correct_options: 'B',
-                    correctAnswer: 1,
-                    explanation: 'Using v² = u² − 2gh, h = u²/(2g) = 900/20 = 45 m.',
-                    filteredOptions: [
-                        '30 m',
-                        '45 m',
-                        '60 m',
-                        '90 m'
-                    ]
-                },
-                {
-                    question_text: 'Newton\'s Third Law states that for every action there is an equal and opposite reaction. Which scenario best illustrates this law?',
-                    options: '[]',
-                    correct_options: 'C',
-                    correctAnswer: 2,
-                    explanation: 'A swimmer pushes water backward and the water pushes them forward — action/reaction pair.',
-                    filteredOptions: [
-                        'A ball rolling down a hill',
-                        'A car accelerating on a highway',
-                        'A swimmer pushing water backward to move forward',
-                        'A satellite orbiting the Earth'
-                    ]
-                },
-                {
-                    question_text: 'A 5 kg block is placed on a frictionless surface and a force of 20 N is applied horizontally. What is the acceleration of the block?',
-                    options: '[]',
-                    correct_options: 'B',
-                    correctAnswer: 1,
-                    explanation: 'F = ma → a = F/m = 20/5 = 4 m/s².',
-                    filteredOptions: [
-                        '2 m/s²',
-                        '4 m/s²',
-                        '5 m/s²',
-                        '10 m/s²'
-                    ]
-                },
-                {
-                    question_text: 'Two objects of masses 2 kg and 4 kg are dropped from the same height in vacuum. Which statement is correct?',
-                    options: '[]',
-                    correct_options: 'A',
-                    correctAnswer: 0,
-                    explanation: 'In a vacuum, all objects fall with the same acceleration regardless of mass.',
-                    filteredOptions: [
-                        'Both reach the ground at the same time',
-                        'The heavier object reaches first',
-                        'The lighter object reaches first',
-                        'They reach at different times depending on shape'
-                    ]
-                }
-            ]
-        };
-    }
-
     verifyCode() {
         if (!this.assessment) return;
         if (!this.participantName.trim() || !this.accessCode.trim()) return;
 
         if (this.accessCode === this.assessment.code) {
             this.startQuiz();
+            this.startPollSaveQuiz();
         } else {
             alert('Invalid Access Code. Please check and try again.');
         }
+    }
+
+    startPollSaveQuiz() {
+        interval(5000).pipe(
+            takeUntil(this.destroy$),              // cleanup on component destroy
+            takeWhile(() => !this.isSubmitted),     // stop when submitted
+            switchMap(() => this.reportService.saveQuiz(this.assessmentId!, {
+                id: this.assessmentId!,
+                participantName: this.participantName,
+                answers: this.answers,
+                flaggedQuestions: Array.from(this.flaggedQuestions),
+                score: this.score,
+                timeTaken: ((this.assessment?.timeLimit ?? 0) * 60 - this.timeLeft),
+                timeLimit: (this.assessment?.timeLimit ?? 0) * 60,
+                attemptStatus: AttemptStatus.IN_PROGRESS
+            }).pipe(
+                catchError(err => {
+                    console.error('Auto-save failed:', err);
+                    return of(null);
+                })
+            )
+            )).subscribe({
+                next: (data) => console.log(data),
+                error: (err) => console.error('Auto-save failed:', err)
+            });
+    }
+
+    saveQuiz() {
+        this.reportService.saveQuiz(this.assessmentId!, {
+            id: this.assessmentId!,
+            participantName: this.participantName,
+            answers: this.answers,
+            flaggedQuestions: Array.from(this.flaggedQuestions),
+            score: this.score,
+            timeTaken: ((this.assessment?.timeLimit ?? 0) * 60 - this.timeLeft),
+            timeLimit: (this.assessment?.timeLimit ?? 0) * 60,
+            attemptStatus: AttemptStatus.IN_PROGRESS
+        }).subscribe({
+            next: (data) => {
+                console.log(data);
+            }
+        });
     }
 
     startQuiz() {
@@ -261,6 +229,21 @@ export class AttemptScreen implements OnInit, OnDestroy {
     submitQuiz() {
         clearInterval(this.timerInterval);
         this.isSubmitted = true;
+        this.reportService.submitQuiz(this.assessmentId!, {
+            id: this.assessmentId!,
+            participantName: this.participantName,
+            answers: this.answers,
+            flaggedQuestions: Array.from(this.flaggedQuestions),
+            score: this.score,
+            timeTaken: ((this.assessment?.timeLimit ?? 0) * 60 - this.timeLeft),
+            timeLimit: (this.assessment?.timeLimit ?? 0) * 60,
+            attemptStatus: AttemptStatus.COMPLETED
+        }).subscribe({
+            next: (data) => {
+                console.log(data);
+                this.isSubmitted = true;
+            }
+        });
     }
 
     get score(): number {
