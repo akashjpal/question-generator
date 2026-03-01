@@ -5,7 +5,8 @@ import {
     AssessmentStats,
     StudentResult,
     DashboardStats,
-    PaginatedResponse
+    PaginatedResponse,
+    AssessmentResult
 } from '../models';
 
 @Injectable({
@@ -82,5 +83,15 @@ export class ReportService {
         return this.http.get(`${this.API_URL}/assessments/${assessmentId}/export/pdf`, {
             responseType: 'blob'
         });
+    }
+
+    saveQuiz(assessmentId: string, result: AssessmentResult): Observable<AssessmentResult> {
+        console.log(result);
+        return this.http.post<AssessmentResult>(`http://localhost:5136/api/attempts/save/${assessmentId}`, result);
+    }
+
+    submitQuiz(assessmentId: string, result: AssessmentResult): Observable<AssessmentResult> {
+        console.log(result);
+        return this.http.post<AssessmentResult>(`http://localhost:5136/api/attempts/submit/${assessmentId}`, result);
     }
 }

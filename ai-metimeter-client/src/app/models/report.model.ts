@@ -3,6 +3,7 @@
  * Interfaces for assessment analytics and student results
  */
 
+import { AttemptStatus } from '../pages/attempt/attempt';
 import { AnswerResult } from './question.model';
 
 // ============ Statistics Models ============
@@ -55,6 +56,17 @@ export interface StudentResult {
     timeTakenSeconds: number;
     submittedAt: string;
     answers?: AnswerResult[]; // Detailed answers (optional)
+}
+
+export interface AssessmentResult {
+    id: string,
+    participantName: string,
+    answers: number[],
+    flaggedQuestions: number[],
+    score: number,
+    timeTaken: number, // in seconds
+    timeLimit: number // in seconds,
+    attemptStatus: AttemptStatus
 }
 
 /**
