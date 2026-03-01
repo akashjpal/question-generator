@@ -1,6 +1,0 @@
-requests
-pdfplumber
-pytesseract
-pdf2image
-pillow
-redis

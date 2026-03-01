@@ -12,3 +12,5 @@
 /ai-metimeter-client/.angular
 /question-generator-api-ts/node_modules
 /question-generator-api-ts/.env
+/AttemptAPI/bin
+/AttemptAPI/obj
