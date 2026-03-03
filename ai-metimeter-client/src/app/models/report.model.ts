@@ -60,7 +60,7 @@ export interface StudentResult {
 
 export interface AssessmentResult {
     id: string,
-    participantName: string,
+    participantUniqueCode: string,
     answers: number[],
     flaggedQuestions: number[],
     score: number,

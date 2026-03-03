@@ -132,7 +132,7 @@ export class AttemptScreen implements OnInit, OnDestroy {
             takeWhile(() => !this.isSubmitted),     // stop when submitted
             switchMap(() => this.reportService.saveQuiz(this.assessmentId!, {
                 id: this.assessmentId!,
-                participantName: this.participantName,
+                participantUniqueCode: this.participantName,
                 answers: this.answers,
                 flaggedQuestions: Array.from(this.flaggedQuestions),
                 score: this.score,
@@ -154,7 +154,7 @@ export class AttemptScreen implements OnInit, OnDestroy {
     saveQuiz() {
         this.reportService.saveQuiz(this.assessmentId!, {
             id: this.assessmentId!,
-            participantName: this.participantName,
+            participantUniqueCode: this.participantName,
             answers: this.answers,
             flaggedQuestions: Array.from(this.flaggedQuestions),
             score: this.score,
@@ -231,7 +231,7 @@ export class AttemptScreen implements OnInit, OnDestroy {
         this.isSubmitted = true;
         this.reportService.submitQuiz(this.assessmentId!, {
             id: this.assessmentId!,
-            participantName: this.participantName,
+            participantUniqueCode: this.participantName,
             answers: this.answers,
             flaggedQuestions: Array.from(this.flaggedQuestions),
             score: this.score,

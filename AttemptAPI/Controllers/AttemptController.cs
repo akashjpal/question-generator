@@ -1,33 +1,56 @@
 using Microsoft.AspNetCore.Mvc;
-using AttemptAPI.Models;
 using System.Text.Json;
+using AttemptAPI.dtos.request;
+using AttemptAPI.services;
+using AttemptAPI.Enums;
 
 namespace AttemptAPI.controllers;
+
 [ApiController]
 [Route("api/attempts")]
-public class AttemptController: ControllerBase
+public class AttemptController : ControllerBase
 {
+    private readonly ISubmitAssessmentService _assessmentService;
+    public AttemptController(ISubmitAssessmentService assessmentService)
+    {
+        this._assessmentService = assessmentService;
+    }
+
     [HttpGet("healthCheck")]
     public string HealthCheck()
     {
-        return " running";
+        return "running";
     }
 
-    [HttpPost("save/{assessmentId}")]
-    public string SaveAttempt(string assessmentId, [FromBody] AssessmentResult assessmentResult)
+    [HttpPost("save")]
+    public async Task<IActionResult> SaveAttempt([FromBody] AssessmentResultRequest assessmentResult)
     {
-        Console.WriteLine(assessmentId);
-        string serializedObject = JsonSerializer.Serialize(assessmentResult, new JsonSerializerOptions { WriteIndented = true });
-        Console.WriteLine($"Assessment Result: {serializedObject}");
-        return "Assessment saved successfully";
+        try
+        {
+            Console.WriteLine($"Received assessment result: {JsonSerializer.Serialize(assessmentResult)}");
+            await _assessmentService.SaveAssessment(assessmentResult);
+            return Ok("Assessment saved successfully");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving assessment: {ex.Message}");
+            return BadRequest("Error saving assessment");
+        }
     }
 
-    [HttpPost("submit/{assessmentId}")]
-    public string SubmitAssessment(string assessmentId, [FromBody] AssessmentResult assessmentResult)
+    [HttpPost("submit")]
+    public async Task<IActionResult> SubmitAssessment([FromBody] AssessmentResultRequest assessmentResult)
     {
-        Console.WriteLine(assessmentId);
-        string serializedObject = JsonSerializer.Serialize(assessmentResult, new JsonSerializerOptions { WriteIndented = true });
-        Console.WriteLine($"Assessment Result: {serializedObject}");
-        return "Assessment submitted successfully";
+        try
+        {
+            Console.WriteLine($"Received assessment result: {JsonSerializer.Serialize(assessmentResult)}");
+            await _assessmentService.SaveAssessment(assessmentResult);
+            return Ok("Assessment submitted successfully");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error while submitting assessment: {ex.Message}");
+            return BadRequest("Error while submitting assessment");
+        }
     }
 }

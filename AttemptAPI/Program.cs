@@ -1,3 +1,5 @@
+using AttemptAPI.services;
+using AttemptAPI.repository;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -16,6 +18,8 @@ builder.Services.AddCors(options =>
                .AllowAnyMethod(); // Allow all HTTP methods (GET, POST, etc.)
     });
 });
+builder.Services.AddScoped<ISubmitAssessmentService, SubmitAssessmentService>();
+builder.Services.AddScoped<IAssessmentRepository, AssessmentRepository>();
 
 var app = builder.Build();
 
