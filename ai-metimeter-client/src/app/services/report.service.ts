@@ -87,11 +87,11 @@ export class ReportService {
 
     saveQuiz(assessmentId: string, result: AssessmentResult): Observable<AssessmentResult> {
         console.log(result);
-        return this.http.post<AssessmentResult>(`http://localhost:5136/api/attempts/save/${assessmentId}`, result);
+        return this.http.post<AssessmentResult>(`http://localhost:5136/api/attempts/save`, result);
     }
 
     submitQuiz(assessmentId: string, result: AssessmentResult): Observable<AssessmentResult> {
         console.log(result);
-        return this.http.post<AssessmentResult>(`http://localhost:5136/api/attempts/submit/${assessmentId}`, result);
+        return this.http.post<AssessmentResult>(`http://localhost:5136/api/attempts/submit`, result);
     }
 }

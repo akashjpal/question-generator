@@ -1,12 +1,12 @@
-namespace AttemptAPI.Models;
+namespace AttemptAPI.dtos.request;
 
 
-public class AssessmentResult
+public class AssessmentResultRequest
 {
     public string Id { get; set; }
     public string ParticipantUniqueCode { get; set; } // assessment code + unique id
-    public string AnswersJson { get; set; }
-    public string FlaggedQuestionsJson { get; set; }
+    public int[] Answers { get; set; }
+    public int[] FlaggedQuestions { get; set; }
     public int Score { get; set; }
     public int TimeTaken { get; set; }
     public int TimeLimit { get; set; }
