@@ -1,5 +1,6 @@
 using AttemptAPI.services;
 using AttemptAPI.repository;
+using Npgsql;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -20,6 +21,12 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddScoped<ISubmitAssessmentService, SubmitAssessmentService>();
 builder.Services.AddScoped<IAssessmentRepository, AssessmentRepository>();
+// Register NpgsqlDataSource
+builder.Services.AddSingleton<NpgsqlDataSource>(sp =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    return NpgsqlDataSource.Create(connectionString);
+});
 
 var app = builder.Build();
 

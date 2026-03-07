@@ -10,6 +10,7 @@ import { Assessment } from '../../models';
 import { CountdownTimerComponent } from '../../components/countdown-timer/countdown-timer';
 import { ReportService } from '../../services/report.service';
 import { interval, Subject, switchMap, takeUntil, takeWhile } from 'rxjs';
+import { v4 as uuidv4 } from 'uuid';
 
 export enum AttemptStatus {
     NOT_STARTED = 0,
@@ -39,6 +40,7 @@ export class AttemptScreen implements OnInit, OnDestroy {
 
     // Join Step
     participantName = '';
+    participantUniqueCode = '';
     accessCode = '';
     isVerified = false;
 
@@ -119,6 +121,13 @@ export class AttemptScreen implements OnInit, OnDestroy {
         if (!this.participantName.trim() || !this.accessCode.trim()) return;
 
         if (this.accessCode === this.assessment.code) {
+            const storageKey = `participantUniqueCode_${this.assessmentId}`;
+            if (localStorage.getItem(storageKey)) {
+                alert('You have already attempted this assessment');
+                return;
+            }
+            this.participantUniqueCode = this.participantName + '-' + this.assessment.code + '-' + uuidv4();
+            localStorage.setItem(storageKey, this.participantUniqueCode);
             this.startQuiz();
             this.startPollSaveQuiz();
         } else {
@@ -132,7 +141,7 @@ export class AttemptScreen implements OnInit, OnDestroy {
             takeWhile(() => !this.isSubmitted),     // stop when submitted
             switchMap(() => this.reportService.saveQuiz(this.assessmentId!, {
                 id: this.assessmentId!,
-                participantUniqueCode: this.participantName,
+                participantUniqueCode: this.participantUniqueCode,
                 answers: this.answers,
                 flaggedQuestions: Array.from(this.flaggedQuestions),
                 score: this.score,
@@ -154,7 +163,7 @@ export class AttemptScreen implements OnInit, OnDestroy {
     saveQuiz() {
         this.reportService.saveQuiz(this.assessmentId!, {
             id: this.assessmentId!,
-            participantUniqueCode: this.participantName,
+            participantUniqueCode: this.participantUniqueCode,
             answers: this.answers,
             flaggedQuestions: Array.from(this.flaggedQuestions),
             score: this.score,
@@ -231,7 +240,7 @@ export class AttemptScreen implements OnInit, OnDestroy {
         this.isSubmitted = true;
         this.reportService.submitQuiz(this.assessmentId!, {
             id: this.assessmentId!,
-            participantUniqueCode: this.participantName,
+            participantUniqueCode: this.participantUniqueCode,
             answers: this.answers,
             flaggedQuestions: Array.from(this.flaggedQuestions),
             score: this.score,
