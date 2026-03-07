@@ -14,3 +14,5 @@
 /question-generator-api-ts/.env
 /AttemptAPI/bin
 /AttemptAPI/obj
+/ReportsAPI/bin
+/ReportsAPI/obj
