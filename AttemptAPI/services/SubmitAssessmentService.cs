@@ -8,18 +8,19 @@ public class SubmitAssessmentService : ISubmitAssessmentService
 {
     private readonly IAssessmentRepository _repository;
     public SubmitAssessmentService(IAssessmentRepository repository) {
-        this._repository = repository;
+        _repository = repository;
     }
     public async Task<AssessmentResult> SaveAssessment(AssessmentResultRequest request)
     {
         AssessmentResult assessmentResult = await ConvertToAssessmentResult(request);
+        await _repository.saveAttemptToDb(assessmentResult);
         return assessmentResult;
     }
     public async Task<AssessmentResult> ConvertToAssessmentResult(AssessmentResultRequest request)
     {
         return new AssessmentResult
         {   
-            Id = request.Id,
+            AssessmentId = request.Id,
             ParticipantUniqueCode = request.ParticipantUniqueCode,
             AnswersJson = JsonSerializer.Serialize<int[]>(request.Answers),
             FlaggedQuestionsJson = JsonSerializer.Serialize<int[]>(request.FlaggedQuestions),
