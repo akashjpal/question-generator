@@ -25,7 +25,7 @@ public class ReportsController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(new { message = "An error occurred while fetching dashboard stats.", details = ex.Message });
+            return StatusCode(500, new { message = "An error occurred while fetching dashboard stats.", details = ex.Message });
         }
     }
 }
