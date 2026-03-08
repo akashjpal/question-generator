@@ -61,8 +61,9 @@ export class ReportService {
      * GET /api/dashboard/stats
      * Get teacher dashboard summary statistics
      */
+    // REPORT API
     getDashboardStats(): Observable<DashboardStats> {
-        return this.http.get<DashboardStats>(`${this.API_URL}/dashboard/stats`);
+        return this.http.get<DashboardStats>(`http://localhost:5082/api/dashboard/stats`);
     }
 
     /**

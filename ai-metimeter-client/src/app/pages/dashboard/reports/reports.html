@@ -1,117 +1,124 @@
 <div class="reports-page">
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="header-content">
-            <div class="header-text">
-                <h1>Analysis Reports</h1>
-                <p>Detailed insights into your assessment performance</p>
-            </div>
-            <button class="export-btn">
-                <mat-icon>download</mat-icon>
-                Export All Data
-            </button>
-        </div>
+    <div *ngIf="isLoading" class="loading-overlay">
+        <mat-spinner diameter="50"></mat-spinner>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon purple">
-                <mat-icon>quiz</mat-icon>
-            </div>
-            <div class="stat-info">
-                <span class="stat-value">{{ stats.totalAssessments }}</span>
-                <span class="stat-label">Total Assessments</span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon blue">
-                <mat-icon>group</mat-icon>
-            </div>
-            <div class="stat-info">
-                <span class="stat-value">{{ stats.totalParticipants }}</span>
-                <span class="stat-label">Total Participants</span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon green">
-                <mat-icon>trending_up</mat-icon>
-            </div>
-            <div class="stat-info">
-                <span class="stat-value">{{ stats.avgPerformance }}%</span>
-                <span class="stat-label">Avg. Performance</span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon yellow">
-                <mat-icon>check_circle</mat-icon>
-            </div>
-            <div class="stat-info">
-                <span class="stat-value">{{ stats.completionRate }}%</span>
-                <span class="stat-label">Completion Rate</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recent Reports Section -->
-    <div class="reports-section">
-        <div class="section-header">
-            <h2>Recent Reports</h2>
-            <div class="section-actions">
-                <button class="filter-btn" [class.active]="activeFilter === 'all'"
-                    (click)="setFilter('all')">All</button>
-                <button class="filter-btn" [class.active]="activeFilter === 'week'" (click)="setFilter('week')">This
-                    Week</button>
-                <button class="filter-btn" [class.active]="activeFilter === 'month'" (click)="setFilter('month')">This
-                    Month</button>
-            </div>
-        </div>
-
-        <div class="reports-list">
-            <div class="report-item" *ngFor="let report of filteredReports">
-                <div class="report-icon" [attr.data-subject]="getSubjectClass(report.subject)">
-                    <mat-icon>{{ report.icon }}</mat-icon>
+    <ng-container *ngIf="!isLoading">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>Analysis Reports</h1>
+                    <p>Detailed insights into your assessment performance</p>
                 </div>
+                <button class="export-btn">
+                    <mat-icon>download</mat-icon>
+                    Export All Data
+                </button>
+            </div>
+        </div>
 
-                <div class="report-content">
-                    <div class="report-header">
-                        <h3>{{ report.title }}</h3>
-                        <span class="report-subject">{{ report.subject }}</span>
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <mat-icon>quiz</mat-icon>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.totalAssessments }}</span>
+                    <span class="stat-label">Total Assessments</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <mat-icon>group</mat-icon>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.totalParticipants }}</span>
+                    <span class="stat-label">Total Participants</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <mat-icon>trending_up</mat-icon>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.averagePerformance }}%</span>
+                    <span class="stat-label">Avg. Performance</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon yellow">
+                    <mat-icon>check_circle</mat-icon>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ stats.completionRate }}%</span>
+                    <span class="stat-label">Completion Rate</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reports Section -->
+        <div class="reports-section">
+            <div class="section-header">
+                <h2>Recent Reports</h2>
+                <div class="section-actions">
+                    <button class="filter-btn" [class.active]="activeFilter === 'all'"
+                        (click)="setFilter('all')">All</button>
+                    <button class="filter-btn" [class.active]="activeFilter === 'week'" (click)="setFilter('week')">This
+                        Week</button>
+                    <button class="filter-btn" [class.active]="activeFilter === 'month'"
+                        (click)="setFilter('month')">This
+                        Month</button>
+                </div>
+            </div>
+
+            <div class="reports-list">
+                <div class="report-item" *ngFor="let report of filteredReports">
+                    <div class="report-icon" [attr.data-subject]="getSubjectClass(report.subject)">
+                        <mat-icon>{{ getSubjectIcon(report.subject) }}</mat-icon>
                     </div>
-                    <div class="report-meta">
-                        <span class="meta-item">
-                            <mat-icon>people</mat-icon>
-                            {{ report.participants }} participants
-                        </span>
-                        <span class="meta-item">
-                            <mat-icon>schedule</mat-icon>
-                            {{ report.date }}
-                        </span>
+
+                    <div class="report-content">
+                        <div class="report-header">
+                            <h3>{{ report.title }}</h3>
+                            <span class="report-subject">{{ report.subject }}</span>
+                        </div>
+                        <div class="report-meta">
+                            <span class="meta-item">
+                                <mat-icon>people</mat-icon>
+                                {{ report.participants }} participants
+                            </span>
+                            <span class="meta-item">
+                                <mat-icon>schedule</mat-icon>
+                                {{ report.createdAt | date:'mediumDate' }}
+                            </span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="report-score" [class]="getScoreClass(report.score)">
-                    <span class="score-value">{{ report.score }}%</span>
-                    <span class="score-label">Avg Score</span>
-                </div>
+                    <div class="report-score" [class]="getScoreClass(report.avgScore)">
+                        <span class="score-value">{{ report.avgScore }}%</span>
+                        <span class="score-label">Avg Score</span>
+                    </div>
 
-                <a class="view-report-btn" [routerLink]="['/dashboard/reports', report.id]">
-                    View Report
-                    <mat-icon>arrow_forward</mat-icon>
-                </a>
+                    <a class="view-report-btn" [routerLink]="['/dashboard/reports', report.id]">
+                        View Report
+                        <mat-icon>arrow_forward</mat-icon>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Empty State (if no reports) -->
-    <div class="empty-state" *ngIf="recentReports.length === 0">
-        <div class="empty-icon">
-            <mat-icon>analytics</mat-icon>
+        <!-- Empty State (if no reports) -->
+        <div class="empty-state" *ngIf="recentReports.length === 0">
+            <div class="empty-icon">
+                <mat-icon>analytics</mat-icon>
+            </div>
+            <h3>No reports yet</h3>
+            <p>Reports will appear here once students complete your assessments</p>
         </div>
-        <h3>No reports yet</h3>
-        <p>Reports will appear here once students complete your assessments</p>
-    </div>
+    </ng-container>
 </div>

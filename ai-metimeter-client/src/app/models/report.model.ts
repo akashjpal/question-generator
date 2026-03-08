@@ -122,19 +122,20 @@ export interface SubmitQuizResponse {
 export interface DashboardStats {
     totalAssessments: number;
     totalParticipants: number;
-    avgPerformance: number;
+    averagePerformance: number;
     completionRate: number;
-    recentActivity: RecentActivityItem[];
+    recentActivity: RecentAssessmentReport[];
 }
 
 /**
- * Recent activity item for dashboard
+ * Recent assessment report — assessments that have student attempts
+ * Used in the Reports dashboard list
  */
-export interface RecentActivityItem {
-    id: string;
-    type: 'quiz_completed' | 'assessment_created' | 'assessment_published';
-    title: string;
-    description: string;
-    timestamp: string;
-    metadata?: Record<string, unknown>;
+export interface RecentAssessmentReport {
+    id: number;            // assessmentId
+    title: string;         // assessment title
+    subject: string;       // subject name
+    participants: number;  // total students who attempted
+    avgScore: number;      // average score percentage
+    createdAt: string;     // ISO 8601 timestamp
 }

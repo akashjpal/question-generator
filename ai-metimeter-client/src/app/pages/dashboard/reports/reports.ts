@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,16 +6,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterModule } from '@angular/router';
-
-interface ReportItem {
-    id: string;
-    title: string;
-    subject: string;
-    score: number;
-    participants: number;
-    date: string;
-    icon: string;
-}
+import { DashboardStats, RecentAssessmentReport } from '../../../models/report.model';
+import { ReportService } from '../../../services/report.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
     selector: 'app-reports',
@@ -27,7 +20,8 @@ interface ReportItem {
         MatButtonModule,
         MatListModule,
         MatProgressBarModule,
-        RouterModule
+        RouterModule,
+        MatProgressSpinnerModule
     ],
     templateUrl: './reports.html',
     styleUrl: './reports.scss'
@@ -35,62 +29,47 @@ interface ReportItem {
 export class Reports {
     activeFilter: 'all' | 'week' | 'month' = 'all';
 
-    stats = {
-        totalAssessments: 24,
-        totalParticipants: 156,
-        avgPerformance: 82,
-        completionRate: 94
+    stats: DashboardStats = {
+        totalAssessments: 0,
+        totalParticipants: 0,
+        averagePerformance: 0,
+        completionRate: 0,
+        recentActivity: []
     };
 
-    recentReports: ReportItem[] = [
-        {
-            id: '1',
-            title: 'Biology Quiz 101',
-            subject: 'Biology',
-            score: 85,
-            participants: 32,
-            date: '2 hours ago',
-            icon: 'biotech'
-        },
-        {
-            id: '2',
-            title: 'History Mid-Term',
-            subject: 'History',
-            score: 92,
-            participants: 28,
-            date: '1 day ago',
-            icon: 'history_edu'
-        },
-        {
-            id: '3',
-            title: 'Math Basics',
-            subject: 'Mathematics',
-            score: 78,
-            participants: 45,
-            date: '2 days ago',
-            icon: 'calculate'
-        },
-        {
-            id: '4',
-            title: 'Physics Fundamentals',
-            subject: 'Physics',
-            score: 88,
-            participants: 22,
-            date: '3 days ago',
-            icon: 'speed'
-        },
-        {
-            id: '5',
-            title: 'Chemistry Lab Quiz',
-            subject: 'Chemistry',
-            score: 91,
-            participants: 29,
-            date: '5 days ago',
-            icon: 'science'
-        }
-    ];
+    recentReports: RecentAssessmentReport[] = [];
 
-    get filteredReports(): ReportItem[] {
+    isLoading = false;
+
+    constructor(
+        private reportService: ReportService,
+        private cdr: ChangeDetectorRef
+    ) {
+        this.isLoading = true;
+    }
+
+    ngOnInit(): void {
+        this.getReports();
+    }
+
+    getReports(): void {
+        this.reportService.getDashboardStats().subscribe((reports) => {
+            this.mapToStats(reports);
+            this.recentReports = reports.recentActivity;
+            this.isLoading = false;
+            this.cdr.detectChanges();
+        });
+    }
+
+    mapToStats(reports: DashboardStats): void {
+        console.log(reports);
+        this.stats.totalAssessments = reports.totalAssessments;
+        this.stats.totalParticipants = reports.totalParticipants;
+        this.stats.averagePerformance = reports.averagePerformance;
+        this.stats.completionRate = reports.completionRate;
+    }
+
+    get filteredReports(): RecentAssessmentReport[] {
         // In a real app, this would filter based on actual dates
         // For demo purposes, we'll show different subsets based on filter
         switch (this.activeFilter) {
@@ -118,5 +97,16 @@ export class Reports {
 
     getSubjectClass(subject: string): string {
         return subject.toLowerCase().replace(/\s+/g, '-');
+    }
+
+    getSubjectIcon(subject: string): string {
+        const icons: Record<string, string> = {
+            'biology': 'biotech',
+            'history': 'history_edu',
+            'mathematics': 'calculate',
+            'physics': 'speed',
+            'chemistry': 'science'
+        };
+        return icons[subject.toLowerCase()] || 'quiz';
     }
 }
