@@ -66,6 +66,10 @@ export class ReportService {
         return this.http.get<DashboardStats>(`http://localhost:5082/api/dashboard/stats`);
     }
 
+    getDashboardStatsOfAssessment(id: string): Observable<any> {
+        return this.http.get<any>(`http://localhost:5082/api/dashboard/stats/${id}`);
+    }
+
     /**
      * GET /api/assessments/:id/export/csv
      * Export assessment results as CSV (returns blob)

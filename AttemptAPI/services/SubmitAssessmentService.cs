@@ -27,7 +27,8 @@ public class SubmitAssessmentService : ISubmitAssessmentService
             Score = request.Score,
             TimeTaken = request.TimeTaken,
             TimeLimit = request.TimeLimit,
-            AttemptStatus = request.AttemptStatus
+            AttemptStatus = request.AttemptStatus,
+            totalScore = request.totalScore
         };
     }
 }
