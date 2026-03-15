@@ -66,7 +66,8 @@ export interface AssessmentResult {
     score: number,
     timeTaken: number, // in seconds
     timeLimit: number // in seconds,
-    attemptStatus: AttemptStatus
+    attemptStatus: AttemptStatus,
+    totalScore: number
 }
 
 /**

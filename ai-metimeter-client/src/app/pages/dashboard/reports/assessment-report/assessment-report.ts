@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,6 +7,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { ReportService } from '../../../../services/report.service';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
     selector: 'app-assessment-report',
@@ -17,7 +19,8 @@ import autoTable from 'jspdf-autotable';
         MatIconModule,
         MatTableModule,
         MatButtonModule,
-        RouterModule
+        RouterModule,
+        MatProgressSpinner
     ],
     templateUrl: './assessment-report.html',
     styleUrls: ['./assessment-report.scss']
@@ -45,9 +48,40 @@ export class AssessmentReport {
         { student: 'Evan Wright', score: 88, time: '14m', status: 'Passed' }
     ];
 
-    constructor(private route: ActivatedRoute) {
+    isLoading = false;
+
+    constructor(private route: ActivatedRoute, 
+        private reportsService: ReportService,
+        private cdr: ChangeDetectorRef
+    ) {
         this.assessmentId = this.route.snapshot.paramMap.get('id');
         // In a real app, use this ID to fetch data
+    }
+
+    ngOnInit() {
+        this.isLoading = true;
+        if(this.assessmentId?.length === 0 || !this.assessmentId) {
+            console.warn("Assessment Id is not present");
+            this.isLoading = false;
+        }else {
+            this.reportsService.getDashboardStatsOfAssessment(this.assessmentId).subscribe((data)=>{
+                console.log(data);
+                this.assessmentDetails.title = data.title;
+                this.assessmentDetails.subject = data.subject;
+                this.assessmentDetails.date = data.date;
+                this.assessmentDetails.participants = data.participants;
+                this.assessmentDetails.avgScore = data.avgScore;
+                this.assessmentDetails.highestScore = data.highestScore;
+                this.assessmentDetails.lowestScore = data.lowestScore;
+                this.studentResults = data.studentResults;
+                this.studentResults.forEach((student)=>{
+                    student.student = student.student.split('-')[0]+'.';
+                });
+                this.isLoading = false;
+                this.cdr.detectChanges();
+            })
+        }
+
     }
 
     exportCSV() {

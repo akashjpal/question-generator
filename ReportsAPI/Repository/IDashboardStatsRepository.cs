@@ -4,4 +4,6 @@ public interface IDashboardStatsRepository
 {
     Task<DashBoardStatsResponse> GetDashboardStats();
     Task<RecentAssessmentReport[]> GetRecentAssessments();
+    Task<AssessmentResponse> GetAssessmentStats(int id);
+    Task<StudentResult[]> GetAssessmentStatsOfStudent(int id);
 }

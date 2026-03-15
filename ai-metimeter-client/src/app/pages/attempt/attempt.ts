@@ -147,7 +147,8 @@ export class AttemptScreen implements OnInit, OnDestroy {
                 score: this.score,
                 timeTaken: ((this.assessment?.timeLimit ?? 0) * 60 - this.timeLeft),
                 timeLimit: (this.assessment?.timeLimit ?? 0) * 60,
-                attemptStatus: AttemptStatus.IN_PROGRESS
+                attemptStatus: AttemptStatus.IN_PROGRESS,
+                totalScore: this.answers.length ?? 1
             }).pipe(
                 catchError(err => {
                     console.error('Auto-save failed:', err);
@@ -169,7 +170,8 @@ export class AttemptScreen implements OnInit, OnDestroy {
             score: this.score,
             timeTaken: ((this.assessment?.timeLimit ?? 0) * 60 - this.timeLeft),
             timeLimit: (this.assessment?.timeLimit ?? 0) * 60,
-            attemptStatus: AttemptStatus.IN_PROGRESS
+            attemptStatus: AttemptStatus.IN_PROGRESS,
+            totalScore: this.answers.length ?? 1
         }).subscribe({
             next: (data) => {
                 console.log(data);
@@ -246,7 +248,8 @@ export class AttemptScreen implements OnInit, OnDestroy {
             score: this.score,
             timeTaken: ((this.assessment?.timeLimit ?? 0) * 60 - this.timeLeft),
             timeLimit: (this.assessment?.timeLimit ?? 0) * 60,
-            attemptStatus: AttemptStatus.COMPLETED
+            attemptStatus: AttemptStatus.COMPLETED,
+            totalScore: this.answers.length ?? 1
         }).subscribe({
             next: (data) => {
                 console.log(data);

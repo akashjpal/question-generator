@@ -3,6 +3,7 @@ using AttemptAPI.dtos.request;
 using AttemptAPI.Models;
 using AttemptAPI.services;
 using AttemptAPI.Models;
+using AttemptAPI.dtos.request;
 using Dapper;
 using Npgsql;
 namespace AttemptAPI.repository;
@@ -28,7 +29,9 @@ public class AssessmentRepository: IAssessmentRepository
                             ""score""                 = EXCLUDED.""score"",
                             ""timeTaken""             = EXCLUDED.""timeTaken"",
                             ""timeLimit""             = EXCLUDED.""timeLimit"",
-                            ""attemptStatus""         = EXCLUDED.""attemptStatus""";
+                            ""attemptStatus""         = EXCLUDED.""attemptStatus"",
+                            ""totalScore""            = EXCLUDED.""totalScore""
+                            ";
             await connection.ExecuteAsync(sql, request);
             return request;
         }catch(Exception ex)
