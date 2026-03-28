@@ -17,6 +17,9 @@
                     <p class="date">{{ assessmentDetails.date }}</p>
                 </div>
                 <div class="header-actions">
+                    <mat-slide-toggle [checked]="isAutoRefresh" (change)="toggleAutoRefresh()" color="primary">
+                        Auto Refresh
+                    </mat-slide-toggle>
                     <button class="action-btn" (click)="downloadPDF()">
                         <mat-icon>picture_as_pdf</mat-icon>
                         Download PDF

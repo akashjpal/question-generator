@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,6 +9,8 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ReportService } from '../../../../services/report.service';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { interval, Subscription, switchMap } from 'rxjs';
 
 @Component({
     selector: 'app-assessment-report',
@@ -20,13 +22,16 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
         MatTableModule,
         MatButtonModule,
         RouterModule,
-        MatProgressSpinner
+        MatProgressSpinner,
+        MatSlideToggleModule
     ],
     templateUrl: './assessment-report.html',
     styleUrls: ['./assessment-report.scss']
 })
-export class AssessmentReport {
+export class AssessmentReport implements OnDestroy {
     assessmentId: string | null = null;
+    isAutoRefresh = false;
+    private autoRefreshSub?: Subscription;
 
     // Mock Data
     assessmentDetails = {
@@ -145,5 +150,33 @@ export class AssessmentReport {
         });
 
         doc.save(`assessment_report_${this.assessmentId || 'results'}.pdf`);
+    }
+
+    toggleAutoRefresh(): void {
+        this.isAutoRefresh = !this.isAutoRefresh;
+        if (this.isAutoRefresh && this.assessmentId) {
+            this.autoRefreshSub = interval(5000).pipe(
+                switchMap(() => this.reportsService.getDashboardStatsOfAssessment(this.assessmentId!))
+            ).subscribe((data) => {
+                this.assessmentDetails.title = data.title;
+                this.assessmentDetails.subject = data.subject;
+                this.assessmentDetails.date = data.date;
+                this.assessmentDetails.participants = data.participants;
+                this.assessmentDetails.avgScore = data.avgScore;
+                this.assessmentDetails.highestScore = data.highestScore;
+                this.assessmentDetails.lowestScore = data.lowestScore;
+                this.studentResults = data.studentResults;
+                this.studentResults.forEach((student: any) => {
+                    student.student = student.student.split('-')[0] + '.';
+                });
+                this.cdr.detectChanges();
+            });
+        } else {
+            this.autoRefreshSub?.unsubscribe();
+        }
+    }
+
+    ngOnDestroy(): void {
+        this.autoRefreshSub?.unsubscribe();
     }
 }
