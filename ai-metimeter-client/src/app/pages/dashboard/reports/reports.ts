@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,6 +9,8 @@ import { RouterModule } from '@angular/router';
 import { DashboardStats, RecentAssessmentReport } from '../../../models/report.model';
 import { ReportService } from '../../../services/report.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { interval, Subscription, switchMap } from 'rxjs';
 
 @Component({
     selector: 'app-reports',
@@ -21,13 +23,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         MatListModule,
         MatProgressBarModule,
         RouterModule,
-        MatProgressSpinnerModule
+        MatProgressSpinnerModule,
+        MatSlideToggleModule
     ],
     templateUrl: './reports.html',
     styleUrl: './reports.scss'
 })
-export class Reports {
+export class Reports implements OnDestroy {
     activeFilter: 'all' | 'week' | 'month' = 'all';
+    isAutoRefresh = false;
+    private autoRefreshSub?: Subscription;
 
     stats: DashboardStats = {
         totalAssessments: 0,
@@ -108,5 +113,24 @@ export class Reports {
             'chemistry': 'science'
         };
         return icons[subject.toLowerCase()] || 'quiz';
+    }
+
+    toggleAutoRefresh(): void {
+        this.isAutoRefresh = !this.isAutoRefresh;
+        if (this.isAutoRefresh) {
+            this.autoRefreshSub = interval(5000).pipe(
+                switchMap(() => this.reportService.getDashboardStats())
+            ).subscribe((reports) => {
+                this.mapToStats(reports);
+                this.recentReports = reports.recentActivity;
+                this.cdr.detectChanges();
+            });
+        } else {
+            this.autoRefreshSub?.unsubscribe();
+        }
+    }
+
+    ngOnDestroy(): void {
+        this.autoRefreshSub?.unsubscribe();
     }
 }

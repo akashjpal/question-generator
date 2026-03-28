@@ -11,10 +11,15 @@
                     <h1>Analysis Reports</h1>
                     <p>Detailed insights into your assessment performance</p>
                 </div>
-                <button class="export-btn">
-                    <mat-icon>download</mat-icon>
-                    Export All Data
-                </button>
+                <div class="header-actions">
+                    <mat-slide-toggle [checked]="isAutoRefresh" (change)="toggleAutoRefresh()" color="primary">
+                        Auto Refresh
+                    </mat-slide-toggle>
+                    <button class="export-btn">
+                        <mat-icon>download</mat-icon>
+                        Export All Data
+                    </button>
+                </div>
             </div>
         </div>
 
