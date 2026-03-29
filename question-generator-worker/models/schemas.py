@@ -1,10 +1,11 @@
+from typing import Literal
 from pydantic import BaseModel
 
 
 class GenerateQuestionsRequest(BaseModel):
     file_path: str
     topic: str
-    difficulty: str  # easy | medium | hard | expert
+    difficulty: Literal["easy", "medium", "hard", "expert"]
     num_questions: int = 10
     job_id: str | None = None
 

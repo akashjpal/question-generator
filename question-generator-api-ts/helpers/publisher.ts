@@ -49,17 +49,17 @@ export class Publisher {
 
   // TODO: remove any
   async publishToQuestionGenerationQueue(job: any) {
-    try {
-      await this.connect();
-      await this.redisClient.lPush("appwrite_queue", JSON.stringify(job));
-      console.log(job.topic);
-      console.log("✅ Job pushed to Question Generation Redis queue:", job);
-    } catch (error) {
-      console.error(
-        "❌ Error publishing to Question Generation Redis queue:",
-        error
-      );
+    const workerUrl = process.env.QUESTION_GENERATOR_WORKER_URL ?? "http://localhost:8000";
+    const response = await fetch(`${workerUrl}/generate-questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(job),
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Worker rejected job (${response.status}): ${text}`);
     }
+    console.log("✅ Job dispatched to question-generator-worker:", job);
   }
 
   async disconnect() {
