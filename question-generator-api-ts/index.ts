@@ -40,7 +40,7 @@ app.post("/file-upload", async (req, res) => {
     }
     const uploader = new FileUploader();
     const publisher = new Publisher();
-    const {fileId, fileName} = await uploader.storeFile(fileBuffer, filename);
+    const {fileId, fileName} = await uploader.storeFileInSupabase(fileBuffer, filename);
     console.log(fileId, fileName);
     await publisher.publish({ fileName: fileName, fileId: fileId });
     console.log("✅ Received filename:", filename);

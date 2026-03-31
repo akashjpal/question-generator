@@ -1,5 +1,5 @@
 import { createClient } from "redis";
-import { Client, Storage } from "node-appwrite";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import NodeClam from "clamscan";
 import fs from "fs";
 import dotenv from "dotenv";
@@ -10,13 +10,11 @@ const redis = createClient({  url: "redis://localhost:6379",
       password: "myStrongPassword", });
 await redis.connect();
 
-const appwrite = new Client()
-  .setEndpoint(process.env.APPWRITE_ENDPOINT)
-  .setProject(process.env.APPWRITE_PROJECT_ID)
-  .setKey(process.env.APPWRITE_API_KEY);
-
-const storage = new Storage(appwrite);
-const bucketId = process.env.APPWRITE_BUCKET_ID;
+const supabase = createSupabaseClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+);
+const bucketId = process.env.SUPABASE_BUCKET_ID;
 
 const clamscan = await new NodeClam().init({
   clamdscan: {
@@ -36,13 +34,20 @@ while (true) {
 
   try {
     const filePath = `./${job.fileName}`;
-    const fileBuffer = await storage.getFileDownload(bucketId, job.fileId);
-    fs.writeFileSync(filePath, Buffer.from(fileBuffer));
+    const { data: fileBlob, error: downloadError } = await supabase.storage
+      .from(bucketId)
+      .download(job.fileId);
+    if (downloadError) throw new Error(`Download failed: ${downloadError.message}`);
+    const arrayBuffer = await fileBlob.arrayBuffer();
+    fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
     console.log("🦠 Scanning file with ClamAV...");
     const { is_infected, viruses } = await clamscan.scanFile(filePath);
     if (is_infected) {
       console.log(`🚨 Infected: ${viruses}`);
-      await storage.deleteFile(bucketId, job.fileId);
+      const { error: deleteError } = await supabase.storage
+        .from(bucketId)
+        .remove([job.fileId]);
+      if (deleteError) throw new Error(`Delete failed: ${deleteError.message}`);
       console.log(`🗑️ Deleted file ${job.fileName}`);
     } else {
       console.log("✅ Clean file");
