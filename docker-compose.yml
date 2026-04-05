@@ -1,0 +1,128 @@
+# ==============================================================
+# Question Generator — Docker Compose
+# ==============================================================
+# Usage:
+#   1. Copy .env.example to .env and fill in your secrets
+#   2. docker compose up --build
+# ==============================================================
+
+services:
+  # ── Nginx Reverse Proxy ─────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - question-generator-api
+      - attempt-api
+      - reports-api
+    restart: unless-stopped
+
+  # ── Angular Frontend (SSR) ──────────────────────────────────
+  frontend:
+    build: ./ai-metimeter-client
+    expose:
+      - "80"
+    restart: unless-stopped
+
+  # ── Question Generator Node/Bun API ─────────────────────────
+  question-generator-api:
+    build: ./question-generator-api-ts
+    environment:
+      - PORT=3000
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_BUCKET_ID=${SUPABASE_BUCKET_ID}
+      - REDIS_URL=redis://redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost}
+      - QUESTION_GENERATOR_WORKER_URL=http://fastapi-worker:8000
+    expose:
+      - "3000"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # ── FastAPI Question Generator Worker ────────────────────────
+  fastapi-worker:
+    build: ./question-generator-worker
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL=${GROQ_MODEL:-openai/gpt-oss-120b}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost}
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  # ── File Scanner Worker ──────────────────────────────────────
+  file-scanner-worker:
+    build: ./file-scanner-worker
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_BUCKET_ID=${SUPABASE_BUCKET_ID}
+      - REDIS_URL=redis://redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CLAMAV_HOST=clamav
+      - CLAMAV_PORT=3310
+    depends_on:
+      - redis
+      - clamav
+    restart: unless-stopped
+
+  # ── Attempt API (.NET) ───────────────────────────────────────
+  attempt-api:
+    build: ./AttemptAPI
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING}
+      - CorsOrigins=${CORS_ORIGIN:-http://localhost}
+    expose:
+      - "5136"
+    restart: unless-stopped
+
+  # ── Reports API (.NET) ──────────────────────────────────────
+  reports-api:
+    build: ./ReportsAPI
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING}
+      - CorsOrigins=${CORS_ORIGIN:-http://localhost}
+    expose:
+      - "5082"
+    restart: unless-stopped
+
+  # ── Redis ────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    command: >
+      sh -c "if [ -n \"$$REDIS_PASSWORD\" ]; then
+        redis-server --requirepass $$REDIS_PASSWORD;
+      else
+        redis-server;
+      fi"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    expose:
+      - "6379"
+    restart: unless-stopped
+
+  # ── ClamAV ──────────────────────────────────────────────────
+  clamav:
+    image: clamav/clamav:stable
+    expose:
+      - "3310"
+    volumes:
+      - clamav-data:/var/lib/clamav
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  clamav-data:

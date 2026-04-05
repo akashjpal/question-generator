@@ -22,7 +22,9 @@ app.use(
   })
 );
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
+}));
 
 
 app.get("/", (req, res) => {

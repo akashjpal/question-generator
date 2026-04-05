@@ -14,12 +14,13 @@ import {
     ApiResponse,
     PaginatedResponse
 } from '../models';
+import { environment } from '../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class AssessmentService {
-    private readonly API_URL = 'http://localhost:3000/api/assessments';
+    private readonly API_URL = `${environment.questionGeneratorApiUrl}/api/assessments`;
 
     constructor(private http: HttpClient) { }
 
@@ -70,7 +71,7 @@ export class AssessmentService {
      * Get all assessments from the backend
      */
     getAllAssessments(): Observable<GetAssessmentsResponse> {
-        return this.http.get<GetAssessmentsResponse>('http://localhost:3000/get-assessments');
+        return this.http.get<GetAssessmentsResponse>(`${environment.questionGeneratorApiUrl}/get-assessments`);
     }
 
     /**
@@ -130,7 +131,7 @@ export class AssessmentService {
      */
     pollGenerationStatus(jobId: string): Observable<GenerationStatusResponse> {
         return timer(0, 2000).pipe(
-            switchMap(() => this.http.get<GenerationStatusResponse>(`http://localhost:3000/generate-questions-status/${jobId}`)),
+            switchMap(() => this.http.get<GenerationStatusResponse>(`${environment.questionGeneratorApiUrl}/generate-questions-status/${jobId}`)),
             retryWhen(errors =>
                 errors.pipe(
                     // Log the error to let the user know we act upon it

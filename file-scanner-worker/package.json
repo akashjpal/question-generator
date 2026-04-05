@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "main": "consumer.js",
   "scripts": {
+    "start": "bun consumer.js",
+    "dev": "bun --watch consumer.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

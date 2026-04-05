@@ -8,6 +8,7 @@ import {
     PaginatedResponse,
     AssessmentResult
 } from '../models';
+import { environment } from '../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -63,11 +64,11 @@ export class ReportService {
      */
     // REPORT API
     getDashboardStats(): Observable<DashboardStats> {
-        return this.http.get<DashboardStats>(`http://localhost:5082/api/dashboard/stats`);
+        return this.http.get<DashboardStats>(`${environment.reportsApiUrl}/api/dashboard/stats`);
     }
 
     getDashboardStatsOfAssessment(id: string): Observable<any> {
-        return this.http.get<any>(`http://localhost:5082/api/dashboard/stats/${id}`);
+        return this.http.get<any>(`${environment.reportsApiUrl}/api/dashboard/stats/${id}`);
     }
 
     /**
@@ -92,11 +93,11 @@ export class ReportService {
 
     saveQuiz(assessmentId: string, result: AssessmentResult): Observable<AssessmentResult> {
         console.log(result);
-        return this.http.post<AssessmentResult>(`http://localhost:5136/api/attempts/save`, result);
+        return this.http.post<AssessmentResult>(`${environment.attemptApiUrl}/api/attempts/save`, result);
     }
 
     submitQuiz(assessmentId: string, result: AssessmentResult): Observable<AssessmentResult> {
         console.log(result);
-        return this.http.post<AssessmentResult>(`http://localhost:5136/api/attempts/submit`, result);
+        return this.http.post<AssessmentResult>(`${environment.attemptApiUrl}/api/attempts/submit`, result);
     }
 }

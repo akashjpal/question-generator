@@ -17,6 +17,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Assessment } from '../../../models';
 import { Question } from '../../../models';
+import { environment } from '../../../../environments/environment';
 
 @Component({
     selector: 'app-create-assessment',
@@ -44,7 +45,7 @@ import { Question } from '../../../models';
 export class CreateAssessment implements OnInit {
     isEditMode = false;
     editId: string | null = null;
-    private readonly questionGeneratorApiUrl = 'http://localhost:3000';
+    private readonly questionGeneratorApiUrl = environment.questionGeneratorApiUrl;
 
     constructor(
         private assessmentService: AssessmentService,
@@ -167,7 +168,7 @@ export class CreateAssessment implements OnInit {
 
     async uploadFile() {
         if (!this.selectedFile) return;
-        const res = await fetch('http://localhost:3000/file-upload', {
+        const res = await fetch(`${this.questionGeneratorApiUrl}/file-upload`, {
             method: 'POST',
             body: this.selectedFile,
             headers: {
@@ -298,7 +299,7 @@ export class CreateAssessment implements OnInit {
                 this.router.navigate(['/dashboard/my-quizzes']);
                 return; // Exit after update
             }
-            const data = await fetch("http://localhost:3000/publish-assessment", {
+            const data = await fetch(`${this.questionGeneratorApiUrl}/publish-assessment`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
