@@ -1,5 +1,6 @@
 import { Client, Storage, ID } from "node-appwrite";
 import { InputFile } from "node-appwrite/file";
+import supabase from "./supabaseClient";
 
 export class FileUploader {
   async storeFile(fileBuffer: string, filename: string): Promise<{ fileId: string; fileName: string }> {
@@ -26,6 +27,30 @@ export class FileUploader {
       }
     } catch (error) {
       console.error("❌ Error in FileUploader.storeFile:", error);
+      throw error;
+    }
+  }
+  async storeFileInSupabase(
+    fileBuffer: Buffer,
+    filename: string,
+  ): Promise<{ fileId: string; fileName: string }> {
+    if (!process.env.SUPABASE_BUCKET_ID) {
+      throw new Error("SUPABASE_BUCKET_ID environment variable is not set.");
+    }
+    try {
+      const uniquePath = `${crypto.randomUUID()}-${filename}`;
+      const { error } = await supabase.storage
+        .from(process.env.SUPABASE_BUCKET_ID)
+        .upload(uniquePath, fileBuffer, { upsert: false });
+
+      if (error) throw error;
+
+      return {
+        fileId: uniquePath,
+        fileName: filename,
+      };
+    } catch (error) {
+      console.error("❌ Error in FileUploader.storeFileInSupabase:", error);
       throw error;
     }
   }

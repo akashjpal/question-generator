@@ -1,9 +1,4 @@
-using AttemptAPI.dtos.request;
-using AttemptAPI.dtos.request;
 using AttemptAPI.Models;
-using AttemptAPI.services;
-using AttemptAPI.Models;
-using AttemptAPI.dtos.request;
 using Dapper;
 using Npgsql;
 namespace AttemptAPI.repository;
@@ -20,8 +15,8 @@ public class AssessmentRepository: IAssessmentRepository
         try
         {
             using var connection = await _dataSource.OpenConnectionAsync();
-            var sql = @"INSERT INTO ""AssessmentResult"" (""assessmentId"", ""participantUniqueCode"", ""answersJson"", ""flaggedQuestionsJson"", ""score"", ""timeTaken"", ""timeLimit"", ""attemptStatus"")
-                        VALUES (@AssessmentId, @ParticipantUniqueCode, @AnswersJson, @FlaggedQuestionsJson, @Score, @TimeTaken, @TimeLimit, @AttemptStatus)
+            var sql = @"INSERT INTO ""AssessmentResult"" (""assessmentId"", ""participantUniqueCode"", ""answersJson"", ""flaggedQuestionsJson"", ""score"", ""timeTaken"", ""timeLimit"", ""attemptStatus"", ""totalScore"")
+                        VALUES (@AssessmentId, @ParticipantUniqueCode, @AnswersJson, @FlaggedQuestionsJson, @Score, @TimeTaken, @TimeLimit, @AttemptStatus, @totalScore)
                         ON CONFLICT (""participantUniqueCode"") DO UPDATE SET
                             ""participantUniqueCode"" = EXCLUDED.""participantUniqueCode"",
                             ""answersJson""           = EXCLUDED.""answersJson"",

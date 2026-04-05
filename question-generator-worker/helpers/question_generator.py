@@ -24,7 +24,10 @@ GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
 _MAX_OUTER_RETRIES = 3        # retries for "not enough questions" scenario
 _MAX_API_RETRIES = 3          # retries for transient Gemini API failures
-_MAX_TEXT_CHARS = 12_000      # trim input to stay within context window
+_MAX_TEXT_CHARS = 4_500       # trim input to stay under Groq token limits
+_MIN_COMPLETION_TOKENS = 900
+_TOKENS_PER_QUESTION = 180
+_MAX_COMPLETION_TOKENS = 2_400
 
 
 # ---------------------------------------------------------------------------
@@ -39,12 +42,23 @@ _DIFFICULTY_GUIDANCE = {
 }
 
 
+def _compact_source_text(text: str) -> str:
+    normalized = re.sub(r"\s+", " ", text).strip()
+    return normalized[:_MAX_TEXT_CHARS]
+
+
+def _completion_token_budget(num_questions: int) -> int:
+    estimated = max(_MIN_COMPLETION_TOKENS, num_questions * _TOKENS_PER_QUESTION)
+    return min(_MAX_COMPLETION_TOKENS, estimated)
+
+
 def _build_prompt(text: str, topic: str, difficulty: str, num_questions: int) -> str:
     guidance = _DIFFICULTY_GUIDANCE.get(difficulty, "standard understanding")
+    source_text = _compact_source_text(text)
     return f"""You are an expert educator creating multiple-choice questions from the provided content.
 
 --- CONTENT START ---
-{text[:_MAX_TEXT_CHARS]}
+{source_text}
 --- CONTENT END ---
 
 TASK: Generate exactly {num_questions} unique multiple-choice questions about "{topic}" at "{difficulty}" difficulty.
@@ -145,14 +159,14 @@ def _deduplicate(
     wait=wait_exponential(multiplier=1, min=2, max=16),
     retry=retry_if_exception_type(Exception),
 )
-def _call_groq(client: Groq, model_name: str, prompt: str) -> str:
+def _call_groq(client: Groq, model_name: str, prompt: str, max_completion_tokens: int) -> str:
     completion = client.chat.completions.create(
         model=model_name,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
-        max_completion_tokens=8192,
+        max_completion_tokens=max_completion_tokens,
         top_p=1,
-        reasoning_effort="medium",
+        reasoning_effort="low",
         stream=False,
         stop=None,
     )
@@ -192,7 +206,13 @@ def generate_questions_with_llm(
 
         try:
             prompt = _build_prompt(text, topic, difficulty, remaining)
-            raw = _call_groq(client, GROQ_MODEL, prompt)
+            max_completion_tokens = _completion_token_budget(remaining)
+            logger.info(
+                "[Groq] Using %d prompt chars and %d max completion tokens",
+                min(len(_compact_source_text(text)), _MAX_TEXT_CHARS),
+                max_completion_tokens,
+            )
+            raw = _call_groq(client, GROQ_MODEL, prompt, max_completion_tokens)
             parsed = _parse_and_validate(raw)
             new_unique, seen_hashes = _deduplicate(parsed, seen_hashes)
             collected.extend(new_unique)
