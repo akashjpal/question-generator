@@ -11,7 +11,7 @@ from helpers.file_downloader import download_file
 from helpers.question_generator import generate_questions_with_llm, save_questions_to_db
 from helpers.supabase_client import supabase
 from helpers.text_extractor import extract_text_from_pdf
-
+from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -107,7 +107,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],  # Angular dev server
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ---------------------------------------------------------------------------
 # Routes

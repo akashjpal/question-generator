@@ -36,6 +36,7 @@
 
         .full-width {
             grid-column: 1 / -1;
+            width: 100%;
         }
     }
 
@@ -200,6 +201,10 @@
         display: flex;
         justify-content: flex-end;
         margin-top: 8px;
+    }
+
+    mat-form-field {
+        width: 100%;
     }
 }
 

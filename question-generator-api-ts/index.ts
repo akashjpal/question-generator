@@ -66,7 +66,7 @@ app.post("/generate-questions", async (req, res) => {
     console.log(topic);
     const publisher = new Publisher();
     const jobId = await publisher.updateQuestionGenerationStatus(0);
-    await publisher.publishToQuestionGenerationQueue({ fileName: fileName, fileId: fileId, bucketId: process.env.APPWRITE_BUCKET_ID, numberOfQuestions: noOfQuestion, jobId: jobId, difficultyLevel: difficulty, topic: topic });
+    await publisher.publishToQuestionGenerationQueue({ fileName: fileName, fileId: fileId, bucketId: process.env.APPWRITE_BUCKET_ID, numberOfQuestions: noOfQuestion, jobId: String(jobId), difficultyLevel: difficulty, topic: topic });
     res.json({ message: "Question generation job queued.", jobId: jobId, topic: topic });
   } catch (error) {
     console.error("❌ Error generating questions:", error);

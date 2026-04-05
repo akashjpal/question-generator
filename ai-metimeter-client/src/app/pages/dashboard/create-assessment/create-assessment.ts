@@ -44,6 +44,7 @@ import { Question } from '../../../models';
 export class CreateAssessment implements OnInit {
     isEditMode = false;
     editId: string | null = null;
+    private readonly questionGeneratorApiUrl = 'http://localhost:3000';
 
     constructor(
         private assessmentService: AssessmentService,
@@ -199,54 +200,69 @@ export class CreateAssessment implements OnInit {
 
         this.isGenerating = true;
 
-        const res = await fetch('http://localhost:3000/generate-questions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                fileId: this.fileId,
-                fileName: this.fileName,
-                noOfQuestion: this.assessmentData.questionsCount,
-                difficulty: this.assessmentData.difficulty,
-                topic: this.assessmentData.topic
-            })
-        });
-
-        const data = await res.json();
-        console.log('Job Started:', data);
-
-        if (data.jobId) {
-            this.assessmentService.pollGenerationStatus(data.jobId).subscribe({
-                next: async (statusRes) => {
-                    console.log('Polling Status:', statusRes);
-                    if (statusRes.status === 2) {
-                        this.isGenerating = false;
-                        console.log('Generation Completed!');
-                        this.questions = await this.getGeneratedQuestions(data.jobId);
-                        this.assessmentData.questions = this.questions;
-                        // TODO: Fetch the actual generated questions here
-                        this.cdr.detectChanges();
-                    } else if (statusRes.status === 3) {
-                        this.isGenerating = false;
-                        console.error('Generation Failed:', statusRes.message);
-                        this.snackBar.open(
-                            'Generation failed. Please try changing the PDF content.',
-                            'Close',
-                            { duration: 5000, panelClass: ['error-snackbar'] }
-                        );
-                        this.cdr.detectChanges();
-                    }
+        try {
+            const res = await fetch(`${this.questionGeneratorApiUrl}/generate-questions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
                 },
-                error: (err) => {
-                    this.isGenerating = false;
-                    console.error('Polling Error:', err);
-                }
+                body: JSON.stringify({
+                    fileId: this.fileId,
+                    fileName: this.fileName,
+                    noOfQuestion: this.assessmentData.questionsCount,
+                    difficulty: this.assessmentData.difficulty,
+                    topic: this.assessmentData.topic
+                })
             });
-        } else {
+
+
+            if (!res.ok) {
+                throw new Error(`Question generation request failed with status ${res.status}`);
+            }
+
+            const data = await res.json();
+            console.log('Job Started:', data);
+
+            if (data.jobId) {
+                this.assessmentService.pollGenerationStatus(data.jobId).subscribe({
+                    next: async (statusRes) => {
+                        console.log('Polling Status:', statusRes);
+                        if (statusRes.status === 2) {
+                            this.isGenerating = false;
+                            console.log('Generation Completed!');
+                            this.questions = await this.getGeneratedQuestions(data.jobId);
+                            this.assessmentData.questions = this.questions;
+                            this.cdr.detectChanges();
+                        } else if (statusRes.status === 3) {
+                            this.isGenerating = false;
+                            console.error('Generation Failed:', statusRes.message);
+                            this.snackBar.open(
+                                'Generation failed. Please try changing the PDF content.',
+                                'Close',
+                                { duration: 5000, panelClass: ['error-snackbar'] }
+                            );
+                            this.cdr.detectChanges();
+                        }
+                    },
+                    error: (err) => {
+                        this.isGenerating = false;
+                        console.error('Polling Error:', err);
+                    }
+                });
+            } else {
+                this.isGenerating = false;
+                console.error('No Job ID received');
+            }
+        } catch (error) {
             this.isGenerating = false;
-            console.error('No Job ID received');
+            console.error('Error starting question generation:', error);
+            this.snackBar.open(
+                'Unable to start question generation. Please try again.',
+                'Close',
+                { duration: 5000, panelClass: ['error-snackbar'] }
+            );
         }
+
         this.cdr.detectChanges();
     }
 
@@ -332,10 +348,14 @@ export class CreateAssessment implements OnInit {
         });
     }
 
-    async getGeneratedQuestions(jobId: number): Promise<Question[]> {
-        // TODO: Implement fetching generated questions from backend
+    async getGeneratedQuestions(jobId: string): Promise<Question[]> {
         try {
-            const data = await fetch('http://localhost:3000/generated-questions/' + jobId);
+            const data = await fetch(`${this.questionGeneratorApiUrl}/generated-questions/${jobId}`);
+
+            if (!data.ok) {
+                throw new Error(`Generated questions request failed with status ${data.status}`);
+            }
+
             const questions = await data.json();
             return this.filterGeneratedQuestions(questions.questions);
         } catch (error) {

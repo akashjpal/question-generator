@@ -16,3 +16,11 @@
 /AttemptAPI/obj
 /ReportsAPI/bin
 /ReportsAPI/obj
+.dotnet/*
+.vscode/*
+.github/*
+question-generator-worker/__pycache__
+question-generator-worker/helpers/__pycache__
+question-generator-worker/models/__pycache__
+.env
+.env.*
