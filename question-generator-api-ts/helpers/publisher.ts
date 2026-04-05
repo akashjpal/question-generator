@@ -5,8 +5,8 @@ export class Publisher {
   redisClient;
   constructor() {
     this.redisClient = createRedisClient({
-      url: "redis://localhost:6379",
-      password: "myStrongPassword",
+      url: process.env.REDIS_URL || "redis://localhost:6379",
+      password: process.env.REDIS_PASSWORD || "myStrongPassword",
     });
     
   }

@@ -22,5 +22,7 @@
 question-generator-worker/__pycache__
 question-generator-worker/helpers/__pycache__
 question-generator-worker/models/__pycache__
+question-generator-worker/.venv
 .env
 .env.*
+*.log

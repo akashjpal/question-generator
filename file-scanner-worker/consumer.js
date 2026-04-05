@@ -6,8 +6,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const redis = createClient({  url: "redis://localhost:6379",
-      password: "myStrongPassword", });
+const redis = createClient({  url: process.env.REDIS_URL || "redis://localhost:6379",
+      password: process.env.REDIS_PASSWORD || "myStrongPassword", });
 await redis.connect();
 
 const supabase = createSupabaseClient(
@@ -18,8 +18,8 @@ const bucketId = process.env.SUPABASE_BUCKET_ID;
 
 const clamscan = await new NodeClam().init({
   clamdscan: {
-    host: "localhost", // or "host.docker.internal" if running ClamAV in Docker on Windows
-    port: 3310,
+    host: process.env.CLAMAV_HOST || "localhost",
+    port: parseInt(process.env.CLAMAV_PORT || "3310"),
   },
 });
 

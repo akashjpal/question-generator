@@ -10,13 +10,14 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+var corsOrigins = builder.Configuration.GetValue<string>("CorsOrigins") ?? "http://localhost:4200";
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalhost4200", builder =>
+    options.AddPolicy("AllowFrontend", builder =>
     {
-        builder.WithOrigins("http://localhost:4200") // Allow requests from localhost:4200
-               .AllowAnyHeader() // Allow all headers
-               .AllowAnyMethod(); // Allow all HTTP methods (GET, POST, etc.)
+        builder.WithOrigins(corsOrigins.Split(','))
+               .AllowAnyHeader()
+               .AllowAnyMethod();
     });
 });
 builder.Services.AddScoped<ISubmitAssessmentService, SubmitAssessmentService>();
@@ -40,7 +41,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowLocalhost4200");
+app.UseCors("AllowFrontend");
 app.UseAuthorization();
 
 app.MapControllers();
