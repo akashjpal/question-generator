@@ -1,4 +1,5 @@
-import { Injectable, signal, effect } from '@angular/core';
+import { Injectable, signal, effect, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 export type Theme = 'dark' | 'light';
 
@@ -7,6 +8,7 @@ export type Theme = 'dark' | 'light';
 })
 export class ThemeService {
     private readonly STORAGE_KEY = 'ai-quick-analysis-theme';
+    private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
     // Signal for reactive theme state
     currentTheme = signal<Theme>(this.getInitialTheme());
@@ -22,6 +24,10 @@ export class ThemeService {
      * Get initial theme from localStorage or system preference
      */
     private getInitialTheme(): Theme {
+        if (!this.isBrowser) {
+            return 'dark';
+        }
+
         // Check localStorage first
         const stored = localStorage.getItem(this.STORAGE_KEY) as Theme | null;
         if (stored === 'dark' || stored === 'light') {
@@ -29,7 +35,7 @@ export class ThemeService {
         }
 
         // Fall back to system preference
-        if (typeof window !== 'undefined' && window.matchMedia) {
+        if (window.matchMedia) {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             return prefersDark ? 'dark' : 'light';
         }
@@ -42,14 +48,16 @@ export class ThemeService {
      * Apply theme class to document body
      */
     private applyTheme(theme: Theme): void {
-        if (typeof document !== 'undefined') {
-            const body = document.body;
-            body.classList.remove('dark-theme', 'light-theme');
-            body.classList.add(`${theme}-theme`);
-
-            // Store preference
-            localStorage.setItem(this.STORAGE_KEY, theme);
+        if (!this.isBrowser) {
+            return;
         }
+
+        const body = document.body;
+        body.classList.remove('dark-theme', 'light-theme');
+        body.classList.add(`${theme}-theme`);
+
+        // Store preference
+        localStorage.setItem(this.STORAGE_KEY, theme);
     }
 
     /**
