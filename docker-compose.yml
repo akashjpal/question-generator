@@ -7,25 +7,23 @@
 # ==============================================================
 
 services:
-  # ── Nginx Reverse Proxy ─────────────────────────────────────
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - frontend
-      - question-generator-api
-      - attempt-api
-      - reports-api
-    restart: unless-stopped
+  # ── Frontend (nginx removed) ─────────────────────────────────
+  # nginx removed; frontend now serves SSR directly and is exposed to host
 
   # ── Angular Frontend (SSR) ──────────────────────────────────
   frontend:
     build: ./ai-metimeter-client
-    expose:
-      - "80"
+    ports:
+      - "4200:4000"
+    environment:
+      - PORT=4000
+      - API_URL=http://question-generator-api:3000
+      - REPORTS_API_URL=http://reports-api:5082
+      - ATTEMPT_API_URL=http://attempt-api:5136
+    depends_on:
+      - question-generator-api
+      - attempt-api
+      - reports-api
     restart: unless-stopped
 
   # ── Question Generator Node/Bun API ─────────────────────────
@@ -38,7 +36,7 @@ services:
       - SUPABASE_BUCKET_ID=${SUPABASE_BUCKET_ID}
       - REDIS_URL=redis://redis:6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:4200}
       - QUESTION_GENERATOR_WORKER_URL=http://fastapi-worker:8000
     expose:
       - "3000"
@@ -54,7 +52,7 @@ services:
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
       - GROQ_MODEL=${GROQ_MODEL:-openai/gpt-oss-120b}
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:4200}
     expose:
       - "8000"
     restart: unless-stopped
@@ -81,7 +79,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING}
-      - CorsOrigins=${CORS_ORIGIN:-http://localhost}
+      - CorsOrigins=${CORS_ORIGIN:-http://localhost:4200}
     expose:
       - "5136"
     restart: unless-stopped
@@ -91,8 +89,8 @@ services:
     build: ./ReportsAPI
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING}
-      - CorsOrigins=${CORS_ORIGIN:-http://localhost}
+      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING};SSL Mode=Require;Trust Server Certificate=true;Pooling=false;Timeout=60;Command Timeout=60
+      - CorsOrigins=${CORS_ORIGIN:-http://localhost:4200}
     expose:
       - "5082"
     restart: unless-stopped

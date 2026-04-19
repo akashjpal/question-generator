@@ -6,6 +6,8 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import { join } from 'node:path';
+import { request as httpRequest } from 'node:http';
+import { URL } from 'node:url';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -13,16 +15,74 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 /**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
+ * Backend URLs read from environment variables.
+ * Defaults work for local dev; Docker/prod overrides via env vars.
  *
- * Example:
- * ```ts
- * app.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
+ * Local dev:  API_URL=http://localhost:3000
+ * Docker:     API_URL=http://question-generator-api:3000
  */
+const PROXY_ROUTES: { prefix: string; target: string; strip: boolean }[] = [
+  {
+    prefix: '/api',
+    target: process.env['API_URL'] || 'http://localhost:3000',
+    strip: true,   // /api/foo → /foo
+  },
+  {
+    prefix: '/reports-api',
+    target: process.env['REPORTS_API_URL'] || 'http://localhost:5082',
+    strip: true,   // /reports-api/foo → /foo
+  },
+  {
+    prefix: '/attempt-api',
+    target: process.env['ATTEMPT_API_URL'] || 'http://localhost:5136',
+    strip: true,   // /attempt-api/foo → /foo
+  },
+];
+
+/**
+ * Lightweight reverse proxy using Node built-in http module.
+ * No external dependencies required.
+ */
+function setupProxy(expressApp: express.Express) {
+  for (const route of PROXY_ROUTES) {
+    expressApp.use(route.prefix, (req, res) => {
+      const targetPath = route.strip
+        ? req.originalUrl.slice(route.prefix.length) || '/'
+        : req.originalUrl;
+
+      const targetUrl = new URL(targetPath, route.target);
+
+      const proxyReq = httpRequest(
+        targetUrl,
+        {
+          method: req.method,
+          headers: {
+            ...req.headers,
+            host: targetUrl.host,
+          },
+        },
+        (proxyRes) => {
+          res.writeHead(proxyRes.statusCode ?? 500, proxyRes.headers);
+          proxyRes.pipe(res, { end: true });
+        },
+      );
+
+      proxyReq.on('error', (err) => {
+        console.error(`Proxy error [${route.prefix}]:`, err.message);
+        if (!res.headersSent) {
+          res.status(502).json({ error: 'Bad Gateway', detail: err.message });
+        }
+      });
+
+      req.pipe(proxyReq, { end: true });
+    });
+  }
+}
+
+/**
+ * API proxy — must be registered BEFORE static files and Angular handler
+ */
+setupProxy(app);
 
 /**
  * Serve static files from /browser
