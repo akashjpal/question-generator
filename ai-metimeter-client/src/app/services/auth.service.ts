@@ -1,129 +1,200 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { Router } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import {
-    LoginRequest,
-    SignupRequest,
-    ForgotPasswordRequest,
-    ResetPasswordRequest,
-    AuthResponse,
-    User,
-    RefreshTokenResponse,
-    ApiResponse
-} from '../models';
+    createClient,
+    SupabaseClient,
+    Session,
+    User as SupabaseUser
+} from '@supabase/supabase-js';
+import { environment } from '../../environments/environment';
+
+// ─────────────────────────────────────────
+// App-level user model (mapped from Supabase)
+// ─────────────────────────────────────────
+export interface AppUser {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl?: string;
+}
 
 @Injectable({
     providedIn: 'root'
 })
 export class AuthService {
-    private readonly API_URL = '/api/auth';
-    private readonly TOKEN_KEY = 'access_token';
-    private readonly REFRESH_TOKEN_KEY = 'refresh_token';
-    private readonly USER_KEY = 'current_user';
+    private supabase: SupabaseClient;
 
-    private currentUserSubject = new BehaviorSubject<User | null>(this.getStoredUser());
+    // Reactive state — emits whenever the user changes (login / logout / refresh)
+    private currentUserSubject = new BehaviorSubject<AppUser | null>(null);
     public currentUser$ = this.currentUserSubject.asObservable();
 
-    constructor(private http: HttpClient) { }
-
-    /**
-     * POST /api/auth/login
-     * Authenticate user and receive JWT tokens
-     */
-    login(credentials: LoginRequest): Observable<AuthResponse> {
-        return this.http.post<AuthResponse>(`${this.API_URL}/login`, credentials).pipe(
-            tap(response => this.handleAuthResponse(response))
+    constructor(private router: Router) {
+        // 1️⃣ Initialize Supabase client using environment credentials
+        this.supabase = createClient(
+            environment.supabaseUrl,
+            environment.supabaseAnonKey
         );
+
+        // 2️⃣ Listen for auth state changes (login, logout, token refresh, OAuth redirect)
+        this.supabase.auth.onAuthStateChange((_event, session) => {
+            this.currentUserSubject.next(
+                session?.user ? this.mapUser(session.user) : null
+            );
+        });
+
+        // 3️⃣ Restore any existing session from Supabase's storage on app startup
+        this.loadSession();
+    }
+
+    // ─────────────────────────────────────
+    // Email / Password Auth
+    // ─────────────────────────────────────
+
+    /**
+     * Sign up with email, password and display name.
+     * If email confirmation is OFF → user is auto-logged in and redirected.
+     * If email confirmation is ON  → session will be null; caller shows "check email".
+     */
+    async signup(name: string, email: string, password: string): Promise<void> {
+        const { data, error } = await this.supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: { full_name: name }   // stored in user_metadata
+            }
+        });
+
+        if (error) {
+            throw error;
+        }
+
+        // Detect if email was already registered (Supabase security feature returns empty identities)
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+            throw new Error('User already registered');
+        }
+
+        if (data.session) {
+            // Email confirmation disabled → immediately logged in
+            this.currentUserSubject.next(this.mapUser(data.user!));
+            this.router.navigate(['/dashboard']);
+        }
+        // If no session → confirmation email sent; component handles the UI
     }
 
     /**
-     * POST /api/auth/signup
-     * Register a new user account
+     * Sign in with email and password.
      */
-    signup(data: SignupRequest): Observable<AuthResponse> {
-        return this.http.post<AuthResponse>(`${this.API_URL}/signup`, data).pipe(
-            tap(response => this.handleAuthResponse(response))
-        );
+    async login(email: string, password: string): Promise<void> {
+        const { data, error } = await this.supabase.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (error) throw error;
+
+        this.currentUserSubject.next(this.mapUser(data.user));
+        this.router.navigate(['/dashboard']);
     }
 
     /**
-     * POST /api/auth/forgot-password
-     * Initiate password reset flow (sends email)
+     * Send a password-reset email.
+     * The link in the email redirects to /auth/reset-password.
      */
-    forgotPassword(data: ForgotPasswordRequest): Observable<ApiResponse<void>> {
-        return this.http.post<ApiResponse<void>>(`${this.API_URL}/forgot-password`, data);
+    async forgotPassword(email: string): Promise<void> {
+        const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/auth/reset-password`
+        });
+
+        if (error) throw error;
     }
 
-    /**
-     * POST /api/auth/reset-password
-     * Complete password reset with token
-     */
-    resetPassword(data: ResetPasswordRequest): Observable<ApiResponse<void>> {
-        return this.http.post<ApiResponse<void>>(`${this.API_URL}/reset-password`, data);
-    }
+    // ─────────────────────────────────────
+    // Google OAuth
+    // ─────────────────────────────────────
 
     /**
-     * POST /api/auth/refresh
-     * Refresh access token using refresh token
+     * Redirect the user to Google's consent screen.
+     * After approval, Google → Supabase → /auth/callback.
      */
-    refreshToken(): Observable<RefreshTokenResponse> {
-        const refreshToken = this.getRefreshToken();
-        return this.http.post<RefreshTokenResponse>(`${this.API_URL}/refresh`, { refreshToken }).pipe(
-            tap(response => {
-                localStorage.setItem(this.TOKEN_KEY, response.accessToken);
-            })
-        );
+    async loginWithGoogle(): Promise<void> {
+        const { error } = await this.supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`
+            }
+        });
+
+        if (error) throw error;
     }
 
+    // ─────────────────────────────────────
+    // Session Management
+    // ─────────────────────────────────────
+
     /**
-     * Logout user and clear stored tokens
+     * Sign out the current user and redirect to login.
      */
-    logout(): void {
-        localStorage.removeItem(this.TOKEN_KEY);
-        localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-        localStorage.removeItem(this.USER_KEY);
+    async logout(): Promise<void> {
+        await this.supabase.auth.signOut();
         this.currentUserSubject.next(null);
+        this.router.navigate(['/auth/login']);
     }
 
     /**
-     * Get current user from memory
+     * Get the active Supabase session (contains the JWT access token).
      */
-    getCurrentUser(): User | null {
+    async getSession(): Promise<Session | null> {
+        const { data } = await this.supabase.auth.getSession();
+        return data.session;
+    }
+
+    /**
+     * Get the raw JWT access token for use in API request headers.
+     */
+    async getAccessToken(): Promise<string | null> {
+        const session = await this.getSession();
+        return session?.access_token ?? null;
+    }
+
+    /**
+     * Synchronous check — true if a user is in memory.
+     */
+    isAuthenticated(): boolean {
+        return this.currentUserSubject.value !== null;
+    }
+
+    /**
+     * Get the current app-level user synchronously.
+     */
+    getCurrentUser(): AppUser | null {
         return this.currentUserSubject.value;
     }
 
-    /**
-     * Check if user is authenticated
-     */
-    isAuthenticated(): boolean {
-        return !!this.getAccessToken();
+    // ─────────────────────────────────────
+    // Private Helpers
+    // ─────────────────────────────────────
+
+    /** Restore persisted session on service init. */
+    private async loadSession(): Promise<void> {
+        const { data } = await this.supabase.auth.getSession();
+        if (data.session?.user) {
+            this.currentUserSubject.next(this.mapUser(data.session.user));
+        }
     }
 
-    /**
-     * Get stored access token
-     */
-    getAccessToken(): string | null {
-        return localStorage.getItem(this.TOKEN_KEY);
-    }
-
-    /**
-     * Get stored refresh token
-     */
-    getRefreshToken(): string | null {
-        return localStorage.getItem(this.REFRESH_TOKEN_KEY);
-    }
-
-    // ============ Private Helpers ============
-
-    private handleAuthResponse(response: AuthResponse): void {
-        localStorage.setItem(this.TOKEN_KEY, response.accessToken);
-        localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
-        localStorage.setItem(this.USER_KEY, JSON.stringify(response.user));
-        this.currentUserSubject.next(response.user);
-    }
-
-    private getStoredUser(): User | null {
-        const userJson = localStorage.getItem(this.USER_KEY);
-        return userJson ? JSON.parse(userJson) : null;
+    /** Map a raw Supabase user object to the app's AppUser model. */
+    private mapUser(user: SupabaseUser): AppUser {
+        return {
+            id: user.id,
+            name: user.user_metadata?.['full_name']
+                || user.user_metadata?.['name']
+                || user.email?.split('@')[0]
+                || 'User',
+            email: user.email || '',
+            avatarUrl: user.user_metadata?.['avatar_url']
+                || user.user_metadata?.['picture']
+                || undefined
+        };
     }
 }
