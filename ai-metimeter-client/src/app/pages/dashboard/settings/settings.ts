@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ThemeService } from '../../../services/theme.service';
+import { AuthService } from '../../../services/auth.service';
 
 interface SettingsSection {
     id: string;
@@ -23,6 +24,14 @@ interface SettingsSection {
 })
 export class Settings {
     private themeService = inject(ThemeService);
+    private authService = inject(AuthService);
+    private userData: any;
+
+    ngOnInit() {
+        this.authService.currentUser$.subscribe((data) => {
+            this.userData = data;
+        });
+    }
 
     activeSection = 'profile';
 
@@ -43,5 +52,9 @@ export class Settings {
 
     onThemeToggle(checked: boolean): void {
         this.themeService.setTheme(checked ? 'dark' : 'light');
+    }
+
+    get userDetails() {
+        return this.userData;
     }
 }
