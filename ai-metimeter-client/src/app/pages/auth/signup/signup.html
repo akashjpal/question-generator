@@ -1,52 +1,160 @@
-<div class="auth-page">
-    <div class="auth-container">
-        <mat-card class="auth-card">
-            <mat-card-header>
-                <mat-card-title>Create Account</mat-card-title>
-                <mat-card-subtitle>Join thousands of educators today</mat-card-subtitle>
-            </mat-card-header>
+<div class="auth-page" id="signup-page">
+    <!-- Animated Background -->
+    <div class="auth-bg">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+        <div class="grid-overlay"></div>
+    </div>
 
-            <mat-card-content>
-                <form class="auth-form">
-                    <mat-form-field appearance="outline">
-                        <mat-label>Full Name</mat-label>
-                        <input matInput placeholder="John Doe">
-                        <mat-icon matPrefix>person</mat-icon>
-                    </mat-form-field>
+    <!-- Left Panel - Brand -->
+    <div class="auth-brand-panel">
+        <div class="brand-content">
+            <div class="brand-icon">
+                <mat-icon>psychology</mat-icon>
+            </div>
+            <h1 class="brand-title">AI Quick<br><span class="gradient-text">Analysis</span></h1>
+            <p class="brand-subtitle">Join thousands of educators creating smarter assessments with AI-powered tools.</p>
+            
+            <div class="feature-pills">
+                <div class="pill">
+                    <mat-icon>school</mat-icon>
+                    <span>For Educators</span>
+                </div>
+                <div class="pill">
+                    <mat-icon>quiz</mat-icon>
+                    <span>Smart Quizzes</span>
+                </div>
+                <div class="pill">
+                    <mat-icon>trending_up</mat-icon>
+                    <span>Track Progress</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    <mat-form-field appearance="outline">
-                        <mat-label>Email Address</mat-label>
-                        <input matInput placeholder="you@example.com" type="email">
-                        <mat-icon matPrefix>email</mat-icon>
-                    </mat-form-field>
+    <!-- Right Panel - Form -->
+    <div class="auth-form-panel">
+        <div class="auth-card">
+            <div class="card-header">
+                <h2 id="signup-title">Create Account</h2>
+                <p>Start your journey with AI-powered assessments</p>
+            </div>
 
-                    <mat-form-field appearance="outline">
-                        <mat-label>Password</mat-label>
-                        <input matInput [type]="hidePassword ? 'password' : 'text'">
-                        <mat-icon matPrefix>lock</mat-icon>
-                        <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
-                            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-                        </button>
-                    </mat-form-field>
+            <!-- Google Sign-Up Button -->
+            <button class="google-btn" id="google-signup-btn" (click)="signupWithGoogle()" [disabled]="isLoading()">
+                <svg viewBox="0 0 24 24" width="20" height="20">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                <span>Continue with Google</span>
+            </button>
 
-                    <button mat-flat-button color="primary" class="submit-btn" routerLink="/dashboard">
-                        Create Account
-                    </button>
-                </form>
+            <div class="divider">
+                <span>or sign up with email</span>
+            </div>
 
-                <div class="divider">
-                    <span>Or sign up with</span>
+            <!-- Email Confirmation Banner (shown when Supabase requires verification) -->
+            @if (emailConfirmationRequired()) {
+                <div class="success-banner" id="signup-confirm-email">
+                    <mat-icon>mark_email_read</mat-icon>
+                    <span>Account created! Check your inbox to confirm your email before signing in.</span>
+                </div>
+            }
+
+            <!-- Error Message -->
+            @if (errorMessage()) {
+                <div class="error-banner" id="signup-error">
+                    <mat-icon>error_outline</mat-icon>
+                    <span>{{ errorMessage() }}</span>
+                </div>
+            }
+
+            <!-- Signup Form -->
+            <form class="auth-form" [formGroup]="signupForm" (ngSubmit)="onSubmit()" id="signup-form">
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <div class="input-wrapper" [class.focused]="nameFocused" [class.error]="signupForm.get('name')?.invalid && signupForm.get('name')?.touched">
+                        <mat-icon class="input-icon">person</mat-icon>
+                        <input id="signup-name" type="text" formControlName="name" placeholder="John Doe"
+                               (focus)="nameFocused=true" (blur)="nameFocused=false">
+                    </div>
+                    @if (signupForm.get('name')?.hasError('required') && signupForm.get('name')?.touched) {
+                        <span class="field-error">Name is required</span>
+                    }
+                    @if (signupForm.get('name')?.hasError('minlength') && signupForm.get('name')?.touched) {
+                        <span class="field-error">Name must be at least 2 characters</span>
+                    }
                 </div>
 
-                <button mat-stroked-button class="google-btn">
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20">
-                    Google
-                </button>
-            </mat-card-content>
+                <div class="form-group">
+                    <label for="signup-email">Email Address</label>
+                    <div class="input-wrapper" [class.focused]="emailFocused" [class.error]="signupForm.get('email')?.invalid && signupForm.get('email')?.touched">
+                        <mat-icon class="input-icon">mail</mat-icon>
+                        <input id="signup-email" type="email" formControlName="email" placeholder="you@example.com"
+                               (focus)="emailFocused=true" (blur)="emailFocused=false">
+                    </div>
+                    @if (signupForm.get('email')?.hasError('required') && signupForm.get('email')?.touched) {
+                        <span class="field-error">Email is required</span>
+                    }
+                    @if (signupForm.get('email')?.hasError('email') && signupForm.get('email')?.touched) {
+                        <span class="field-error">Please enter a valid email</span>
+                    }
+                </div>
 
-            <mat-card-footer>
-                <p>Already have an account? <a routerLink="/auth/login">Sign in</a></p>
-            </mat-card-footer>
-        </mat-card>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <div class="input-wrapper" [class.focused]="passwordFocused" [class.error]="signupForm.get('password')?.invalid && signupForm.get('password')?.touched">
+                        <mat-icon class="input-icon">lock</mat-icon>
+                        <input id="signup-password" [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Create a strong password"
+                               (focus)="passwordFocused=true" (blur)="passwordFocused=false">
+                        <button type="button" class="toggle-password" (click)="hidePassword = !hidePassword" id="toggle-signup-password-btn">
+                            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                        </button>
+                    </div>
+                    @if (signupForm.get('password')?.hasError('required') && signupForm.get('password')?.touched) {
+                        <span class="field-error">Password is required</span>
+                    }
+
+                    <!-- Password Strength Indicators -->
+                    @if (passwordValue.length > 0) {
+                        <div class="password-requirements">
+                            <span class="requirement" [class.met]="hasMinLength">
+                                <mat-icon>{{ hasMinLength ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                                8+ characters
+                            </span>
+                            <span class="requirement" [class.met]="hasUppercase">
+                                <mat-icon>{{ hasUppercase ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                                Uppercase
+                            </span>
+                            <span class="requirement" [class.met]="hasNumber">
+                                <mat-icon>{{ hasNumber ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                                Number
+                            </span>
+                            <span class="requirement" [class.met]="hasSpecial">
+                                <mat-icon>{{ hasSpecial ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                                Special char
+                            </span>
+                        </div>
+                    }
+                </div>
+
+                <button type="submit" class="submit-btn" [disabled]="isLoading()" id="signup-submit-btn">
+                    @if (isLoading()) {
+                        <mat-spinner diameter="22" color="accent"></mat-spinner>
+                        <span>Creating account...</span>
+                    } @else {
+                        <span>Create Account</span>
+                        <mat-icon>arrow_forward</mat-icon>
+                    }
+                </button>
+            </form>
+
+            <p class="auth-footer">
+                Already have an account? <a routerLink="/auth/login" id="login-link">Sign in</a>
+            </p>
+        </div>
     </div>
 </div>
