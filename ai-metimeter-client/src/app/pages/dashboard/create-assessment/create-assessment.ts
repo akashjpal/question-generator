@@ -58,7 +58,7 @@ export class CreateAssessment implements OnInit {
         private authService: AuthService
     ) { }
 
-    ngOnInit() {
+    ngOnInit(): void {
         this.route.paramMap.subscribe(params => {
             const id = params.get('id');
             if (id) {
@@ -67,11 +67,16 @@ export class CreateAssessment implements OnInit {
                 this.loadAssessment(id);
             }
         });
-        this.getAccessToken();
+        this.initAccessToken();
     }
 
-    async getAccessToken() {
-        this.accessToken = await this.authService.getAccessToken();
+    private async initAccessToken(): Promise<void> {
+        try {
+            this.accessToken = await this.authService.getAccessToken();
+        } catch (error) {
+            console.error('Failed to retrieve access token:', error);
+            this.router.navigate(['/auth/login']);
+        }
     }
 
     loadAssessment(id: string) {
@@ -182,7 +187,8 @@ export class CreateAssessment implements OnInit {
             headers: {
                 'Content-Type': this.selectedFile.type,
                 'x-filename': this.selectedFile.name,
-                'content-length': this.selectedFile.size.toString()
+                'content-length': this.selectedFile.size.toString(),
+                "authorization": `Bearer ${this.accessToken}`
             }
         });
 
@@ -213,7 +219,8 @@ export class CreateAssessment implements OnInit {
             const res = await fetch(`${this.questionGeneratorApiUrl}/generate-questions`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "authorization": `Bearer ${this.accessToken}`
                 },
                 body: JSON.stringify({
                     fileId: this.fileId,
@@ -233,7 +240,7 @@ export class CreateAssessment implements OnInit {
             console.log('Job Started:', data);
 
             if (data.jobId) {
-                this.assessmentService.pollGenerationStatus(data.jobId).subscribe({
+                this.assessmentService.pollGenerationStatus(data.jobId, this.accessToken).subscribe({
                     next: async (statusRes) => {
                         console.log('Polling Status:', statusRes);
                         if (statusRes.status === 2) {
@@ -367,7 +374,9 @@ export class CreateAssessment implements OnInit {
 
     async getGeneratedQuestions(jobId: string): Promise<Question[]> {
         try {
-            const data = await fetch(`${this.questionGeneratorApiUrl}/generated-questions/${jobId}`);
+            const data = await fetch(`${this.questionGeneratorApiUrl}/generated-questions/${jobId}`, {
+                headers: { 'Authorization': `Bearer ${this.accessToken}` }
+            });
 
             if (!data.ok) {
                 throw new Error(`Generated questions request failed with status ${data.status}`);

@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
   res.send("Question Generator API is running.");
 });
 
-app.post("/file-upload", async (req, res) => {
+app.post("/file-upload", requireAuth, async (req, res) => {
   try {
     const filenameHeader = req.headers["x-filename"];
     const filename = (Array.isArray(filenameHeader) ? filenameHeader[0] : filenameHeader) ?? "";
@@ -54,7 +54,7 @@ app.post("/file-upload", async (req, res) => {
   }
 });
 
-app.post("/generate-questions", async (req, res) => {
+app.post("/generate-questions", requireAuth,async (req, res) => {
   try {
     const {
       fileName,
@@ -75,7 +75,7 @@ app.post("/generate-questions", async (req, res) => {
   }
 });
 
-app.get("/generate-questions-status/:id", async (req, res) => {
+app.get("/generate-questions-status/:id", requireAuth, async (req, res) => {
   try {
     const jobId = req.params.id;
 
@@ -99,7 +99,7 @@ app.get("/generate-questions-status/:id", async (req, res) => {
   }
 });
 
-app.get("/generated-questions/:id", async(req,res)=>{
+app.get("/generated-questions/:id", requireAuth, async(req,res)=>{
   try {
     const jobId = req.params.id;
     const operator = new SupabaseOperator();
@@ -144,7 +144,7 @@ app.post("/publish-assessment", requireAuth, async (req,res)=>{
   }
 })
 
-app.post("/api/assessments/:id/publish", async (req, res)=>{
+app.post("/api/assessments/:id/publish", requireAuth, async (req, res)=>{
   try{
     const {id} = req.params;
     const publisher = new Publisher();
@@ -163,7 +163,7 @@ app.post("/api/assessments/:id/publish", async (req, res)=>{
   }
 })
 
-app.get("/get-assessments", async(req,res)=>{
+app.get("/get-assessments", requireAuth, async(req,res)=>{
   try {
     const operator = new SupabaseOperator();
     const data = await operator.getAllAssessments();
@@ -179,7 +179,7 @@ app.get("/get-assessments", async(req,res)=>{
   }
 });
 
-app.get("/api/assessments/:id", async (req, res)=>{
+app.get("/api/assessments/:id", requireAuth, async (req, res)=>{
   try {
     const { id } = req.params;
     console.log(id);
@@ -201,14 +201,14 @@ app.get("/api/assessments/:id", async (req, res)=>{
   }
 })
 
-app.put("/api/assessments/:id", async(req,res)=>{
+app.put("/api/assessments/:id", requireAuth, async(req,res)=>{
   console.log('putting here');
   try{
     const {id} = req.params;
     const data = req.body;
     if(data) {
       const publisher = new Publisher();
-      await publisher.handleAssessmentPublishing(data, false);
+      await publisher.handleAssessmentPublishing(data, false, null);
       return res.status(200).json({
         message: `assessment published ${id}`
       })
@@ -224,7 +224,7 @@ app.put("/api/assessments/:id", async(req,res)=>{
   }
 })
 
-app.delete("/api/assessments/:id", async (req, res)=>{
+app.delete("/api/assessments/:id", requireAuth, async (req, res)=>{
   try {
     const {id} = req.params;
     if(id) {
