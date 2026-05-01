@@ -1,10 +1,12 @@
 import { Routes } from '@angular/router';
 import { Landing } from './pages/landing/landing';
+import { authenticationGuardGuard } from './authentication-guard-guard';
 export const routes: Routes = [
     { path: '', component: Landing, pathMatch: 'full' },
     {
         path: 'dashboard',
-        loadChildren: () => import('./pages/dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES)
+        loadChildren: () => import('./pages/dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES),
+        canActivate : [authenticationGuardGuard]
     },
     {
         path: 'student',

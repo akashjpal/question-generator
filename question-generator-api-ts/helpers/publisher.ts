@@ -201,7 +201,8 @@ export class Publisher {
     }
   }
 
-  async handleAssessmentPublishing(assessment: Assessment, isQuestionPublish: true | false = true) {
+  async handleAssessmentPublishing(assessment: Assessment, isQuestionPublish: true | false = true, user:any) {
+    console.log("user ",user);
     try {
       const questions = assessment.questions;
       const publishQuestions: PublishQuestionModel[] = questions.map((q) => ({
@@ -224,7 +225,8 @@ export class Publisher {
         timeLimit: assessment.timeLimit,
         fileId: assessment.fileId,
         updatedAt: Date.now().toString(),
-        publishedAt: Date.now().toString()
+        publishedAt: Date.now().toString(),
+        user_id: user.id
       };
       if(isQuestionPublish) {
         await this.publishQuestion(publishQuestions);

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, timer, fromEvent, throwError } from 'rxjs';
 import { switchMap, takeWhile, retryWhen, delayWhen, tap, map } from 'rxjs/operators';
 import {
@@ -129,9 +129,12 @@ export class AssessmentService {
      * Status 2 (Completed) or 3 (Failed) will stop the polling
      * @param jobId The job ID to poll for
      */
-    pollGenerationStatus(jobId: string): Observable<GenerationStatusResponse> {
+    pollGenerationStatus(jobId: string, accessToken: string | null = null): Observable<GenerationStatusResponse> {
+        const headers = accessToken
+            ? new HttpHeaders({ 'Authorization': `Bearer ${accessToken}` })
+            : new HttpHeaders();
         return timer(0, 2000).pipe(
-            switchMap(() => this.http.get<GenerationStatusResponse>(`${environment.questionGeneratorApiUrl}/generate-questions-status/${jobId}`)),
+            switchMap(() => this.http.get<GenerationStatusResponse>(`${environment.questionGeneratorApiUrl}/generate-questions-status/${jobId}`, { headers })),
             retryWhen(errors =>
                 errors.pipe(
                     // Log the error to let the user know we act upon it
