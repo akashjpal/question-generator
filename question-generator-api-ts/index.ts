@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { SupabaseOperator } from "./helpers/supabseOperator.js";
 import type { Assessment } from "./models/assessment.models.js";
+import { requireAuth } from "./helpers/requireAuth.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,7 +26,6 @@ app.use(
 app.use(cors({
   origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
 }));
-
 
 app.get("/", (req, res) => {
   res.send("Question Generator API is running.");
@@ -56,7 +56,6 @@ app.post("/file-upload", async (req, res) => {
 
 app.post("/generate-questions", async (req, res) => {
   try {
-    // const { textContent, numQuestions } = req.body;
     const {
       fileName,
       fileId,
@@ -119,9 +118,10 @@ app.get("/generated-questions/:id", async(req,res)=>{
   }
 })
 
-app.post("/publish-assessment", async (req,res)=>{
+app.post("/publish-assessment", requireAuth, async (req,res)=>{
   try {
     const assessment: Assessment = req.body.assessment;
+
     if(!assessment) {
         return res.status(400).json({
         message: "Assessment data is missing"
@@ -130,7 +130,7 @@ app.post("/publish-assessment", async (req,res)=>{
     console.log('Assessment Data Received:', assessment);
     console.log('Publishing Assessment...');
     const publisher = new Publisher();
-    await publisher.handleAssessmentPublishing(assessment);
+    await publisher.handleAssessmentPublishing(assessment,true, req.user);
     console.log('Assessment Data Received:', assessment);
     
     return res.status(200).json({

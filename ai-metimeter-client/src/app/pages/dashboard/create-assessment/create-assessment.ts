@@ -18,6 +18,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Assessment } from '../../../models';
 import { Question } from '../../../models';
 import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
     selector: 'app-create-assessment',
@@ -46,13 +47,15 @@ export class CreateAssessment implements OnInit {
     isEditMode = false;
     editId: string | null = null;
     private readonly questionGeneratorApiUrl = environment.questionGeneratorApiUrl;
+    private accessToken: string | null = null;
 
     constructor(
         private assessmentService: AssessmentService,
         private cdr: ChangeDetectorRef,
         private snackBar: MatSnackBar,
         private router: Router,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private authService: AuthService
     ) { }
 
     ngOnInit() {
@@ -64,6 +67,11 @@ export class CreateAssessment implements OnInit {
                 this.loadAssessment(id);
             }
         });
+        this.getAccessToken();
+    }
+
+    async getAccessToken() {
+        this.accessToken = await this.authService.getAccessToken();
     }
 
     loadAssessment(id: string) {
@@ -302,22 +310,30 @@ export class CreateAssessment implements OnInit {
             const data = await fetch(`${this.questionGeneratorApiUrl}/publish-assessment`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "authorization": `Bearer ${this.accessToken}`
                 },
                 body: JSON.stringify({
                     assessment: this.assessmentData
                 })
             })
+            
             const res = await data.json();
-            console.log('Assessment publishing:', res);
-
+            console.log("res ", res);
+            if(data.ok) {
+                this.snackBar.open('Assessment published successfully!', 'Close', {
+                    duration: 3000,
+                    panelClass: ['success-snackbar']
+                });
+                this.router.navigate(['/dashboard/my-quizzes']);
+            } else {
+                this.snackBar.open(res.message || 'Failed to publish assessment.', 'Close', {
+                    duration: 3000,
+                    panelClass: ['error-snackbar']
+                });
+            }
 
             // Show success message and navigate to my-quizzes
-            this.snackBar.open('Assessment published successfully!', 'Close', {
-                duration: 3000,
-                panelClass: ['success-snackbar']
-            });
-            this.router.navigate(['/dashboard/my-quizzes']);
         } catch (error) {
             console.error('Error publishing assessment:', error);
             this.snackBar.open('Failed to publish assessment. Please try again.', 'Close', {

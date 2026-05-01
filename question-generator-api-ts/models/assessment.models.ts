@@ -32,6 +32,7 @@ export interface AssessmentPublishModel {
     updatedAt: string;
     publishedAt?: string;
     fileId?: string;
+    user_id: string;
 }
 
 export interface PublishQuestionModel {

@@ -5,11 +5,13 @@ import { Reports } from './reports/reports';
 import { Settings } from './settings/settings';
 import { CreateAssessment } from './create-assessment/create-assessment';
 import { AssessmentReport } from './reports/assessment-report/assessment-report';
+import { authenticationGuardGuard } from '../../authentication-guard-guard';
 
 export const DASHBOARD_ROUTES: Routes = [
     {
         path: '',
         component: DashboardLayout,
+        canActivateChild: [authenticationGuardGuard],
         children: [
             { path: '', redirectTo: 'my-quizzes', pathMatch: 'full' },
             { path: 'my-quizzes', component: MyQuizzes },
