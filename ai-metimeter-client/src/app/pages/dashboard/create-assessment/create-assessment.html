@@ -109,7 +109,7 @@
         </mat-step>
 
         <!-- Step 2: Edit Questions -->
-        <mat-step label="Review & Edit">
+        <mat-step label="Review & Edit" *ngIf="!isEditMode || !editId">
             <div class="step-content">
                 <div *ngIf="isGenerating" class="loading-container">
                     <mat-spinner diameter="50"></mat-spinner>
@@ -117,7 +117,7 @@
                 </div>
                 <div *ngIf="!isGenerating" class="questions-list">
                     <mat-accordion multi>
-                        <mat-expansion-panel *ngFor="let q of questions; let i = index" [expanded]="true">
+                        <mat-expansion-panel *ngFor="let q of questions; let i = index; trackBy: trackByIndex" [expanded]="true">
                             <mat-expansion-panel-header>
                                 <mat-panel-title>
                                     Question {{i + 1}}
@@ -134,13 +134,18 @@
                                 </mat-form-field>
 
                                 <div class="options-grid">
-                                    <mat-radio-group [(ngModel)]="q.correctAnswer" name="correct-{{i}}">
+                                    <mat-radio-group [ngModel]="q.correctAnswer"
+                                        (ngModelChange)="setCorrectAnswer(q, $event)"
+                                        [ngModelOptions]="{standalone: true}">
                                         <div class="option-row"
-                                            *ngFor="let opt of q.filteredOptions; let optIndex = index">
+                                            *ngFor="let opt of q.filteredOptions; let optIndex = index; trackBy: trackByIndex">
                                             <mat-radio-button [value]="optIndex"></mat-radio-button>
                                             <mat-form-field appearance="outline" class="option-input">
                                                 <mat-label>Option {{optIndex + 1}}</mat-label>
-                                                <input matInput [(ngModel)]="q.filteredOptions[optIndex]">
+                                                <input matInput
+                                                    [ngModel]="q.filteredOptions[optIndex]"
+                                                    (ngModelChange)="updateOption(q, optIndex, $event)"
+                                                    [ngModelOptions]="{standalone: true}">
                                             </mat-form-field>
                                         </div>
                                     </mat-radio-group>
@@ -184,11 +189,11 @@
                     </mat-card-header>
                     <mat-card-content>
                         <div class="preview-questions">
-                            <div class="preview-item" *ngFor="let q of questions; let i = index">
+                            <div class="preview-item" *ngFor="let q of questions; let i = index; trackBy: trackByIndex">
                                 <p class="q-text"><strong>{{i+1}}.</strong> {{q.question_text}}</p>
                                 <div class="q-options">
                                     <span class="option" [class.correct]="optIndex === q.correctAnswer"
-                                        *ngFor="let opt of q.options; let optIndex = index">
+                                        *ngFor="let opt of q.filteredOptions; let optIndex = index; trackBy: trackByIndex">
                                         {{opt}}
                                     </span>
                                 </div>

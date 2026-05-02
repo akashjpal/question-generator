@@ -32,10 +32,10 @@ export interface AssessmentPublishModel {
     updatedAt: string;
     publishedAt?: string;
     fileId?: string;
-    user_id: string;
 }
 
 export interface PublishQuestionModel {
+    id?: string;
     question_text: string;
     options: string;
     correct_options: string; // Index of correct option

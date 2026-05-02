@@ -65,6 +65,7 @@ export class CreateAssessment implements OnInit {
                 this.isEditMode = true;
                 this.editId = id;
                 this.loadAssessment(id);
+                console.log("Edit mode for assessment ID:", id);
             }
         });
         this.initAccessToken();
@@ -104,10 +105,12 @@ export class CreateAssessment implements OnInit {
                     }
                     // Ensure explanation exists
                     if (!q.explanation) q.explanation = '';
+                    q.correctAnswer = this.getCorrectOption(q);
                     return q;
                 });
 
                 this.assessmentData.questions = this.questions;
+                console.log("this.assessmentData", this.assessmentData);
                 this.cdr.detectChanges();
             },
             error: (err) => {
@@ -119,7 +122,7 @@ export class CreateAssessment implements OnInit {
     }
 
     subjects = ['Biology', 'History', 'Mathematics', 'Physics', 'Chemistry', 'Literature', 'General Knowledge'];
-    difficulties = ['Easy', 'Medium', 'Hard', 'Expert'];
+    difficulties = ['easy', 'medium', 'hard', 'expert'];
 
     // Step 1 Data
     public assessmentData: Assessment = {
@@ -284,11 +287,12 @@ export class CreateAssessment implements OnInit {
 
     addQuestion() {
         this.questions.push({
+            id: crypto.randomUUID(),
             question_text: 'New Question',
-            options: '',
+            options: '["","","",""]',
             correctAnswer: 0,
             correct_options: '',
-            filteredOptions: [],
+            filteredOptions: ['', '', '', ''],
             explanation: ''
         });
     }
@@ -297,16 +301,35 @@ export class CreateAssessment implements OnInit {
         this.questions.splice(index, 1);
     }
 
-    async publishAssessment() {
-        console.log('Publishing assessment:', {
-            meta: this.assessmentData,
-            questions: this.questions
+    trackByIndex(index: number): number {
+        return index;
+    }
+
+    setCorrectAnswer(question: Question, optionIndex: number): void {
+        question.correctAnswer = optionIndex;
+    }
+
+    updateOption(question: Question, optionIndex: number, value: string): void {
+        const updated = [...question.filteredOptions];
+        updated[optionIndex] = value;
+        question.filteredOptions = updated;
+    }
+
+    private syncOptionsFromFiltered() {
+        const letters = ['A', 'B', 'C', 'D'];
+        this.questions.forEach(q => {
+            q.options = JSON.stringify(q.filteredOptions);
+            q.correct_options = letters[q.correctAnswer] ?? 'A';
         });
+        this.assessmentData.questions = this.questions;
+    }
+
+    async publishAssessment() {
+        this.syncOptionsFromFiltered();
 
         try {
             if (this.isEditMode && this.editId) {
                 await this.updateAssessment();
-                // Show success message and navigate to my-quizzes
                 this.snackBar.open('Assessment updated successfully!', 'Close', {
                     duration: 3000,
                     panelClass: ['success-snackbar']
@@ -326,7 +349,6 @@ export class CreateAssessment implements OnInit {
             })
             
             const res = await data.json();
-            console.log("res ", res);
             if(data.ok) {
                 this.snackBar.open('Assessment published successfully!', 'Close', {
                     duration: 3000,
@@ -339,8 +361,6 @@ export class CreateAssessment implements OnInit {
                     panelClass: ['error-snackbar']
                 });
             }
-
-            // Show success message and navigate to my-quizzes
         } catch (error) {
             console.error('Error publishing assessment:', error);
             this.snackBar.open('Failed to publish assessment. Please try again.', 'Close', {
@@ -409,8 +429,6 @@ export class CreateAssessment implements OnInit {
         if (typeof options === 'string') {
             try {
                 const parsed = JSON.parse(options);
-                console.log("parsed");
-                console.log(parsed);
                 if (Array.isArray(parsed)) {
                     return parsed.map((opt: string) => this.stripOptionPrefix(opt));
                 }
@@ -431,8 +449,8 @@ export class CreateAssessment implements OnInit {
         return option.replace(/^[A-D]\.\s*/, '');
     }
 
-    getCorrectOption(questio: Question): number {
-        const correctOption = questio.correct_options;
+    getCorrectOption(question: Question): number {
+        const correctOption = question.correct_options;
         if (correctOption === 'A') {
             return 0;
         } else if (correctOption === 'B') {

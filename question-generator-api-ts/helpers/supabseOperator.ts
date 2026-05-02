@@ -19,6 +19,22 @@ export class SupabaseOperator {
     }
   }
 
+  async getAllAssessmentsForUser(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from("assessment_table")
+        .select("id, title, subject, questions, status, difficulty, timeLimit, description")
+        .eq("createdBy", userId);
+      if (error) {
+        throw error;
+      }
+      return data;
+    } catch (error: any) {
+      console.error("Fetch error:", error.message);
+      throw error;
+    }
+  }
+
   async getGeneratedQuestions(params: { jobId: string }) {
     try {
       console.log(`Fetching questions for jobId: ${params.jobId}`);
