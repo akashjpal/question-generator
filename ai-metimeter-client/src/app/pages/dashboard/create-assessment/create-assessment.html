@@ -120,7 +120,7 @@
                         <mat-expansion-panel *ngFor="let q of questions; let i = index; trackBy: trackByIndex" [expanded]="true">
                             <mat-expansion-panel-header>
                                 <mat-panel-title>
-                                    Question {{i + 1}} {{isEditMode}}
+                                    Question {{i + 1}}
                                 </mat-panel-title>
                                 <mat-panel-description>
                                     {{q.question_text | slice:0:50}}{{q.question_text.length > 50 ? '...' : ''}}
