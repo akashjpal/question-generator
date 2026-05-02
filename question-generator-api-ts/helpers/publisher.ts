@@ -71,21 +71,12 @@ export class Publisher {
   }
 
   async publishQuestion(question: PublishQuestionModel[]): Promise<string[]> {
-    try {
-      console.log("Publishing questions:", question);
-      const { data, error } = await supabase
-        .from("ai-generated-questions")
-        .insert(question)
-        .select('id');
-      if (error) {
-        throw error;
-      }
-      console.log("Questions published:", data);
-      return (data || []).map((q: any) => q.id);
-    }catch(error) {
-      console.error("❌ Error publishing questions:", error);
-      return [];
-    }
+    const { data, error } = await supabase
+      .from("ai-generated-questions")
+      .upsert(question, { onConflict: "id" })
+      .select('id');
+    if (error) throw error;
+    return (data || []).map((q: any) => q.id);
   }
 
   async publishAssessment(assessment: AssessmentPublishModel) {
@@ -113,10 +104,9 @@ export class Publisher {
       if (error) {
         throw error;
       }
-      console.log("Assessment published:", data);
       return data;
     }catch(error) {
-      console.error("❌ Error publishing assessment:", error);
+      throw error;
     }
   }
 
@@ -205,45 +195,40 @@ export class Publisher {
     }
   }
 
-  async handleAssessmentPublishing(assessment: Assessment, isQuestionPublish: true | false = true, user: any) {
-    console.log("user ", user);
-    try {
-      const questions = assessment.questions;
-      console.log("assessment.questions ", questions);
+  async handleAssessmentPublishing(assessment: Assessment, isQuestionPublish: boolean = true, user: any) {
+    const questions = assessment.questions;
 
-      const toInsert: PublishQuestionModel[] = questions.map((q) => ({
-        question_text: q.question_text,
-        options: q.options,
-        correct_options: q.correct_options,
-        explanation: q.explanation,
-      }));
-      const allQuestionIds = await this.publishQuestion(toInsert);
+    const toInsert: PublishQuestionModel[] = questions.map((q) => ({
+      id: q.id,
+      question_text: q.question_text,
+      options: q.options,
+      correct_options: q.correct_options,
+      explanation: q.explanation,
+    }));
+    const allQuestionIds = await this.publishQuestion(toInsert);
 
-      const newAssessment: AssessmentPublishModel = {
-        topic: assessment.topic,
-        difficulty: assessment.difficulty,
-        description: assessment.description,
-        title: assessment.title,
-        subject: assessment.subject,
-        createdBy: assessment.createdBy,
-        questionsCount: assessment.questionsCount,
-        status: 1,
-        questions: allQuestionIds,
-        code: assessment.code,
-        timeLimit: assessment.timeLimit,
-        fileId: assessment.fileId,
-        updatedAt: Date.now().toString(),
-        publishedAt: Date.now().toString()
-      };
+    const newAssessment: AssessmentPublishModel = {
+      topic: assessment.topic,
+      difficulty: (assessment.difficulty as string).toLowerCase() as AssessmentPublishModel['difficulty'],
+      description: assessment.description,
+      title: assessment.title,
+      subject: assessment.subject,
+      createdBy: user?.id ?? assessment.createdBy ?? '',
+      questionsCount: questions.length,
+      status: 1,
+      questions: allQuestionIds,
+      code: assessment.code,
+      timeLimit: assessment.timeLimit,
+      fileId: assessment.fileId,
+      updatedAt: Date.now().toString(),
+      publishedAt: Date.now().toString()
+    };
 
-      if (!isQuestionPublish) {
-        newAssessment.id = assessment.id;
-      }
-
-      await this.publishAssessment(newAssessment);
-    } catch (error) {
-      console.error("❌ Error handling assessment publishing:", error);
+    if (!isQuestionPublish) {
+      newAssessment.id = assessment.id;
     }
+
+    await this.publishAssessment(newAssessment);
   }
 
   async deleteAssessment(id: number): Promise<Assessment | undefined> {

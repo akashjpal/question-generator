@@ -65,6 +65,7 @@ export class CreateAssessment implements OnInit {
                 this.isEditMode = true;
                 this.editId = id;
                 this.loadAssessment(id);
+                console.log("Edit mode for assessment ID:", id);
             }
         });
         this.initAccessToken();
@@ -83,8 +84,6 @@ export class CreateAssessment implements OnInit {
         this.assessmentService.getAssessment(id).subscribe({
             next: (data) => {
                 this.assessmentData = data;
-
-                console.log("this.assessmentData ",this.assessmentData);
 
                 // Handle questions parsing
                 let parsedQuestions: any[] = [];
@@ -106,11 +105,12 @@ export class CreateAssessment implements OnInit {
                     }
                     // Ensure explanation exists
                     if (!q.explanation) q.explanation = '';
+                    q.correctAnswer = this.getCorrectOption(q);
                     return q;
                 });
 
                 this.assessmentData.questions = this.questions;
-                console.log("this.assessmentData.questions ",this.assessmentData.questions);
+                console.log("this.assessmentData", this.assessmentData);
                 this.cdr.detectChanges();
             },
             error: (err) => {
@@ -122,7 +122,7 @@ export class CreateAssessment implements OnInit {
     }
 
     subjects = ['Biology', 'History', 'Mathematics', 'Physics', 'Chemistry', 'Literature', 'General Knowledge'];
-    difficulties = ['Easy', 'Medium', 'Hard', 'Expert'];
+    difficulties = ['easy', 'medium', 'hard', 'expert'];
 
     // Step 1 Data
     public assessmentData: Assessment = {
@@ -327,20 +327,13 @@ export class CreateAssessment implements OnInit {
     async publishAssessment() {
         this.syncOptionsFromFiltered();
 
-        console.log('Publishing assessment:', {
-            meta: this.assessmentData,
-            questions: this.questions
-        });
-
         try {
             if (this.isEditMode && this.editId) {
                 await this.updateAssessment();
-                // Show success message and navigate to my-quizzes
                 this.snackBar.open('Assessment updated successfully!', 'Close', {
                     duration: 3000,
                     panelClass: ['success-snackbar']
                 });
-                // TODO: `navigate` is not working after update, need to check
                 this.router.navigate(['/dashboard/my-quizzes']);
                 return; // Exit after update
             }
@@ -356,21 +349,18 @@ export class CreateAssessment implements OnInit {
             })
             
             const res = await data.json();
-            console.log("res ", res);
             if(data.ok) {
                 this.snackBar.open('Assessment published successfully!', 'Close', {
                     duration: 3000,
                     panelClass: ['success-snackbar']
                 });
-                // this.router.navigate(['/dashboard/my-quizzes']);
+                this.router.navigate(['/dashboard/my-quizzes']);
             } else {
                 this.snackBar.open(res.message || 'Failed to publish assessment.', 'Close', {
                     duration: 3000,
                     panelClass: ['error-snackbar']
                 });
             }
-
-            // Show success message and navigate to my-quizzes
         } catch (error) {
             console.error('Error publishing assessment:', error);
             this.snackBar.open('Failed to publish assessment. Please try again.', 'Close', {
@@ -439,8 +429,6 @@ export class CreateAssessment implements OnInit {
         if (typeof options === 'string') {
             try {
                 const parsed = JSON.parse(options);
-                console.log("parsed");
-                console.log(parsed);
                 if (Array.isArray(parsed)) {
                     return parsed.map((opt: string) => this.stripOptionPrefix(opt));
                 }
@@ -461,9 +449,8 @@ export class CreateAssessment implements OnInit {
         return option.replace(/^[A-D]\.\s*/, '');
     }
 
-    getCorrectOption(questio: Question): number {
-        console.log("getCorrectOption ", questio);
-        const correctOption = questio.correct_options;
+    getCorrectOption(question: Question): number {
+        const correctOption = question.correct_options;
         if (correctOption === 'A') {
             return 0;
         } else if (correctOption === 'B') {

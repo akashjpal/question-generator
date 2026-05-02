@@ -109,7 +109,7 @@
         </mat-step>
 
         <!-- Step 2: Edit Questions -->
-        <mat-step label="Review & Edit">
+        <mat-step label="Review & Edit" *ngIf="!isEditMode || !editId">
             <div class="step-content">
                 <div *ngIf="isGenerating" class="loading-container">
                     <mat-spinner diameter="50"></mat-spinner>
@@ -120,7 +120,7 @@
                         <mat-expansion-panel *ngFor="let q of questions; let i = index; trackBy: trackByIndex" [expanded]="true">
                             <mat-expansion-panel-header>
                                 <mat-panel-title>
-                                    Question {{i + 1}}
+                                    Question {{i + 1}} {{isEditMode}}
                                 </mat-panel-title>
                                 <mat-panel-description>
                                     {{q.question_text | slice:0:50}}{{q.question_text.length > 50 ? '...' : ''}}

@@ -78,13 +78,12 @@ export class MyQuizzes implements OnInit {
     }
 
     private mapToQuiz(item: AssessmentListItem): Quiz {
-        // Parse questions JSON to get count
+        const rawQuestions: unknown = item.questions;
         let questionsCount = 0;
-        try {
-            const questions = JSON.parse(item.questions);
-            questionsCount = Array.isArray(questions) ? questions.length : 0;
-        } catch {
-            questionsCount = 0;
+        if (Array.isArray(rawQuestions)) {
+            questionsCount = rawQuestions.length;
+        } else if (typeof rawQuestions === 'string') {
+            try { questionsCount = JSON.parse(rawQuestions).length ?? 0; } catch { questionsCount = 0; }
         }
 
         return {

@@ -110,9 +110,9 @@ export interface AssessmentListItem {
     id: number;
     title: string;
     subject: string;
-    questions: string; // JSON string of question IDs
+    questions: string[] | string; // array of IDs from Supabase, or JSON string fallback
     status: number; // 0: draft, 1: published
-    difficulty: 'Easy' | 'Medium' | 'Hard';
+    difficulty: string;
     timeLimit?: number;
     description: string | null;
     code?: string;
