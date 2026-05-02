@@ -70,17 +70,21 @@ export class Publisher {
     }
   }
 
-  async publishQuestion(question: PublishQuestionModel[]) {
+  async publishQuestion(question: PublishQuestionModel[]): Promise<string[]> {
     try {
+      console.log("Publishing questions:", question);
       const { data, error } = await supabase
         .from("ai-generated-questions")
-        .insert(question);
+        .insert(question)
+        .select('id');
       if (error) {
         throw error;
       }
       console.log("Questions published:", data);
+      return (data || []).map((q: any) => q.id);
     }catch(error) {
       console.error("❌ Error publishing questions:", error);
+      return [];
     }
   }
 
@@ -201,16 +205,20 @@ export class Publisher {
     }
   }
 
-  async handleAssessmentPublishing(assessment: Assessment, isQuestionPublish: true | false = true, user:any) {
-    console.log("user ",user);
+  async handleAssessmentPublishing(assessment: Assessment, isQuestionPublish: true | false = true, user: any) {
+    console.log("user ", user);
     try {
       const questions = assessment.questions;
-      const publishQuestions: PublishQuestionModel[] = questions.map((q) => ({
+      console.log("assessment.questions ", questions);
+
+      const toInsert: PublishQuestionModel[] = questions.map((q) => ({
         question_text: q.question_text,
         options: q.options,
         correct_options: q.correct_options,
-        explanation: q.explanation
+        explanation: q.explanation,
       }));
+      const allQuestionIds = await this.publishQuestion(toInsert);
+
       const newAssessment: AssessmentPublishModel = {
         topic: assessment.topic,
         difficulty: assessment.difficulty,
@@ -220,22 +228,20 @@ export class Publisher {
         createdBy: assessment.createdBy,
         questionsCount: assessment.questionsCount,
         status: 1,
-        questions: questions.map((q) => q.id),
+        questions: allQuestionIds,
         code: assessment.code,
         timeLimit: assessment.timeLimit,
         fileId: assessment.fileId,
         updatedAt: Date.now().toString(),
-        publishedAt: Date.now().toString(),
-        user_id: user.id
+        publishedAt: Date.now().toString()
       };
-      if(isQuestionPublish) {
-        await this.publishQuestion(publishQuestions);
-      }
-      if(!isQuestionPublish) {
+
+      if (!isQuestionPublish) {
         newAssessment.id = assessment.id;
       }
+
       await this.publishAssessment(newAssessment);
-    }catch(error) {
+    } catch (error) {
       console.error("❌ Error handling assessment publishing:", error);
     }
   }

@@ -84,6 +84,8 @@ export class CreateAssessment implements OnInit {
             next: (data) => {
                 this.assessmentData = data;
 
+                console.log("this.assessmentData ",this.assessmentData);
+
                 // Handle questions parsing
                 let parsedQuestions: any[] = [];
                 if (typeof data.questions === 'string') {
@@ -108,6 +110,7 @@ export class CreateAssessment implements OnInit {
                 });
 
                 this.assessmentData.questions = this.questions;
+                console.log("this.assessmentData.questions ",this.assessmentData.questions);
                 this.cdr.detectChanges();
             },
             error: (err) => {
@@ -284,11 +287,12 @@ export class CreateAssessment implements OnInit {
 
     addQuestion() {
         this.questions.push({
+            id: crypto.randomUUID(),
             question_text: 'New Question',
-            options: '',
+            options: '["","","",""]',
             correctAnswer: 0,
             correct_options: '',
-            filteredOptions: [],
+            filteredOptions: ['', '', '', ''],
             explanation: ''
         });
     }
@@ -297,7 +301,32 @@ export class CreateAssessment implements OnInit {
         this.questions.splice(index, 1);
     }
 
+    trackByIndex(index: number): number {
+        return index;
+    }
+
+    setCorrectAnswer(question: Question, optionIndex: number): void {
+        question.correctAnswer = optionIndex;
+    }
+
+    updateOption(question: Question, optionIndex: number, value: string): void {
+        const updated = [...question.filteredOptions];
+        updated[optionIndex] = value;
+        question.filteredOptions = updated;
+    }
+
+    private syncOptionsFromFiltered() {
+        const letters = ['A', 'B', 'C', 'D'];
+        this.questions.forEach(q => {
+            q.options = JSON.stringify(q.filteredOptions);
+            q.correct_options = letters[q.correctAnswer] ?? 'A';
+        });
+        this.assessmentData.questions = this.questions;
+    }
+
     async publishAssessment() {
+        this.syncOptionsFromFiltered();
+
         console.log('Publishing assessment:', {
             meta: this.assessmentData,
             questions: this.questions
@@ -311,6 +340,7 @@ export class CreateAssessment implements OnInit {
                     duration: 3000,
                     panelClass: ['success-snackbar']
                 });
+                // TODO: `navigate` is not working after update, need to check
                 this.router.navigate(['/dashboard/my-quizzes']);
                 return; // Exit after update
             }
@@ -332,7 +362,7 @@ export class CreateAssessment implements OnInit {
                     duration: 3000,
                     panelClass: ['success-snackbar']
                 });
-                this.router.navigate(['/dashboard/my-quizzes']);
+                // this.router.navigate(['/dashboard/my-quizzes']);
             } else {
                 this.snackBar.open(res.message || 'Failed to publish assessment.', 'Close', {
                     duration: 3000,
@@ -432,6 +462,7 @@ export class CreateAssessment implements OnInit {
     }
 
     getCorrectOption(questio: Question): number {
+        console.log("getCorrectOption ", questio);
         const correctOption = questio.correct_options;
         if (correctOption === 'A') {
             return 0;

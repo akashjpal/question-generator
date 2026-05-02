@@ -166,7 +166,7 @@ app.post("/api/assessments/:id/publish", requireAuth, async (req, res)=>{
 app.get("/get-assessments", requireAuth, async(req,res)=>{
   try {
     const operator = new SupabaseOperator();
-    const data = await operator.getAllAssessments();
+    const data = await operator.getAllAssessmentsForUser(req.user.id);
     console.log(data);
     return res.status(200).json({
       data:data
