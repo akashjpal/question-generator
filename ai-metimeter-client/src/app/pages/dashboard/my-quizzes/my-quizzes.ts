@@ -174,6 +174,7 @@ export class MyQuizzes implements OnInit {
     }
 
     createAttemptLink(quiz: Quiz) {
+        console.log('Creating attempt link for quiz:', quiz);
         if (!quiz.code || !quiz.timelimit) {
             if (confirm(`This assessment is missing a Code or Time Limit. Do you want to edit it now?`)) {
                 this.editQuiz(quiz);

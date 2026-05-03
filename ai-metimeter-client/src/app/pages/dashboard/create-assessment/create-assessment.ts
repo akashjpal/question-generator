@@ -84,7 +84,7 @@ export class CreateAssessment implements OnInit {
         this.assessmentService.getAssessment(id).subscribe({
             next: (data) => {
                 this.assessmentData = data;
-
+                console.log('Loaded assessment data:', this.assessmentData);
                 // Handle questions parsing
                 let parsedQuestions: any[] = [];
                 if (typeof data.questions === 'string') {

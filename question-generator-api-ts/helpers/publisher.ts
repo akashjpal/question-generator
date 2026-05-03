@@ -85,6 +85,7 @@ export class Publisher {
       const id = (assessment as any).id;
       let data: any = null;
       let error: any = null;
+      console.log("Publishing assessment:", assessment);
       if (id !== undefined && id !== null) {
         const res = await supabase
           .from("assessment_table")
@@ -109,7 +110,7 @@ export class Publisher {
       throw error;
     }
   }
-
+  
   async updateAssessmentStatus(id: number): Promise<Assessment | undefined> {
     try{
       const {data, error} = await supabase
