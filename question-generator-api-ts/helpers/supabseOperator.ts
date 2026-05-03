@@ -23,7 +23,7 @@ export class SupabaseOperator {
     try {
       const { data, error } = await supabase
         .from("assessment_table")
-        .select("id, title, subject, questions, status, difficulty, timeLimit, description")
+        .select("id, title, subject, questions, status, difficulty, timeLimit, description, code")
         .eq("createdBy", userId);
       if (error) {
         throw error;

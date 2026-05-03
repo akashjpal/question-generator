@@ -1,4 +1,10 @@
-import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    DestroyRef,
+    inject
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,11 +16,29 @@ import autoTable from 'jspdf-autotable';
 import { ReportService } from '../../../../services/report.service';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { interval, Subscription, switchMap } from 'rxjs';
+import { interval, Subscription, switchMap, takeUntilDestroyed } from 'rxjs';
+
+interface AssessmentDetails {
+    title: string;
+    subject: string;
+    date: string;
+    participants: number;
+    avgScore: number;
+    highestScore: number;
+    lowestScore: number;
+}
+
+interface StudentRow {
+    student: string;
+    score: number;
+    time: string;
+    status: string;
+}
 
 @Component({
     selector: 'app-assessment-report',
     standalone: true,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         CommonModule,
         MatCardModule,
@@ -28,155 +52,102 @@ import { interval, Subscription, switchMap } from 'rxjs';
     templateUrl: './assessment-report.html',
     styleUrls: ['./assessment-report.scss']
 })
-export class AssessmentReport implements OnDestroy {
-    assessmentId: string | null = null;
+export class AssessmentReport {
+    private readonly route = inject(ActivatedRoute);
+    private readonly reportsService = inject(ReportService);
+    private readonly cdr = inject(ChangeDetectorRef);
+    private readonly destroyRef = inject(DestroyRef);
+
+    readonly assessmentId: string | null = this.route.snapshot.paramMap.get('id');
     isAutoRefresh = false;
+    isLoading = false;
     private autoRefreshSub?: Subscription;
 
-    // Mock Data
-    assessmentDetails = {
-        title: 'Introduction to Photosynthesis',
-        subject: 'Biology',
-        date: 'Dec 24, 2024',
-        participants: 24,
-        avgScore: 85,
-        highestScore: 100,
-        lowestScore: 65
+    assessmentDetails: AssessmentDetails = {
+        title: '', subject: '', date: '',
+        participants: 0, avgScore: 0, highestScore: 0, lowestScore: 0
     };
+    displayedColumns = ['student', 'score', 'time', 'status'];
+    studentResults: StudentRow[] = [];
 
-    displayedColumns: string[] = ['student', 'score', 'time', 'status'];
-    studentResults = [
-        { student: 'Alice Johnson', score: 95, time: '12m', status: 'Passed' },
-        { student: 'Bob Smith', score: 82, time: '15m', status: 'Passed' },
-        { student: 'Charlie Brown', score: 65, time: '18m', status: 'Failed' },
-        { student: 'Diana Prince', score: 100, time: '10m', status: 'Passed' },
-        { student: 'Evan Wright', score: 88, time: '14m', status: 'Passed' }
-    ];
-
-    isLoading = false;
-
-    constructor(private route: ActivatedRoute, 
-        private reportsService: ReportService,
-        private cdr: ChangeDetectorRef
-    ) {
-        this.assessmentId = this.route.snapshot.paramMap.get('id');
-        // In a real app, use this ID to fetch data
-    }
-
-    ngOnInit() {
-        this.isLoading = true;
-        if(this.assessmentId?.length === 0 || !this.assessmentId) {
-            console.warn("Assessment Id is not present");
-            this.isLoading = false;
-        }else {
-            this.reportsService.getDashboardStatsOfAssessment(this.assessmentId).subscribe((data)=>{
-                console.log(data);
-                this.assessmentDetails.title = data.title;
-                this.assessmentDetails.subject = data.subject;
-                this.assessmentDetails.date = data.date;
-                this.assessmentDetails.participants = data.participants;
-                this.assessmentDetails.avgScore = data.avgScore;
-                this.assessmentDetails.highestScore = data.highestScore;
-                this.assessmentDetails.lowestScore = data.lowestScore;
-                this.studentResults = data.studentResults;
-                this.studentResults.forEach((student)=>{
-                    student.student = student.student.split('-')[0]+'.';
+    constructor() {
+        if (this.assessmentId) {
+            this.isLoading = true;
+            this.reportsService.getDashboardStatsOfAssessment(this.assessmentId)
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe((data) => {
+                    this.applyResponse(data);
+                    this.isLoading = false;
+                    this.cdr.markForCheck();
                 });
-                this.isLoading = false;
-                this.cdr.detectChanges();
-            })
-        }
-
-    }
-
-    exportCSV() {
-        const headers = ['Student Name', 'Score', 'Time Taken', 'Status'];
-        const rows = this.studentResults.map(student => [
-            student.student,
-            `${student.score}%`,
-            student.time,
-            student.status
-        ]);
-
-        const csvContent = [
-            headers.join(','),
-            ...rows.map(row => row.join(','))
-        ].join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        if (link.download !== undefined) {
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `assessment_report_${this.assessmentId || 'results'}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
     }
 
-    downloadPDF() {
-        const doc = new jsPDF();
-
-        // Header
-        doc.setFontSize(20);
-        doc.text(this.assessmentDetails.title, 14, 22);
-
-        doc.setFontSize(11);
-        doc.setTextColor(100);
-        doc.text(`${this.assessmentDetails.subject} • ${this.assessmentDetails.date}`, 14, 30);
-
-        // Stats Summary
-        doc.setFontSize(12);
-        doc.setTextColor(0);
-        doc.text(`Participants: ${this.assessmentDetails.participants}`, 14, 45);
-        doc.text(`Average Score: ${this.assessmentDetails.avgScore}%`, 14, 52);
-
-        // Table
-        const tableBody = this.studentResults.map(student => [
-            student.student,
-            `${student.score}%`,
-            student.time,
-            student.status
-        ]);
-
-        autoTable(doc, {
-            head: [['Student Name', 'Score', 'Time Taken', 'Status']],
-            body: tableBody,
-            startY: 60,
-            theme: 'grid',
-            headStyles: { fillColor: [139, 92, 246] } // Violet Theme
-        });
-
-        doc.save(`assessment_report_${this.assessmentId || 'results'}.pdf`);
+    private applyResponse(data: any): void {
+        this.assessmentDetails = {
+            title: data.title,
+            subject: data.subject,
+            date: data.date,
+            participants: data.participants,
+            avgScore: data.avgScore,
+            highestScore: data.highestScore,
+            lowestScore: data.lowestScore
+        };
+        this.studentResults = (data.studentResults ?? []).map((s: any) => ({
+            ...s,
+            student: s.student.split('-')[0] + '.'
+        }));
     }
 
     toggleAutoRefresh(): void {
         this.isAutoRefresh = !this.isAutoRefresh;
+
         if (this.isAutoRefresh && this.assessmentId) {
             this.autoRefreshSub = interval(5000).pipe(
-                switchMap(() => this.reportsService.getDashboardStatsOfAssessment(this.assessmentId!))
+                switchMap(() => this.reportsService.getDashboardStatsOfAssessment(this.assessmentId!)),
+                takeUntilDestroyed(this.destroyRef)
             ).subscribe((data) => {
-                this.assessmentDetails.title = data.title;
-                this.assessmentDetails.subject = data.subject;
-                this.assessmentDetails.date = data.date;
-                this.assessmentDetails.participants = data.participants;
-                this.assessmentDetails.avgScore = data.avgScore;
-                this.assessmentDetails.highestScore = data.highestScore;
-                this.assessmentDetails.lowestScore = data.lowestScore;
-                this.studentResults = data.studentResults;
-                this.studentResults.forEach((student: any) => {
-                    student.student = student.student.split('-')[0] + '.';
-                });
-                this.cdr.detectChanges();
+                this.applyResponse(data);
+                this.cdr.markForCheck();
             });
         } else {
             this.autoRefreshSub?.unsubscribe();
         }
     }
 
-    ngOnDestroy(): void {
-        this.autoRefreshSub?.unsubscribe();
+    exportCSV(): void {
+        const headers = ['Student Name', 'Score', 'Time Taken', 'Status'];
+        const rows = this.studentResults.map(s => [s.student, `${s.score}%`, s.time, s.status]);
+        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `assessment_report_${this.assessmentId ?? 'results'}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    downloadPDF(): void {
+        const doc = new jsPDF();
+        doc.setFontSize(20);
+        doc.text(this.assessmentDetails.title, 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`${this.assessmentDetails.subject} • ${this.assessmentDetails.date}`, 14, 30);
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.text(`Participants: ${this.assessmentDetails.participants}`, 14, 45);
+        doc.text(`Average Score: ${this.assessmentDetails.avgScore}%`, 14, 52);
+        autoTable(doc, {
+            head: [['Student Name', 'Score', 'Time Taken', 'Status']],
+            body: this.studentResults.map(s => [s.student, `${s.score}%`, s.time, s.status]),
+            startY: 60,
+            theme: 'grid',
+            headStyles: { fillColor: [139, 92, 246] }
+        });
+        doc.save(`assessment_report_${this.assessmentId ?? 'results'}.pdf`);
     }
 }
