@@ -1,6 +1,6 @@
 import { createClient as createRedisClient } from "redis";
 import supabase from "./supabaseClient.ts";
-import type { Assessment, AssessmentPublishModel, PublishQuestionModel, Question } from "../models/assessment.models.ts";
+import { AssessmentStatus, type Assessment, type AssessmentPublishModel, type PublishQuestionModel, type Question } from "../models/assessment.models.ts";
 export class Publisher {
   redisClient;
   constructor() {
@@ -86,36 +86,70 @@ export class Publisher {
       let data: any = null;
       let error: any = null;
       console.log("Publishing assessment:", assessment);
-      if (id !== undefined && id !== null) {
+      // if (id) {
         const res = await supabase
           .from("assessment_table")
-          .update(assessment)
+          .upsert(assessment)
           .eq("id", id)
           .select();
         data = res.data;
         error = res.error;
-      } else {
-        const res = await supabase
-          .from("assessment_table")
-          .insert([assessment])
-          .select();
-        data = res.data;
-        error = res.error;
-      }
+      // } else {
+      //   const res = await supabase
+      //     .from("assessment_table")
+      //     .insert([assessment])
+      //     .select();
+      //   data = res.data;
+      //   error = res.error;
+      // }
       if (error) {
+        console.error("Error publishing assessment:", error);
         throw error;
       }
       return data;
     }catch(error) {
+      console.error("Error publishing assessment:", error);
       throw error;
     }
   }
+
+  // async updateAssessment(assessment: AssessmentPublishModel) {
+  //   try {
+  //     // If an id is present, update the existing assessment, otherwise insert a new one
+  //     const id = (assessment as any).id;
+  //     let data: any = null;
+  //     let error: any = null;
+  //     console.log("Updating assessment:", assessment);
+  //     if (id !== undefined && id !== null) {
+  //       const res = await supabase
+  //         .from("assessment_table")
+  //         .update(assessment)
+  //         .eq("id", id)
+  //         .select();
+  //       data = res.data;
+  //       error = res.error;
+  //     } else {
+  //       const res = await supabase
+  //         .from("assessment_table")
+  //         .insert([assessment])
+  //         .select();
+  //       data = res.data;
+  //       error = res.error;
+  //     }
+  //     if (error) {
+  //       throw error;
+  //     }
+  //     return data;
+  //   }catch(error) {
+  //     throw error;
+  //   }
+  // }
   
   async updateAssessmentStatus(id: number): Promise<Assessment | undefined> {
     try{
       const {data, error} = await supabase
         .from("assessment_table")
-        .update({status: 1})
+        .update({status: 'published'})
         .eq("id", id);
       if (error) {
         throw error;
@@ -196,6 +230,43 @@ export class Publisher {
     }
   }
 
+  async handleAssessmentUpdate(assessment: Assessment, user: any) {
+    const questions = assessment.questions;
+
+    const toInsert: PublishQuestionModel[] = questions.map((q) => ({
+      id: q.id,
+      question_text: q.question_text,
+      options: q.options,
+      correct_options: q.correct_options,
+      explanation: q.explanation,
+    }));
+    let allQuestionIds: string[] = assessment.questions.map(q => q.id);
+    // edit case when assessment is already published
+    if(questions.length != assessment.questionsCount && assessment.status === 0) {
+       allQuestionIds = await this.publishQuestion(toInsert);
+    }
+
+    const newAssessment: AssessmentPublishModel = {
+      id: assessment.id,
+      topic: assessment.topic,
+      difficulty: (assessment.difficulty as string).toLowerCase() as AssessmentPublishModel['difficulty'],
+      description: assessment.description,
+      title: assessment.title,
+      subject: assessment.subject,
+      createdBy: user?.id ?? assessment.createdBy ?? '',
+      questionsCount: questions.length,
+      status: (assessment.status as AssessmentStatus),
+      questions: allQuestionIds,
+      code: assessment.code,
+      timeLimit: assessment.timeLimit,
+      fileId: assessment.fileId,
+      updatedAt: Date.now().toString(),
+      publishedAt: Date.now().toString()
+    };
+
+    await this.publishAssessment(newAssessment);
+  }
+
   async handleAssessmentPublishing(assessment: Assessment, isQuestionPublish: boolean = true, user: any) {
     const questions = assessment.questions;
 
@@ -209,6 +280,7 @@ export class Publisher {
     const allQuestionIds = await this.publishQuestion(toInsert);
 
     const newAssessment: AssessmentPublishModel = {
+      id: assessment.id,
       topic: assessment.topic,
       difficulty: (assessment.difficulty as string).toLowerCase() as AssessmentPublishModel['difficulty'],
       description: assessment.description,
@@ -216,7 +288,7 @@ export class Publisher {
       subject: assessment.subject,
       createdBy: user?.id ?? assessment.createdBy ?? '',
       questionsCount: questions.length,
-      status: 1,
+      status: isQuestionPublish ? AssessmentStatus.published : (assessment.status as AssessmentStatus),
       questions: allQuestionIds,
       code: assessment.code,
       timeLimit: assessment.timeLimit,
