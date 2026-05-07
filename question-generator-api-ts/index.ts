@@ -118,6 +118,31 @@ app.get("/generated-questions/:id", requireAuth, async(req,res)=>{
   }
 })
 
+
+app.post("/update-assessment", requireAuth, async(req,res)=>{
+  try {
+    const assessment: Assessment = req.body.assessment;
+    if(!assessment) {
+      return res.status(400).json({
+        message: "Assessment data is missing"
+      });
+    }
+    // if(assessment.status === 'draft') {
+      const publisher = new Publisher();
+      await publisher.handleAssessmentUpdate(assessment, req.user);
+      return res.status(200).json({
+        message: "assessment updated successfully"
+      })
+    // }
+  }catch(error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "not able to update the assessment"
+    });
+  }
+})
+
+
 app.post("/publish-assessment", requireAuth, async (req,res)=>{
   try {
     const assessment: Assessment = req.body.assessment;

@@ -1,5 +1,5 @@
 export interface Assessment {
-    id: string;
+    id: number;
     title: string;
     subject: string;
     topic?: string;
@@ -17,7 +17,7 @@ export interface Assessment {
 }
 
 export interface AssessmentPublishModel {
-    id?: string;
+    id?: number;
     title: string;
     subject: string;
     topic?: string;
@@ -54,4 +54,10 @@ export interface Question {
     explanation: string;
 }
 
-export type AssessmentStatus = 0 | 1 | 2 | 3;
+export const AssessmentStatus = {
+  draft: 0,
+  published: 1,
+  archived: 2,
+} as const;
+
+export type AssessmentStatus = typeof AssessmentStatus[keyof typeof AssessmentStatus];

@@ -88,7 +88,7 @@ export class AssessmentService {
      * PUT /api/assessments/:id
      * Update an existing assessment
      */
-    updateAssessment(id: string, data: Assessment): Observable<Assessment> {
+    updateAssessment(id: number, data: Assessment): Observable<Assessment> {
         return this.http.put<Assessment>(`${this.API_URL}/${id}`, data);
     }
 
@@ -122,6 +122,18 @@ export class AssessmentService {
      */
     duplicateAssessment(id: string, newTitle?: string): Observable<Assessment> {
         return this.http.post<Assessment>(`${this.API_URL}/${id}/duplicate`, { title: newTitle });
+    }
+
+    /**
+     * POST /update-assessment
+     * Auto-save a draft assessment (new or existing)
+     * Returns saved data including the `id` on first insert
+     */
+    saveAssessmentDraft(assessment: Assessment): Observable<{ message: string; data?: any[] }> {
+        return this.http.post<{ message: string; data?: any[] }>(
+            `${environment.questionGeneratorApiUrl}/update-assessment`,
+            { assessment }
+        );
     }
 
     /**

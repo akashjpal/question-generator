@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -12,10 +12,12 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
+import { Subject, interval } from 'rxjs';
+import { takeUntil, filter } from 'rxjs/operators';
 import { AssessmentService } from '../../../services/assessment.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Assessment } from '../../../models';
+import { Assessment, AssessmentStatus } from '../../../models';
 import { Question } from '../../../models';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../services/auth.service';
@@ -43,9 +45,13 @@ import { AuthService } from '../../../services/auth.service';
     templateUrl: './create-assessment.html',
     styleUrls: ['./create-assessment.scss']
 })
-export class CreateAssessment implements OnInit {
+export class CreateAssessment implements OnInit, OnDestroy {
     isEditMode = false;
-    editId: string | null = null;
+    editId: number | null = null;
+
+    private destroy$ = new Subject<void>();
+    isSaving = false;
+    lastSaved: Date | null = null;
     private readonly questionGeneratorApiUrl = environment.questionGeneratorApiUrl;
     private accessToken: string | null = null;
 
@@ -63,12 +69,49 @@ export class CreateAssessment implements OnInit {
             const id = params.get('id');
             if (id) {
                 this.isEditMode = true;
-                this.editId = id;
+                this.editId = parseInt(id);
                 this.loadAssessment(id);
                 console.log("Edit mode for assessment ID:", id);
             }
         });
         this.initAccessToken();
+        this.startAutoSave();
+    }
+
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    private startAutoSave(): void {
+        interval(5000).pipe(
+            takeUntil(this.destroy$),
+            filter(() => !this.isGenerating && !!this.assessmentData.title)
+        ).subscribe(() => this.autoSave());
+    }
+
+    private autoSave(): void {
+        this.syncOptionsFromFiltered();
+        const snapshot: any = {
+            ...this.assessmentData,
+            id: this.editId ?? this.assessmentData.id,
+            questions: this.questions,
+            status: this.assessmentData.status ?? AssessmentStatus.draft
+        };
+
+        this.isSaving = true;
+        this.assessmentService.saveAssessmentDraft(snapshot).subscribe({
+            next: (res) => {
+                this.isSaving = false;
+                this.lastSaved = new Date();
+                // Capture the id from the first INSERT so subsequent saves UPDATE the same row
+                if (!this.editId && res.data?.[0]?.id) {
+                    this.editId = res.data[0].id;
+                    this.assessmentData.id = this.editId!;
+                }
+            },
+            error: () => { this.isSaving = false; }
+        });
     }
 
     private async initAccessToken(): Promise<void> {
@@ -130,12 +173,12 @@ export class CreateAssessment implements OnInit {
         subject: '',
         topic: '',
         questionsCount: 5,
-        id: '',
+        id: crypto.getRandomValues(new Uint32Array(1))[0],
         difficulty: 'easy',
         questions: [],
         code: '',
         timeLimit: 15,
-        status: 'draft',
+        status: AssessmentStatus.draft,
         createdBy: '',
         updatedAt: ''
     };
@@ -373,16 +416,6 @@ export class CreateAssessment implements OnInit {
 
     async updateAssessment() {
         if (!this.editId) return;
-
-        const dataToUpdate: any = {
-            title: this.assessmentData.title,
-            subject: this.assessmentData.subject,
-            topic: this.assessmentData.topic,
-            difficulty: this.assessmentData.difficulty as any,
-            questions: this.questions,
-            timeLimit: this.assessmentData.timeLimit || 15,
-            code: this.assessmentData.code
-        };
 
         this.assessmentService.updateAssessment(this.editId, this.assessmentData).subscribe({
             next: () => {

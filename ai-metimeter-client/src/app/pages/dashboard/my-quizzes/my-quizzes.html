@@ -91,14 +91,15 @@
                     <mat-icon>edit</mat-icon>
                     <span>Edit</span>
                 </button>
-                <button mat-menu-item>
+                <!-- TODO: check both of them -->
+                <!-- <button mat-menu-item>
                     <mat-icon>content_copy</mat-icon>
                     <span>Duplicate</span>
                 </button>
                 <button mat-menu-item>
                     <mat-icon>share</mat-icon>
                     <span>Share</span>
-                </button>
+                </button> -->
                 <button mat-menu-item (click)="createAttemptLink(quiz)">
                     <mat-icon>link</mat-icon>
                     <span>Create Attempt Link</span>
@@ -147,11 +148,23 @@
                     <span>Attempt Link</span>
                 </div>
                 <div class="link-actions">
-                    <span class="code-badge">{{ quiz.code }}</span>
-                    <button class="copy-btn" (click)="copyLink(quiz, $event)" title="Copy Link">
+                    <button class="copy-btn" (click)="copyLink(quiz, $event)" title="Copy Attempt Link">
                         <mat-icon>content_copy</mat-icon>
                     </button>
                 </div>
+            </div>
+            
+            <div class="assessment-code" *ngIf="quiz.code && quiz.timelimit">
+                <div class="assessment-code-title">
+                    <span class="code-label">Assessment Code:</span>
+                    <span class="code-value">{{ quiz.code }}</span>
+                </div>
+                <div class="assessment-code-copy-button">
+                    <button class="copy-btn" (click)="copyCode(quiz, $event)" title="Copy Assessment Code">
+                        <mat-icon>content_copy</mat-icon>
+                    </button>
+                </div>
+
             </div>
 
 

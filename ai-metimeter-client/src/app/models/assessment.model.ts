@@ -10,13 +10,19 @@ import { Question, StudentQuestion } from './question.model';
 /**
  * Assessment status
  */
-export type AssessmentStatus = 'draft' | 'published' | 'archived';
+export const AssessmentStatus = {
+  draft: 0,
+  published: 1,
+  archived: 2,
+} as const;
+
+export type AssessmentStatus = typeof AssessmentStatus[keyof typeof AssessmentStatus];
 
 /**
  * Complete assessment with all questions (Teacher view)
  */
 export interface Assessment {
-    id: string;
+    id: number;
     title: string;
     subject: string;
     topic?: string;
