@@ -1,46 +1,54 @@
-using Microsoft.AspNetCore.Mvc;
-
 namespace ReportsAPI.Controllers;
 
+using Microsoft.AspNetCore.Mvc;
 using ReportsAPI.DTOs.response;
 using ReportsAPI.Services;
 
 [ApiController]
 [Route("api")]
-public class ReportsController : ControllerBase
+public class ReportsController(IDashBoardStatsService dashBoardStatsService, ILogger<ReportsController> logger) : ControllerBase
 {
-    private readonly IDashBoardStatsService _dashBoardStatsService;
-    public ReportsController(IDashBoardStatsService dashBoardStatsService)
-    {
-        _dashBoardStatsService = dashBoardStatsService;
-    }
-
     [HttpGet("dashboard/stats")]
     public async Task<ActionResult<DashBoardStatsResponse>> GetStats()
     {
         try
         {
-            DashBoardStatsResponse response = await _dashBoardStatsService.GetDashBoardStats();
+            DashBoardStatsResponse response = await dashBoardStatsService.GetDashBoardStats();
             return Ok(response);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "An error occurred while fetching dashboard stats.", details = ex.Message });
+            // Log full exception chain so we can see Npgsql / Supabase errors in the console
+            logger.LogError(ex, "GET /api/dashboard/stats failed");
+            return StatusCode(500, new
+            {
+                message = "Failed to fetch dashboard stats.",
+                details = ex.InnerException?.Message ?? ex.Message
+            });
         }
     }
 
-    [HttpGet("dashboard/stats/{id}")]
-    public async Task<ActionResult<AssessmentResponse>> GetStatsOfAssessment(int id)
+    [HttpGet("dashboard/stats/{id:long}")]
+    public async Task<ActionResult<AssessmentResponse>> GetStatsOfAssessment(long id)
     {
         try
         {
-            Console.WriteLine($"Received request for dashboard stats of assessment with ID: {id}");
-            AssessmentResponse response = await _dashBoardStatsService.GetAssessmentStats(id);
+            AssessmentResponse response = await dashBoardStatsService.GetAssessmentStats(id);
             return Ok(response);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            Console.WriteLine($"Assessment {id} not found: {ex.Message}");
+            return NotFound(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "An error occurred while fetching dashboard stats.", details = ex.Message });
+            logger.LogError(ex, "GET /api/dashboard/stats/{Id} failed", id);
+            return StatusCode(500, new
+            {
+                message = $"Failed to fetch stats for assessment {id}.",
+                details = ex.InnerException?.Message ?? ex.Message
+            });
         }
     }
 }

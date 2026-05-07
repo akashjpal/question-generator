@@ -1,7 +1,7 @@
 namespace ReportsAPI.DTOs.response;
 public class AssessmentResponse
 {
-    public string id { get; set; }
+    public long id { get; set; }
     public string title { get; set; }
     public string subject { get; set; }
     public string date { get; set; }

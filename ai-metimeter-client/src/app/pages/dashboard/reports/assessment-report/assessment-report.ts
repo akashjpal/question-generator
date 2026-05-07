@@ -18,6 +18,7 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval, Subscription, switchMap } from 'rxjs';
+import { error } from 'console';
 
 interface AssessmentDetails {
     title: string;
@@ -76,10 +77,27 @@ export class AssessmentReport {
             this.isLoading = true;
             this.reportsService.getDashboardStatsOfAssessment(this.assessmentId)
                 .pipe(takeUntilDestroyed(this.destroyRef))
-                .subscribe((data) => {
-                    this.applyResponse(data);
-                    this.isLoading = false;
-                    this.cdr.markForCheck();
+                .subscribe({
+                    next: (data) => {
+                        console.log('Received assessment stats:', data);
+
+                        this.applyResponse(data);
+                        this.isLoading = false;
+
+                        this.cdr.markForCheck();
+                    },
+
+                    error: (err) => {
+                        console.error('Failed to fetch assessment stats:', err);
+
+                        this.isLoading = false;
+
+                        // show toast/snackbar/message
+                        // example:
+                        // this.toastService.error('Failed to load assessment stats');
+
+                        this.cdr.markForCheck();
+                    }
                 });
         }
     }
