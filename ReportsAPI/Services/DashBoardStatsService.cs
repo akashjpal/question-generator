@@ -1,54 +1,42 @@
 namespace ReportsAPI.Services;
+
+using Microsoft.Extensions.Caching.Memory;
 using ReportsAPI.DTOs.response;
 using ReportsAPI.Repository;
-public class DashBoardStatsService: IDashBoardStatsService
+
+public class DashBoardStatsService(IDashboardStatsRepository dashboardStatsRepository, IMemoryCache cache) : IDashBoardStatsService
 {
-    private readonly IDashboardStatsRepository _dashboardStatsRepository;
-    public DashBoardStatsService(IDashboardStatsRepository dashboardStatsRepository)
-    {
-        _dashboardStatsRepository = dashboardStatsRepository;
-    }
+    private static readonly MemoryCacheEntryOptions ShortCacheOptions =
+        new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
+
+    private static readonly MemoryCacheEntryOptions AssessmentCacheOptions =
+        new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(60));
 
     public async Task<DashBoardStatsResponse> GetDashBoardStats()
     {
-        try
-        {
-            DashBoardStatsResponse response = await _dashboardStatsRepository.GetDashboardStats();
-            response.RecentActivity = await _dashboardStatsRepository.GetRecentAssessments();
-            return response;
-        }
-        catch(Exception ex)
-        {
-            // Log the exception
-            throw new Exception("An error occurred while fetching dashboard stats.", ex);
-        }
+        // Cache the entire dashboard response (full-table-scan query + recent assessments).
+        // 30s TTL keeps data fresh enough while eliminating repeat scans.
+        const string cacheKey = "dashboard:stats";
+        if (cache.TryGetValue(cacheKey, out DashBoardStatsResponse? cached) && cached is not null)
+            return cached;
+
+        // Single connection runs both queries — no double TLS handshake
+        var (stats, recent) = await dashboardStatsRepository.GetDashboardDataAsync();
+        stats.RecentActivity = recent;
+
+        cache.Set(cacheKey, stats, ShortCacheOptions);
+        return stats;
     }
 
-    public async Task<AssessmentResponse> GetAssessmentStats(int id)
+    public async Task<AssessmentResponse> GetAssessmentStats(long id)
     {
-        try
-        {
-            AssessmentResponse response = await _dashboardStatsRepository.GetAssessmentStats(id);
-            response.studentResults = await _dashboardStatsRepository.GetAssessmentStatsOfStudent(id);
-            for(int i=0; i<response.studentResults.Length; i++)
-            {
-                response.studentResults[i].time = TimeSpan.FromSeconds(double.Parse(response.studentResults[i].time)).ToString(@"mm\:ss");
-                if(response.studentResults[i].score >= 75)
-                {
-                    response.studentResults[i].status = "Passed";
-                }
-                else
-                {
-                    response.studentResults[i].status = "Failed";
-                }
-            }
-            response.participants = response.studentResults.Length;
-            return response;
-        }
-        catch(Exception ex)
-        {
-            // Log the exception
-            throw new Exception("An error occurred while fetching assessment stats.", ex);
-        }
+        // Assessment results are immutable after submission — safe to cache for 60s
+        string cacheKey = $"assessment:{id}";
+        if (cache.TryGetValue(cacheKey, out AssessmentResponse? cached) && cached is not null)
+            return cached;
+
+        AssessmentResponse result = await dashboardStatsRepository.GetAssessmentStats(id);
+        cache.Set(cacheKey, result, AssessmentCacheOptions);
+        return result;
     }
 }

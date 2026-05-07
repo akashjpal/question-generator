@@ -68,7 +68,8 @@ export class ReportService {
     }
 
     getDashboardStatsOfAssessment(id: string): Observable<any> {
-        return this.http.get<any>(`${environment.reportsApiUrl}/api/dashboard/stats/${id}`);
+        const newId = parseInt(id, 10);
+        return this.http.get<any>(`${environment.reportsApiUrl}/api/dashboard/stats/${newId}`);
     }
 
     /**
