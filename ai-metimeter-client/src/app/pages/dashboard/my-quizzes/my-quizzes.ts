@@ -173,6 +173,19 @@ export class MyQuizzes implements OnInit {
         });
     }
 
+    copyCode(quiz: Quiz, event: Event) {
+        event.stopPropagation();
+        if (!quiz.code) {
+            alert('This quiz does not have a code to copy.');
+            return;
+        }
+        navigator.clipboard.writeText(quiz.code).then(() => {
+            alert('Code copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy code: ', err);
+        });
+    }
+
     createAttemptLink(quiz: Quiz) {
         console.log('Creating attempt link for quiz:', quiz);
         if (!quiz.code || !quiz.timelimit) {

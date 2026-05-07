@@ -16,7 +16,8 @@ import autoTable from 'jspdf-autotable';
 import { ReportService } from '../../../../services/report.service';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { interval, Subscription, switchMap, takeUntilDestroyed } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { interval, Subscription, switchMap } from 'rxjs';
 
 interface AssessmentDetails {
     title: string;
