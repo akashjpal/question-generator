@@ -89,7 +89,7 @@ services:
     build: ./ReportsAPI
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING};SSL Mode=Require;Trust Server Certificate=true;Pooling=false;Timeout=60;Command Timeout=60
+      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING};SSL Mode=Require;Trust Server Certificate=true
       - CorsOrigins=${CORS_ORIGIN:-http://localhost:4200}
     expose:
       - "5082"

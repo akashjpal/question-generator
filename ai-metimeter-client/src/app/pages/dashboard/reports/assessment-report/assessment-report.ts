@@ -84,7 +84,7 @@ export class AssessmentReport {
                         this.applyResponse(data);
                         this.isLoading = false;
 
-                        this.cdr.markForCheck();
+                        this.cdr.detectChanges();
                     },
 
                     error: (err) => {
@@ -96,7 +96,7 @@ export class AssessmentReport {
                         // example:
                         // this.toastService.error('Failed to load assessment stats');
 
-                        this.cdr.markForCheck();
+                        this.cdr.detectChanges();
                     }
                 });
         }
