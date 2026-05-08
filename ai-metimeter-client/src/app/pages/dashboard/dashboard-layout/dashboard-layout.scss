@@ -187,6 +187,7 @@
     border: 1px solid var(--border-subtle);
     border-radius: 10px;
     transition: all 0.2s ease;
+    display: none;
 
     &:focus-within {
         background: var(--bg-card-hover);
