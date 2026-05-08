@@ -246,8 +246,10 @@
     }
 }
 
+// TODO: check this
 .top-bar-actions {
     display: flex;
+    display: none;
     align-items: center;
     gap: 0.5rem;
     flex-shrink: 0;

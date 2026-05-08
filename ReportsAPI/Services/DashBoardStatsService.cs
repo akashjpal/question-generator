@@ -10,7 +10,7 @@ public class DashBoardStatsService(IDashboardStatsRepository dashboardStatsRepos
         new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
 
     private static readonly MemoryCacheEntryOptions AssessmentCacheOptions =
-        new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(60));
+        new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(5));
 
     public async Task<DashBoardStatsResponse> GetDashBoardStats()
     {
