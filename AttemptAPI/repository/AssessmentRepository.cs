@@ -16,9 +16,8 @@ public class AssessmentRepository: IAssessmentRepository
         {
             using var connection = await _dataSource.OpenConnectionAsync();
             var sql = @"INSERT INTO ""AssessmentResult"" (""assessmentId"", ""participantUniqueCode"", ""answersJson"", ""flaggedQuestionsJson"", ""score"", ""timeTaken"", ""timeLimit"", ""attemptStatus"", ""totalScore"")
-                        VALUES (@AssessmentId, @ParticipantUniqueCode, @AnswersJson, @FlaggedQuestionsJson, @Score, @TimeTaken, @TimeLimit, @AttemptStatus, @totalScore)
+                        VALUES (@AssessmentId, @ParticipantUniqueCode, @AnswersJson::jsonb, @FlaggedQuestionsJson::jsonb, @Score, @TimeTaken, @TimeLimit, @AttemptStatus, @totalScore)
                         ON CONFLICT (""participantUniqueCode"") DO UPDATE SET
-                            ""participantUniqueCode"" = EXCLUDED.""participantUniqueCode"",
                             ""answersJson""           = EXCLUDED.""answersJson"",
                             ""flaggedQuestionsJson""  = EXCLUDED.""flaggedQuestionsJson"",
                             ""score""                 = EXCLUDED.""score"",

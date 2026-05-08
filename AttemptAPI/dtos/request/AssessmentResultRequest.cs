@@ -3,7 +3,7 @@ namespace AttemptAPI.dtos.request;
 
 public class AssessmentResultRequest
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
     public string ParticipantUniqueCode { get; set; } // assessment code + unique id
     public int[] Answers { get; set; }
     public int[] FlaggedQuestions { get; set; }

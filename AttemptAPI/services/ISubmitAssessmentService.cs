@@ -5,5 +5,5 @@ namespace AttemptAPI.services;
 public interface ISubmitAssessmentService
 {
     public Task<AssessmentResult> SaveAssessment(AssessmentResultRequest request);
-    public Task<AssessmentResult> ConvertToAssessmentResult(AssessmentResultRequest request);
+    public AssessmentResult ConvertToAssessmentResult(AssessmentResultRequest request);
 }
