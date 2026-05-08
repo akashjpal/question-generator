@@ -59,7 +59,7 @@ export interface StudentResult {
 }
 
 export interface AssessmentResult {
-    id: string,
+    id: number,
     participantUniqueCode: string,
     answers: number[],
     flaggedQuestions: number[],

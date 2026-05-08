@@ -3,7 +3,7 @@ namespace AttemptAPI.Models;
 
 public class AssessmentResult
 {
-    public int AssessmentId { get; set; }
+    public long AssessmentId { get; set; }
     public string ParticipantUniqueCode { get; set; } // assessment code + unique id
     public string AnswersJson { get; set; }
     public string FlaggedQuestionsJson { get; set; }

@@ -12,11 +12,11 @@ public class SubmitAssessmentService : ISubmitAssessmentService
     }
     public async Task<AssessmentResult> SaveAssessment(AssessmentResultRequest request)
     {
-        AssessmentResult assessmentResult = await ConvertToAssessmentResult(request);
+        AssessmentResult assessmentResult = ConvertToAssessmentResult(request);
         await _repository.saveAttemptToDb(assessmentResult);
         return assessmentResult;
     }
-    public async Task<AssessmentResult> ConvertToAssessmentResult(AssessmentResultRequest request)
+    public AssessmentResult ConvertToAssessmentResult(AssessmentResultRequest request)
     {
         return new AssessmentResult
         {   

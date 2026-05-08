@@ -94,11 +94,13 @@ export class ReportService {
 
     saveQuiz(assessmentId: string, result: AssessmentResult): Observable<AssessmentResult> {
         console.log(result);
+        result.id = parseInt(result.id.toString(), 0);
         return this.http.post<AssessmentResult>(`${environment.attemptApiUrl}/api/attempts/save`, result);
     }
 
     submitQuiz(assessmentId: string, result: AssessmentResult): Observable<AssessmentResult> {
         console.log(result);
+        result.id = parseInt(result.id.toString(), 0);
         return this.http.post<AssessmentResult>(`${environment.attemptApiUrl}/api/attempts/submit`, result);
     }
 }
