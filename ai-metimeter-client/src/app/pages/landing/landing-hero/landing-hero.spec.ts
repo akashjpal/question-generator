@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { RouterModule } from '@angular/router';
 import { LandingHero } from './landing-hero';
 
 describe('LandingHero', () => {
@@ -8,12 +8,12 @@ describe('LandingHero', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LandingHero]
-    })
-    .compileComponents();
+      imports: [LandingHero, RouterModule.forRoot([])],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(LandingHero);
     component = fixture.componentInstance;
+    fixture.detectChanges();
     await fixture.whenStable();
   });
 
