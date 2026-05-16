@@ -104,7 +104,7 @@
                     <mat-icon>link</mat-icon>
                     <span>Create Attempt Link</span>
                 </button>
-                <button mat-menu-item [routerLink]="['/dashboard/reports', quiz.id]">
+                <button mat-menu-item [routerLink]="['/dashboard/reports', quiz.id]" [disabled]="!hasAttempts(quiz)">
                     <mat-icon>analytics</mat-icon>
                     <span>View Report</span>
                 </button>
@@ -211,11 +211,11 @@
                 </div>
                 <div class="list-stat">
                     <mat-icon>schedule</mat-icon>
-                    <span>15m</span>
+                    <span>{{ quiz.timelimit }}m</span>
                 </div>
                 <div class="list-stat" *ngIf="quiz.status === 'Published'">
                     <mat-icon>people</mat-icon>
-                    <span>24</span>
+                    <span>{{ quiz.attempts }}</span>
                 </div>
             </div>
 
@@ -226,9 +226,14 @@
 
             <!-- Actions -->
             <div class="list-item-actions">
-                <a class="list-view-btn" [routerLink]="['/dashboard/reports', quiz.id]">
+                <a *ngIf="hasAttempts(quiz); else disabledListViewButton" class="list-view-btn" [routerLink]="['/dashboard/reports', quiz.id]">
                     View
                 </a>
+                <ng-template #disabledListViewButton>
+                    <button class="list-view-btn disabled" type="button" disabled>
+                        View
+                    </button>
+                </ng-template>
                 <button class="list-menu-btn" [matMenuTriggerFor]="listMenu">
                     <mat-icon>more_vert</mat-icon>
                 </button>

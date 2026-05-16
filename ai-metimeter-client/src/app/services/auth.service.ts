@@ -103,7 +103,7 @@ export class AuthService {
      */
     async forgotPassword(email: string): Promise<void> {
         const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/auth/reset-password`
+            redirectTo: `${this.getAppOrigin()}/auth/reset-password`
         });
 
         if (error) throw error;
@@ -121,7 +121,7 @@ export class AuthService {
         const { error } = await this.supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: `${window.location.origin}/auth/callback`
+                redirectTo: `${this.getAppOrigin()}/auth/callback`
             }
         });
 
@@ -196,5 +196,9 @@ export class AuthService {
                 || user.user_metadata?.['picture']
                 || undefined
         };
+    }
+
+    private getAppOrigin(): string {
+        return environment.appOrigin || window.location.origin;
     }
 }

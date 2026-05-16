@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  appOrigin: '',
   questionGeneratorApiUrl: '/api',
   reportsApiUrl: '/reports-api',
   attemptApiUrl: '/attempt-api',

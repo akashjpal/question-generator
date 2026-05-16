@@ -215,6 +215,10 @@ export class MyQuizzes implements OnInit {
         this.viewMode = mode;
     }
 
+    hasAttempts(quiz: Quiz): boolean {
+        return (quiz.attempts ?? 0) > 0;
+    }
+
     getPublishedCount(): number {
         return this.quizzes.filter(q => q.status === 'Published').length;
     }
