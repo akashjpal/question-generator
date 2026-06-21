@@ -8,9 +8,14 @@ import { SupabaseOperator } from "./helpers/supabseOperator.js";
 import type { Assessment } from "./models/assessment.models.js";
 import { requireAuth } from "./helpers/requireAuth.js";
 
+dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-dotenv.config();
+
+app.use(cors({
+    origin: "*"
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
@@ -22,10 +27,6 @@ app.use(
     limit: "10mb",
   })
 );
-
-app.use(cors({
-  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
-}));
 
 app.get("/", (req, res) => {
   res.send("Question Generator API is running.");

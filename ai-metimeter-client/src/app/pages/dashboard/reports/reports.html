@@ -69,61 +69,104 @@
         <!-- Recent Reports Section -->
         <div class="reports-section">
             <div class="section-header">
-                <h2>Recent Reports</h2>
-                <div class="section-actions">
-                    <button class="filter-btn" [class.active]="activeFilter === 'all'"
-                        (click)="setFilter('all')">All</button>
-                    <button class="filter-btn" [class.active]="activeFilter === 'week'" (click)="setFilter('week')">This
-                        Week</button>
-                    <button class="filter-btn" [class.active]="activeFilter === 'month'"
-                        (click)="setFilter('month')">This
-                        Month</button>
-                </div>
+                <h2>All Reports</h2>
+                <span class="report-count">{{ rowCount }} assessments</span>
             </div>
 
-            <div class="reports-list">
-                <div class="report-item" *ngFor="let report of filteredReports">
-                    <div class="report-icon" [attr.data-subject]="getSubjectClass(report.subject)">
-                        <mat-icon>{{ getSubjectIcon(report.subject) }}</mat-icon>
-                    </div>
+            <div class="table-wrapper" *ngIf="rowCount > 0; else emptyState">
+                <table mat-table [dataSource]="dataSource" matSort class="reports-table">
 
-                    <div class="report-content">
-                        <div class="report-header">
-                            <h3>{{ report.title }}</h3>
-                            <span class="report-subject">{{ report.subject }}</span>
-                        </div>
-                        <div class="report-meta">
-                            <span class="meta-item">
+                    <!-- Index column -->
+                    <ng-container matColumnDef="index">
+                        <th mat-header-cell *matHeaderCellDef class="col-num">#</th>
+                        <td mat-cell *matCellDef="let row; let i = index" class="col-num text-muted">
+                            {{ paginatorOffset + i + 1 }}
+                        </td>
+                    </ng-container>
+
+                    <!-- Assessment column -->
+                    <ng-container matColumnDef="title">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header>Assessment</th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="assessment-cell">
+                                <div class="subject-icon" [attr.data-subject]="getSubjectClass(row.subject)">
+                                    <mat-icon>{{ getSubjectIcon(row.subject) }}</mat-icon>
+                                </div>
+                                <span class="assessment-title">{{ row.title }}</span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Subject column -->
+                    <ng-container matColumnDef="subject">
+                        <th mat-header-cell *matHeaderCellDef>Subject</th>
+                        <td mat-cell *matCellDef="let row">
+                            <span class="subject-badge">{{ row.subject }}</span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Participants column -->
+                    <ng-container matColumnDef="participants">
+                        <th mat-header-cell *matHeaderCellDef class="text-center">Participants</th>
+                        <td mat-cell *matCellDef="let row" class="text-center">
+                            <span class="participant-count">
                                 <mat-icon>people</mat-icon>
-                                {{ report.participants }} participants
+                                {{ row.participants }}
                             </span>
-                            <span class="meta-item">
-                                <mat-icon>schedule</mat-icon>
-                                {{ report.createdAt | date:'mediumDate' }}
+                        </td>
+                    </ng-container>
+
+                    <!-- Avg Score column -->
+                    <ng-container matColumnDef="avgScore">
+                        <th mat-header-cell *matHeaderCellDef class="text-center">Avg Score</th>
+                        <td mat-cell *matCellDef="let row" class="text-center">
+                            <span class="score-badge" [ngClass]="getScoreClass(row.avgScore)">
+                                {{ row.avgScore }}%
                             </span>
-                        </div>
-                    </div>
+                        </td>
+                    </ng-container>
 
-                    <div class="report-score" [class]="getScoreClass(report.avgScore)">
-                        <span class="score-value">{{ report.avgScore }}%</span>
-                        <span class="score-label">Avg Score</span>
-                    </div>
+                    <!-- Created At column -->
+                    <ng-container matColumnDef="createdAt">
+                        <th mat-header-cell *matHeaderCellDef>Created At</th>
+                        <td mat-cell *matCellDef="let row" class="text-muted">
+                            {{ row.createdAt | date:'MMM d, y' }}
+                        </td>
+                    </ng-container>
 
-                    <a class="view-report-btn" [routerLink]="['/dashboard/reports', report.id]">
-                        View Report
-                        <mat-icon>arrow_forward</mat-icon>
-                    </a>
+                    <!-- Action column -->
+                    <ng-container matColumnDef="action">
+                        <th mat-header-cell *matHeaderCellDef>Action</th>
+                        <td mat-cell *matCellDef="let row">
+                            <a *ngIf="row.participants > 0; else disabledReportButton" class="view-btn" [routerLink]="['/dashboard/reports', row.id]">
+                                View Report
+                                <mat-icon>arrow_forward</mat-icon>
+                            </a>
+                            <ng-template #disabledReportButton>
+                                <button class="view-btn disabled" type="button" disabled>
+                                    View Report
+                                    <mat-icon>arrow_forward</mat-icon>
+                                </button>
+                            </ng-template>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+
+                <mat-paginator [pageSize]="pageSize" [pageSizeOptions]="[5]" showFirstLastButtons></mat-paginator>
+            </div>
+        </div>
+
+        <ng-template #emptyState>
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <mat-icon>analytics</mat-icon>
                 </div>
+                <h3>No reports yet</h3>
+                <p>Reports will appear here once students complete your assessments</p>
             </div>
-        </div>
-
-        <!-- Empty State (if no reports) -->
-        <div class="empty-state" *ngIf="recentReports.length === 0">
-            <div class="empty-icon">
-                <mat-icon>analytics</mat-icon>
-            </div>
-            <h3>No reports yet</h3>
-            <p>Reports will appear here once students complete your assessments</p>
-        </div>
+        </ng-template>
     </ng-container>
 </div>

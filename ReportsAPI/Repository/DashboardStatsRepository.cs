@@ -52,7 +52,6 @@ public class DashboardStatsRepository : IDashboardStatsRepository
                 SELECT id, title, subject, created_at
                 FROM ""assessment_table""
                 ORDER BY created_at DESC
-                LIMIT 5
             )
             SELECT
                 r.id                                                                            AS ""id"",

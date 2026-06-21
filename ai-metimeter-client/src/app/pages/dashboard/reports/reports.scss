@@ -181,15 +181,9 @@
 
 .section-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 0.75rem;
     margin-bottom: 1.5rem;
-    gap: 1rem;
-
-    @media (max-width: 640px) {
-        flex-direction: column;
-        align-items: flex-start;
-    }
 
     h2 {
         font-family: 'Outfit', sans-serif;
@@ -201,167 +195,207 @@
     }
 }
 
-.section-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.filter-btn {
-    padding: 0.5rem 1rem;
-    background: transparent;
-    border: 1px solid var(--border-subtle);
-    border-radius: 8px;
-    color: var(--text-secondary);
-    font-size: 0.8125rem;
+.report-count {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    background: rgba(139, 92, 246, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 20px;
+    color: #a78bfa;
     font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
+}
 
-    &:hover {
-        color: var(--text-primary);
-        background: var(--bg-card-hover);
+// MDC token overrides — must be at :host scope so CSS vars resolve correctly
+// These tokens bypass the Angular Material default white backgrounds in both themes
+:host {
+    // mat-table tokens
+    --mat-table-background-color: transparent;
+    --mat-table-header-container-height: 48px;
+    --mat-table-footer-container-height: 48px;
+    --mat-table-row-item-container-height: 60px;
+    --mat-table-header-headline-color: var(--text-secondary);
+    --mat-table-row-item-label-text-color: var(--text-primary);
+    --mat-table-row-item-outline-color: var(--border-subtle);
+
+    // mat-paginator tokens
+    --mat-paginator-container-background-color: transparent;
+    --mat-paginator-container-text-color: var(--text-secondary);
+    --mat-paginator-enabled-icon-color: var(--text-secondary);
+    --mat-paginator-disabled-icon-color: var(--text-secondary);
+    --mat-paginator-select-trigger-text-color: var(--text-secondary);
+}
+
+// Table wrapper
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    background: var(--card-bg, rgba(255, 255, 255, 0.02));
+}
+
+// mat-table overrides (fallback ::ng-deep for cells/rows MDC doesn't token-ise)
+:host ::ng-deep {
+    .reports-table {
+        width: 100%;
+        min-width: 840px;
+        font-size: 0.875rem;
     }
 
-    &.active {
-        background: rgba(139, 92, 246, 0.15);
-        border-color: rgba(139, 92, 246, 0.3);
+    .reports-table .mat-mdc-header-row {
+        background: var(--bg-card-hover, rgba(255, 255, 255, 0.05));
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .reports-table .mat-mdc-header-cell {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        border-bottom: none;
+        padding: 0.875rem 1rem;
+        background: transparent;
+    }
+
+    .reports-table .mat-mdc-row {
+        background: transparent;
+        border-bottom: 1px solid var(--border-subtle);
+        transition: background 0.15s ease;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:hover .mat-mdc-cell {
+            background: rgba(139, 92, 246, 0.04);
+        }
+    }
+
+    .reports-table .mat-mdc-cell {
         color: var(--text-primary);
+        border-bottom: none;
+        padding: 0.875rem 1rem;
+        vertical-align: middle;
+        background: transparent;
+    }
+
+    // Sort arrow
+    .reports-table .mat-sort-header-arrow {
+        color: #8b5cf6;
+    }
+
+    // Paginator
+    .mat-mdc-paginator {
+        background: transparent !important;
+        border-top: 1px solid var(--border-subtle);
+        min-width: 840px;
+    }
+
+    .mat-mdc-paginator-range-label,
+    .mat-mdc-paginator-page-size-label {
+        color: var(--text-secondary);
+    }
+
+    .mat-mdc-paginator .mat-mdc-icon-button {
+        color: var(--text-secondary);
+
+        &:hover:not([disabled]) {
+            background: rgba(139, 92, 246, 0.08);
+        }
+
+        &[disabled] {
+            opacity: 0.35;
+        }
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+        display: none;
     }
 }
 
-// Reports List
-.reports-list {
+.col-num {
+    width: 48px;
+    min-width: 48px;
+}
+
+.text-muted {
+    color: var(--text-secondary) !important;
+    font-size: 0.8125rem;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+// Assessment cell
+.assessment-cell {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 0.75rem;
 }
 
-.report-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    border-radius: 14px;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: var(--bg-card-hover);
-        border-color: rgba(139, 92, 246, 0.2);
-    }
-
-    @media (max-width: 768px) {
-        flex-wrap: wrap;
-    }
-}
-
-.report-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+.subject-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-
-    mat-icon {
-        font-size: 24px;
-        width: 24px;
-        height: 24px;
-    }
-
-    // Subject colors
-    &[data-subject="biology"] {
-        background: rgba(96, 165, 250, 0.15);
-
-        mat-icon {
-            color: #60a5fa;
-        }
-    }
-
-    &[data-subject="history"] {
-        background: rgba(244, 114, 182, 0.15);
-
-        mat-icon {
-            color: #f472b6;
-        }
-    }
-
-    &[data-subject="mathematics"] {
-        background: rgba(251, 191, 36, 0.15);
-
-        mat-icon {
-            color: #fbbf24;
-        }
-    }
-
-    &[data-subject="physics"] {
-        background: rgba(56, 189, 248, 0.15);
-
-        mat-icon {
-            color: #38bdf8;
-        }
-    }
-
-    &[data-subject="chemistry"] {
-        background: rgba(168, 85, 247, 0.15);
-
-        mat-icon {
-            color: #a855f7;
-        }
-    }
-
-    // Default
     background: rgba(139, 92, 246, 0.15);
 
     mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
         color: #8b5cf6;
     }
-}
 
-.report-content {
-    flex: 1;
-    min-width: 200px;
-}
-
-.report-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.25rem;
-
-    h3 {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0;
-        transition: color 0.3s ease;
+    &[data-subject="biology"] {
+        background: rgba(96, 165, 250, 0.15);
+        mat-icon { color: #60a5fa; }
+    }
+    &[data-subject="history"] {
+        background: rgba(244, 114, 182, 0.15);
+        mat-icon { color: #f472b6; }
+    }
+    &[data-subject="mathematics"] {
+        background: rgba(251, 191, 36, 0.15);
+        mat-icon { color: #fbbf24; }
+    }
+    &[data-subject="physics"] {
+        background: rgba(56, 189, 248, 0.15);
+        mat-icon { color: #38bdf8; }
+    }
+    &[data-subject="chemistry"] {
+        background: rgba(168, 85, 247, 0.15);
+        mat-icon { color: #a855f7; }
     }
 }
 
-.report-subject {
+.assessment-title {
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: color 0.3s ease;
+}
+
+// Subject badge
+.subject-badge {
     font-size: 0.75rem;
-    padding: 0.125rem 0.5rem;
+    padding: 0.2rem 0.6rem;
     background: var(--bg-card-hover);
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--text-secondary);
-    transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
-.report-meta {
-    display: flex;
-    gap: 1rem;
-}
-
-.meta-item {
-    display: flex;
+// Participant count
+.participant-count {
+    display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    font-size: 0.8125rem;
     color: var(--text-secondary);
-    transition: color 0.3s ease;
 
     mat-icon {
         font-size: 14px;
@@ -370,68 +404,54 @@
     }
 }
 
-.report-score {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    border-radius: 10px;
-    min-width: 80px;
-    flex-shrink: 0;
+// Score badge
+.score-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.875rem;
 
-    .score-value {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.25rem;
-        font-weight: 700;
-    }
-
-    .score-label {
-        font-size: 0.6875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        opacity: 0.7;
-    }
-
-    &.excellent {
+    &.score-excellent {
         background: rgba(52, 211, 153, 0.15);
         color: #34d399;
     }
-
-    &.good {
+    &.score-good {
         background: rgba(96, 165, 250, 0.15);
         color: #60a5fa;
     }
-
-    &.average {
+    &.score-average {
         background: rgba(251, 191, 36, 0.15);
         color: #fbbf24;
     }
-
-    &.needs-improvement {
+    &.score-low {
         background: rgba(248, 113, 113, 0.15);
         color: #f87171;
     }
 }
 
-.view-report-btn {
+// View button
+.view-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    padding: 0.625rem 1rem;
-    background: rgba(139, 92, 246, 0.15);
+    padding: 0.5rem 0.875rem;
+    background: rgba(139, 92, 246, 0.12);
     border: 1px solid rgba(139, 92, 246, 0.3);
-    border-radius: 10px;
+    border-radius: 8px;
     color: #a78bfa;
     font-size: 0.8125rem;
     font-weight: 500;
     text-decoration: none;
     transition: all 0.2s ease;
-    flex-shrink: 0;
+    white-space: nowrap;
+    font-family: inherit;
 
     mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
         transition: transform 0.2s ease;
     }
 
@@ -444,9 +464,17 @@
         }
     }
 
-    @media (max-width: 768px) {
-        width: 100%;
-        justify-content: center;
+    &.disabled,
+    &:disabled {
+        background: var(--bg-card-hover);
+        border-color: var(--border-subtle);
+        color: var(--text-muted);
+        cursor: not-allowed;
+        opacity: 0.6;
+
+        mat-icon {
+            transform: none;
+        }
     }
 }
 
@@ -457,6 +485,7 @@
     background: rgba(255, 255, 255, 0.02);
     border: 1px dashed rgba(255, 255, 255, 0.1);
     border-radius: 20px;
+    margin-top: 1rem;
 }
 
 .empty-icon {
