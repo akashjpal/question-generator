@@ -11,6 +11,7 @@ const SERVER_URL_MAP: Record<string, string> = {
   '/api':          process.env['API_URL']         || 'http://localhost:3000',
   '/reports-api':  process.env['REPORTS_API_URL']  || 'http://localhost:5082',
   '/attempt-api':  process.env['ATTEMPT_API_URL']  || 'http://localhost:5136',
+  '/agent-api':    process.env['AGENT_API_URL']     || 'http://localhost:8010',
 };
 
 export const serverUrlInterceptor: HttpInterceptorFn = (req, next) => {

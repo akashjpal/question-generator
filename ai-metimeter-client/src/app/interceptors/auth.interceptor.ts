@@ -6,13 +6,15 @@ import { environment } from '../../environments/environment';
 
 /**
  * Automatically attaches the Supabase Bearer token to every outgoing
- * request that targets the Question Generator API.
+ * request that targets the Question Generator API or the Agentic Chatbot API.
  * Skips Supabase, Reports, and Attempt API calls — they handle auth separately.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isApiRequest =
     req.url.includes(environment.questionGeneratorApiUrl) ||
-    req.url.startsWith('/api');
+    req.url.startsWith('/api') ||
+    req.url.includes(environment.agentApiUrl) ||
+    req.url.startsWith('/agent-api');
 
   if (!isApiRequest) {
     return next(req);

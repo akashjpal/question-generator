@@ -23,14 +23,32 @@ export class SupabaseOperator {
     try {
       const { data, error } = await supabase
         .from("assessment_table")
-        .select("id, title, subject, questions, status, difficulty, timeLimit, description, code")
-        .eq("createdBy", userId);
+        .select("id, title, subject, questions, status, difficulty, timeLimit, description, code, created_at")
+        .eq("createdBy", userId)
+        .order("created_at", { ascending: false });
       if (error) {
         throw error;
       }
       return data;
     } catch (error: any) {
       console.error("Fetch error:", error.message);
+      throw error;
+    }
+  }
+
+  async isAssessmentCodeAvailable(code: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from("assessment_table")
+        .select("id")
+        .eq("code", code)
+        .limit(1);
+      if (error) {
+        throw error;
+      }
+      return !data || data.length === 0;
+    } catch (error: any) {
+      console.error("Code availability check error:", error.message);
       throw error;
     }
   }

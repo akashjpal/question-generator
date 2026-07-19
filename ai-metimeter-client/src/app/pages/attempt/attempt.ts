@@ -144,7 +144,7 @@ export class AttemptScreen implements OnInit, OnDestroy {
             takeUntil(this.manualSubmit$),         // cleanup on manual submit
             takeWhile(() => !this.isSubmitted),     // stop when submitted
             switchMap(() => this.reportService.saveQuiz(this.assessmentId!, {
-                id: parseInt(this.assessmentId!, 0),
+                id: parseInt(this.assessmentId!, 10),
                 participantUniqueCode: this.participantUniqueCode,
                 answers: this.answers,
                 flaggedQuestions: Array.from(this.flaggedQuestions),
@@ -167,7 +167,7 @@ export class AttemptScreen implements OnInit, OnDestroy {
 
     saveQuiz() {
         this.reportService.saveQuiz(this.assessmentId!, {
-            id: parseInt(this.assessmentId!, 0),
+            id: parseInt(this.assessmentId!, 10),
             participantUniqueCode: this.participantUniqueCode,
             answers: this.answers,
             flaggedQuestions: Array.from(this.flaggedQuestions),
@@ -246,7 +246,7 @@ export class AttemptScreen implements OnInit, OnDestroy {
         this.manualSubmit$.next();
         this.isSubmitted = true;
         this.reportService.submitQuiz(this.assessmentId!, {
-            id: parseInt(this.assessmentId!, 0),
+            id: parseInt(this.assessmentId!, 10),
             participantUniqueCode: this.participantUniqueCode,
             answers: this.answers,
             flaggedQuestions: Array.from(this.flaggedQuestions),

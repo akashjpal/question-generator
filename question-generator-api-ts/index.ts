@@ -189,6 +189,23 @@ app.post("/api/assessments/:id/publish", requireAuth, async (req, res)=>{
   }
 })
 
+app.get("/assessment-code-available/:code", requireAuth, async (req, res) => {
+  try {
+    const { code } = req.params;
+    if (!code) {
+      return res.status(400).json({ message: "code is required" });
+    }
+    const operator = new SupabaseOperator();
+    const available = await operator.isAssessmentCodeAvailable(code);
+    return res.status(200).json({ available });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "not able to check code availability"
+    });
+  }
+});
+
 app.get("/get-assessments", requireAuth, async(req,res)=>{
   try {
     const operator = new SupabaseOperator();

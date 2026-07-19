@@ -90,7 +90,7 @@ export class MyQuizzes implements OnInit {
             id: item.id.toString(),
             title: item.title,
             subject: item.subject,
-            createdAt: new Date().toISOString().split('T')[0], // Use current date if not available
+            createdAt: item.created_at ? new Date(item.created_at).toISOString().split('T')[0] : '',
             questionsCount: questionsCount,
             status: item.status === 1 ? 'Published' : 'Draft',
             difficulty: item.difficulty,

@@ -37,6 +37,11 @@ const PROXY_ROUTES: { prefix: string; target: string; strip: boolean }[] = [
     target: process.env['ATTEMPT_API_URL'] || 'http://localhost:5136',
     strip: true,   // /attempt-api/foo → /foo
   },
+  {
+    prefix: '/agent-api',
+    target: process.env['AGENT_API_URL'] || 'http://localhost:8010',
+    strip: true,   // /agent-api/foo → /foo
+  },
 ];
 
 /**

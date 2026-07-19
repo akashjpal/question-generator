@@ -50,6 +50,16 @@
                 <input type="text" placeholder="Search quizzes, reports...">
             </div>
 
+            <div class="agentic-toggle" [matTooltip]="'Chat with AI to generate and publish a quiz'">
+                <mat-icon>smart_toy</mat-icon>
+                <span class="agentic-toggle-label">Agentic Mode</span>
+                <mat-slide-toggle
+                    [checked]="agenticMode.enabled()"
+                    (change)="agenticMode.toggle()"
+                    aria-label="Toggle agentic mode"
+                ></mat-slide-toggle>
+            </div>
+
             <div class="top-bar-actions">
                 <button mat-icon-button class="action-btn">
                     <mat-icon>notifications</mat-icon>
@@ -62,7 +72,11 @@
 
         <!-- Page Content -->
         <div class="content-wrapper">
-            <router-outlet></router-outlet>
+            @if (agenticMode.enabled()) {
+                <app-agent-chat></app-agent-chat>
+            } @else {
+                <router-outlet></router-outlet>
+            }
         </div>
     </mat-sidenav-content>
 </mat-sidenav-container>
