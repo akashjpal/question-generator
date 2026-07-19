@@ -1,0 +1,21 @@
+<div class="agent-chat">
+    @if (loadingSession()) {
+        <div class="loading">Starting chat…</div>
+    } @else if (sessionError()) {
+        <div class="session-error">
+            <p>{{ sessionError() }}</p>
+            <button type="button" (click)="retry()">Retry</button>
+        </div>
+    } @else {
+        <app-agent-message-list [bubbles]="bubbles()"></app-agent-message-list>
+        @if (sending() && liveStatus()) {
+            <div class="live-status">{{ liveStatus() }}</div>
+        }
+        <app-agent-composer
+            [disabled]="sending()"
+            [attachedFileName]="attachedFileName()"
+            (send)="onSend($event)"
+            (fileSelected)="onFileSelected($event)"
+        ></app-agent-composer>
+    }
+</div>

@@ -247,7 +247,36 @@
     }
 }
 
-// TODO: check this
+.agentic-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(139, 92, 246, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    flex-shrink: 0;
+    margin-right: 0.5rem;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: var(--icon-active);
+    }
+
+    .agentic-toggle-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        white-space: nowrap;
+
+        @media (max-width: 640px) {
+            display: none;
+        }
+    }
+}
+
 .top-bar-actions {
     display: flex;
     display: none;
@@ -291,7 +320,7 @@
 .content-wrapper {
     flex: 1;
     padding: 2rem;
-    overflow-y: auto;
+    // overflow-y: auto;
 
     @media (max-width: 768px) {
         padding: 1rem;

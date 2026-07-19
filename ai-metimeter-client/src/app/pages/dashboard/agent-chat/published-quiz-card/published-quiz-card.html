@@ -1,0 +1,36 @@
+<div class="quiz-card">
+    <div class="quiz-card-header">
+        <mat-icon>celebration</mat-icon>
+        <span>Quiz published!</span>
+    </div>
+
+    <div class="quiz-title">{{ quiz().title }}</div>
+
+    <div class="quiz-row">
+        <span class="label">Join code</span>
+        <span class="value code">{{ quiz().code }}</span>
+        <button mat-icon-button (click)="copyCode()" [attr.aria-label]="'Copy join code'">
+            <mat-icon>{{ copiedCode() ? 'check' : 'content_copy' }}</mat-icon>
+        </button>
+    </div>
+
+    <div class="quiz-row">
+        <span class="label">Attempt link</span>
+        <span class="value link">{{ quiz().attempt_link }}</span>
+        <button mat-icon-button (click)="copyLink()" [attr.aria-label]="'Copy attempt link'">
+            <mat-icon>{{ copiedLink() ? 'check' : 'content_copy' }}</mat-icon>
+        </button>
+    </div>
+
+    <div class="quiz-meta">
+        <span>{{ quiz().questions_count }} questions</span>
+        @if (quiz().time_limit) {
+            <span>· {{ quiz().time_limit }} min</span>
+        }
+    </div>
+
+    <button mat-stroked-button class="open-btn" (click)="open()">
+        <mat-icon>open_in_new</mat-icon>
+        Open attempt link
+    </button>
+</div>
