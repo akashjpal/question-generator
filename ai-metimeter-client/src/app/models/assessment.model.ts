@@ -123,6 +123,7 @@ export interface AssessmentListItem {
     description: string | null;
     code?: string;
     attemptsCount?: number;
+    created_at?: string;
 }
 
 /**

@@ -1,0 +1,29 @@
+<div class="composer">
+    @if (attachedFileName()) {
+        <div class="attached-chip">
+            <mat-icon>description</mat-icon>
+            <span>{{ attachedFileName() }}</span>
+        </div>
+    }
+
+    <div class="composer-row">
+        <button mat-icon-button (click)="triggerFilePicker()" [disabled]="disabled()" aria-label="Attach PDF">
+            <mat-icon>attach_file</mat-icon>
+        </button>
+
+        <input type="file" #fileInput accept="application/pdf" hidden (change)="onFileChange($event)" />
+
+        <textarea
+            [value]="text()"
+            (input)="text.set($any($event.target).value)"
+            (keydown)="onKeydown($event)"
+            [disabled]="disabled()"
+            placeholder="Describe the quiz you want, e.g. '10 medium questions on this PDF, 20 min limit'…"
+            rows="1"
+        ></textarea>
+
+        <button mat-icon-button color="primary" (click)="onSend()" [disabled]="disabled() || !text().trim()" aria-label="Send">
+            <mat-icon>send</mat-icon>
+        </button>
+    </div>
+</div>

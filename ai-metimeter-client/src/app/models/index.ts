@@ -17,3 +17,6 @@ export * from './assessment.model';
 
 // Report & Analytics models
 export * from './report.model';
+
+// Agentic chatbot models
+export * from './agent-chat.model';

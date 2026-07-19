@@ -4,7 +4,7 @@ import logging
 import os
 import re
 
-from groq import Groq
+from openai import OpenAI
 from dotenv import load_dotenv
 from tenacity import (
     retry,
@@ -19,12 +19,13 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "moonshotai/kimi-k2")
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 _MAX_OUTER_RETRIES = 3        # retries for "not enough questions" scenario
-_MAX_API_RETRIES = 3          # retries for transient Gemini API failures
-_MAX_TEXT_CHARS = 4_500       # trim input to stay under Groq token limits
+_MAX_API_RETRIES = 3          # retries for transient API failures
+_MAX_TEXT_CHARS = 4_500       # trim input to stay under model context limits
 _MIN_COMPLETION_TOKENS = 900
 _TOKENS_PER_QUESTION = 180
 _MAX_COMPLETION_TOKENS = 2_400
@@ -95,7 +96,7 @@ def _parse_and_validate(raw: str) -> list[dict]:
     start = clean.find("[")
     end = clean.rfind("]") + 1
     if start == -1 or end == 0:
-        raise ValueError("No JSON array found in Gemini response")
+        raise ValueError("No JSON array found in LLM response")
 
     data = json.loads(clean[start:end])
 
@@ -150,7 +151,7 @@ def _deduplicate(
 
 
 # ---------------------------------------------------------------------------
-# Groq API call (with tenacity retry for transient failures)
+# OpenRouter API call (with tenacity retry for transient failures)
 # ---------------------------------------------------------------------------
 
 @retry(
@@ -159,20 +160,21 @@ def _deduplicate(
     wait=wait_exponential(multiplier=1, min=2, max=16),
     retry=retry_if_exception_type(Exception),
 )
-def _call_groq(client: Groq, model_name: str, prompt: str, max_completion_tokens: int) -> str:
+def _call_openrouter(client: OpenAI, model_name: str, prompt: str, max_output_tokens: int) -> str:
+    # response_format={"type": "json_object"} was tried and rejected by this
+    # model/provider combo on OpenRouter ("does not support feature:
+    # structured-outputs") — relying on prompt instructions + the tolerant
+    # parsing in _parse_and_validate() instead, same as the original design.
     completion = client.chat.completions.create(
         model=model_name,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
-        max_completion_tokens=max_completion_tokens,
+        max_tokens=max_output_tokens,
         top_p=1,
-        reasoning_effort="low",
-        stream=False,
-        stop=None,
     )
     raw = completion.choices[0].message.content
     if not raw:
-        raise ValueError("Empty response received from Groq API")
+        raise ValueError("Empty response received from OpenRouter API")
     return raw
 
 
@@ -183,11 +185,12 @@ def _call_groq(client: Groq, model_name: str, prompt: str, max_completion_tokens
 def generate_questions_with_llm(
     text: str, topic: str, difficulty: str, num_questions: int
 ) -> list[dict]:
-    """Call Groq to generate MCQs; retries until num_questions unique are collected."""
-    if not GROQ_API_KEY:
-        raise EnvironmentError("GROQ_API_KEY is not set in environment variables")
+    """Call OpenRouter (Kimi K2 by default) to generate MCQs; retries until
+    num_questions unique are collected."""
+    if not OPENROUTER_API_KEY:
+        raise EnvironmentError("OPENROUTER_API_KEY is not set in environment variables")
 
-    client = Groq(api_key=GROQ_API_KEY)
+    client = OpenAI(api_key=OPENROUTER_API_KEY, base_url=OPENROUTER_BASE_URL)
 
     collected: list[dict] = []
     seen_hashes: set[str] = set()
@@ -198,7 +201,7 @@ def generate_questions_with_llm(
             break
 
         logger.info(
-            "[Groq] Attempt %d/%d — requesting %d questions",
+            "[OpenRouter] Attempt %d/%d — requesting %d questions",
             attempt,
             _MAX_OUTER_RETRIES,
             remaining,
@@ -206,26 +209,26 @@ def generate_questions_with_llm(
 
         try:
             prompt = _build_prompt(text, topic, difficulty, remaining)
-            max_completion_tokens = _completion_token_budget(remaining)
+            max_output_tokens = _completion_token_budget(remaining)
             logger.info(
-                "[Groq] Using %d prompt chars and %d max completion tokens",
+                "[OpenRouter] Using %d prompt chars and %d max output tokens",
                 min(len(_compact_source_text(text)), _MAX_TEXT_CHARS),
-                max_completion_tokens,
+                max_output_tokens,
             )
-            raw = _call_groq(client, GROQ_MODEL, prompt, max_completion_tokens)
+            raw = _call_openrouter(client, OPENROUTER_MODEL, prompt, max_output_tokens)
             parsed = _parse_and_validate(raw)
             new_unique, seen_hashes = _deduplicate(parsed, seen_hashes)
             collected.extend(new_unique)
             logger.info(
-                "[Groq] +%d new unique questions (total: %d/%d)",
+                "[OpenRouter] +%d new unique questions (total: %d/%d)",
                 len(new_unique),
                 len(collected),
                 num_questions,
             )
         except (json.JSONDecodeError, ValueError) as exc:
-            logger.warning("[Groq] Parse error on attempt %d: %s", attempt, exc)
+            logger.warning("[OpenRouter] Parse error on attempt %d: %s", attempt, exc)
         except Exception as exc:
-            logger.error("[Groq] API error on attempt %d: %s", attempt, exc)
+            logger.error("[OpenRouter] API error on attempt %d: %s", attempt, exc)
 
     if not collected:
         raise RuntimeError(
@@ -234,7 +237,7 @@ def generate_questions_with_llm(
 
     if len(collected) < num_questions:
         logger.warning(
-            "[Groq] Only generated %d/%d questions", len(collected), num_questions
+            "[OpenRouter] Only generated %d/%d questions", len(collected), num_questions
         )
 
     return collected[:num_questions]

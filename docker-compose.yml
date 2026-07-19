@@ -20,10 +20,12 @@ services:
       - API_URL=http://question-generator-api:3000
       - REPORTS_API_URL=http://reports-api:5082
       - ATTEMPT_API_URL=http://attempt-api:5136
+      - AGENT_API_URL=http://ai-agent-chatbot:8010
     depends_on:
       - question-generator-api
       - attempt-api
       - reports-api
+      - ai-agent-chatbot
     restart: unless-stopped
 
   # ── Question Generator Node/Bun API ─────────────────────────
@@ -42,6 +44,7 @@ services:
       - "3000"
     depends_on:
       - redis
+      - fastapi-worker
     restart: unless-stopped
 
   # ── FastAPI Question Generator Worker ────────────────────────
@@ -50,11 +53,29 @@ services:
     environment:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-      - GROQ_API_KEY=${GROQ_API_KEY}
-      - GROQ_MODEL=${GROQ_MODEL:-openai/gpt-oss-120b}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-moonshotai/kimi-k2}
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:4200}
     expose:
       - "8000"
+    restart: unless-stopped
+
+  # ── Agentic Chatbot (FastAPI + LangGraph) ────────────────────
+  ai-agent-chatbot:
+    build: ./ai-agent-chatbot
+    environment:
+      - PORT=8010
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - QUESTION_GENERATOR_API_URL=http://question-generator-api:3000
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - AGENT_OPENROUTER_MODEL=${AGENT_OPENROUTER_MODEL:-moonshotai/kimi-k2}
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN:-http://localhost:4200}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:4200}
+    expose:
+      - "8010"
+    depends_on:
+      - question-generator-api
     restart: unless-stopped
 
   # ── File Scanner Worker ──────────────────────────────────────
@@ -69,8 +90,10 @@ services:
       - CLAMAV_HOST=clamav
       - CLAMAV_PORT=3310
     depends_on:
-      - redis
-      - clamav
+      redis:
+        condition: service_healthy
+      clamav:
+        condition: service_healthy
     restart: unless-stopped
 
   # ── Attempt API (.NET) ───────────────────────────────────────
@@ -89,7 +112,7 @@ services:
     build: ./ReportsAPI
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING};SSL Mode=Require;Trust Server Certificate=true
+      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING}
       - CorsOrigins=${CORS_ORIGIN:-http://localhost:4200}
     expose:
       - "5082"
@@ -110,6 +133,11 @@ services:
       - redis-data:/data
     expose:
       - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     restart: unless-stopped
 
   # ── ClamAV ──────────────────────────────────────────────────
@@ -119,6 +147,12 @@ services:
       - "3310"
     volumes:
       - clamav-data:/var/lib/clamav
+    healthcheck:
+      test: ["CMD", "clamdscan", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
     restart: unless-stopped
 
 volumes:

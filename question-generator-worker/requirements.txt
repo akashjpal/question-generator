@@ -12,7 +12,7 @@ deprecation==2.1.0
 dnspython==2.8.0
 email-validator==2.3.0
 fastapi==0.135.2
-groq>=0.11.0
+openai==2.46.0
 redis>=5.0.0
 fastapi-cli==0.0.24
 fastapi-cloud-cli==0.15.1
@@ -56,6 +56,8 @@ rich==14.3.3
 rich-toolkit==0.19.7
 rignore==0.7.6
 sentry-sdk==2.56.0
+arize-phoenix-otel>=0.6.0
+openinference-instrumentation-openai>=0.1.52
 shellingham==1.5.4
 six==1.17.0
 starlette==1.0.0

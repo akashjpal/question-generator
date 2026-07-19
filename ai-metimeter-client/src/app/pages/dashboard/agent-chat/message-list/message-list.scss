@@ -1,0 +1,74 @@
+.message-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--bg-dark);
+}
+
+.empty-state {
+    margin: auto;
+    text-align: center;
+    color: var(--text-secondary);
+    max-width: 320px;
+
+    mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        margin-bottom: 8px;
+        color: var(--icon-active);
+    }
+
+    p {
+        margin: 0;
+    }
+}
+
+.bubble-row {
+    display: flex;
+    justify-content: flex-start;
+
+    &.user {
+        justify-content: flex-end;
+    }
+}
+
+.bubble {
+    max-width: 70%;
+    border-radius: 14px;
+    padding: 10px 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    overflow-wrap: break-word;
+
+    &.user {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        color: #fff;
+    }
+
+    &.error {
+        border-color: #e57373;
+    }
+}
+
+.bubble-text {
+    white-space: pre-wrap;
+    line-height: 1.4;
+}
+
+.bubble-error {
+    color: #ff8a80;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+mat-progress-spinner {
+    ::ng-deep circle {
+        stroke: var(--color-primary);
+    }
+}

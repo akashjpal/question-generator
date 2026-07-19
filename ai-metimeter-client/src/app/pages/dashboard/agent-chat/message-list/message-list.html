@@ -1,0 +1,30 @@
+<div class="message-list">
+    @if (bubbles().length === 0) {
+        <div class="empty-state">
+            <mat-icon>auto_awesome</mat-icon>
+            <p>Attach a PDF and tell me what kind of quiz you'd like — I'll generate the questions and publish it for you.</p>
+        </div>
+    }
+
+    @for (bubble of bubbles(); track bubble.id) {
+        <div class="bubble-row" [class.user]="bubble.role === 'user'">
+            <div class="bubble" [class.user]="bubble.role === 'user'" [class.error]="!!bubble.error">
+                @if (bubble.text) {
+                    <div class="bubble-text">{{ bubble.text }}</div>
+                }
+
+                @if (bubble.pending && !bubble.text) {
+                    <mat-progress-spinner diameter="18" mode="indeterminate"></mat-progress-spinner>
+                }
+
+                @if (bubble.error) {
+                    <div class="bubble-error">{{ bubble.error }}</div>
+                }
+
+                @if (bubble.published) {
+                    <app-published-quiz-card [quiz]="bubble.published"></app-published-quiz-card>
+                }
+            </div>
+        </div>
+    }
+</div>
