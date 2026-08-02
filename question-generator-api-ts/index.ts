@@ -7,6 +7,7 @@ import cors from "cors";
 import { SupabaseOperator } from "./helpers/supabseOperator.js";
 import type { Assessment } from "./models/assessment.models.js";
 import { requireAuth } from "./helpers/requireAuth.js";
+import { s3Client } from "./helpers/s3Client.ts";
 
 dotenv.config();
 
@@ -41,11 +42,8 @@ app.post("/file-upload", requireAuth, async (req, res) => {
     if (!fileBuffer && fileBuffer.length === 0) {
       return res.status(400).json({ error: "No file uploaded." });
     }
-    const uploader = new FileUploader();
-    const publisher = new Publisher();
-    const {fileId, fileName} = await uploader.storeFileInSupabase(fileBuffer, filename);
-    console.log(fileId, fileName);
-    await publisher.publish({ fileName: fileName, fileId: fileId });
+    const s3 = new s3Client();
+    const { fileId, fileName } = await s3.storeFileInAwsBucket(fileBuffer, filename);
     console.log("✅ Received filename:", filename);
     console.log("📦 File size:", fileSize, "MB");
     res.json({ message: "File received", filename, fileId });

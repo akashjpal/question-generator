@@ -25,3 +25,7 @@ question-generator-worker/models/__pycache__
 question-generator-worker/.venv
 .env
 *.log
+lambda/node_modules
+.agent/*
+.claude/*
+Testing/*
