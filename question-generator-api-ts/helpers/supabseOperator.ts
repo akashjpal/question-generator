@@ -29,7 +29,32 @@ export class SupabaseOperator {
       if (error) {
         throw error;
       }
-      return data;
+      if (!data || data.length === 0) {
+        return data;
+      }
+
+      // AssessmentResult (attempts) is owned/written by AttemptAPI (.NET), not this
+      // service, and has no FK PostgREST can auto-embed — so attemptsCount is
+      // computed here via a second query grouped in JS rather than assumed joinable.
+      const ids = data.map((row: any) => row.id);
+      const { data: results, error: resultsError } = await supabase
+        .from("AssessmentResult")
+        .select("assessmentId")
+        .in("assessmentId", ids);
+      if (resultsError) {
+        throw resultsError;
+      }
+
+      const countsByAssessmentId = new Map<number, number>();
+      for (const row of results ?? []) {
+        const key = row.assessmentId;
+        countsByAssessmentId.set(key, (countsByAssessmentId.get(key) ?? 0) + 1);
+      }
+
+      return data.map((row: any) => ({
+        ...row,
+        attemptsCount: countsByAssessmentId.get(row.id) ?? 0
+      }));
     } catch (error: any) {
       console.error("Fetch error:", error.message);
       throw error;

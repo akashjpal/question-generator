@@ -1,0 +1,35 @@
+name: CI - Attempt API (.NET)
+
+on:
+  push:
+    paths:
+      - 'AttemptAPI/**'
+      - '.github/workflows/ci-attempt-api.yml'
+  pull_request:
+    paths:
+      - 'AttemptAPI/**'
+      - '.github/workflows/ci-attempt-api.yml'
+
+concurrency:
+  group: ci-attempt-api-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: AttemptAPI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore

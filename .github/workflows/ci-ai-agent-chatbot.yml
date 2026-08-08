@@ -1,0 +1,37 @@
+name: CI - AI Agent Chatbot (Python)
+
+on:
+  push:
+    paths:
+      - 'ai-agent-chatbot/**'
+      - '.github/workflows/ci-ai-agent-chatbot.yml'
+  pull_request:
+    paths:
+      - 'ai-agent-chatbot/**'
+      - '.github/workflows/ci-ai-agent-chatbot.yml'
+
+concurrency:
+  group: ci-ai-agent-chatbot-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: ai-agent-chatbot
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: ai-agent-chatbot/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest tests/ -v

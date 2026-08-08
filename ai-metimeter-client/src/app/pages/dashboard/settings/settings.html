@@ -4,7 +4,7 @@
         <nav class="settings-nav">
             @for (section of settingsSections; track section.id) {
             <button class="settings-nav-item" [class.active]="activeSection === section.id"
-                (click)="setActiveSection(section.id)">
+                (click)="setActiveSection(section.id)" [attr.data-testid]="'nav-' + section.id">
                 <mat-icon>{{ section.icon }}</mat-icon>
                 <span>{{ section.label }}</span>
             </button>
@@ -58,7 +58,7 @@
                             </div>
                         </div>
                         <mat-slide-toggle color="primary" [checked]="isDarkMode"
-                            (change)="onThemeToggle($event.checked)"></mat-slide-toggle>
+                            (change)="onThemeToggle($event.checked)" data-testid="dark-mode-toggle"></mat-slide-toggle>
                     </div>
                     <div class="toggle-item" style="opacity: 0.6; pointer-events: none;">
                         <div class="toggle-info">

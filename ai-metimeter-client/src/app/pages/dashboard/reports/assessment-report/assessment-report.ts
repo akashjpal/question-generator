@@ -64,6 +64,7 @@ export class AssessmentReport {
     isAutoRefresh = false;
     isLoading = false;
     private autoRefreshSub?: Subscription;
+    private initialZeroParticipantRetryDone = false;
 
     assessmentDetails: AssessmentDetails = {
         title: '', subject: '', date: '',
@@ -75,31 +76,46 @@ export class AssessmentReport {
     constructor() {
         if (this.assessmentId) {
             this.isLoading = true;
-            this.reportsService.getDashboardStatsOfAssessment(this.assessmentId)
-                .pipe(takeUntilDestroyed(this.destroyRef))
-                .subscribe({
-                    next: (data) => {
-                        console.log('Received assessment stats:', data);
-
-                        this.applyResponse(data);
-                        this.isLoading = false;
-
-                        this.cdr.detectChanges();
-                    },
-
-                    error: (err) => {
-                        console.error('Failed to fetch assessment stats:', err);
-
-                        this.isLoading = false;
-
-                        // show toast/snackbar/message
-                        // example:
-                        // this.toastService.error('Failed to load assessment stats');
-
-                        this.cdr.detectChanges();
-                    }
-                });
+            this.fetchStats(true);
         }
+    }
+
+    // Loads/reloads the report stats. On the very first load, if the participant
+    // count comes back as 0, we retry once shortly after: this guards against the
+    // race where the report page loads right after a student submits and the
+    // backend hasn't yet made that just-submitted attempt available. This reuses
+    // the same fetch/apply path as the "Auto Refresh" toggle below, just fired
+    // once, so it doesn't affect the isAutoRefresh UI state.
+    private fetchStats(isInitialLoad: boolean): void {
+        this.reportsService.getDashboardStatsOfAssessment(this.assessmentId!)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (data) => {
+                    console.log('Received assessment stats:', data);
+
+                    this.applyResponse(data);
+                    this.isLoading = false;
+
+                    this.cdr.detectChanges();
+
+                    if (isInitialLoad && !this.initialZeroParticipantRetryDone && data.participants === 0) {
+                        this.initialZeroParticipantRetryDone = true;
+                        setTimeout(() => this.fetchStats(false), 1500);
+                    }
+                },
+
+                error: (err) => {
+                    console.error('Failed to fetch assessment stats:', err);
+
+                    this.isLoading = false;
+
+                    // show toast/snackbar/message
+                    // example:
+                    // this.toastService.error('Failed to load assessment stats');
+
+                    this.cdr.detectChanges();
+                }
+            });
     }
 
     private applyResponse(data: any): void {

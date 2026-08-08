@@ -1,0 +1,37 @@
+name: CI - File Scanner Worker (Bun)
+
+on:
+  push:
+    paths:
+      - 'file-scanner-worker/**'
+      - '.github/workflows/ci-file-scanner-worker.yml'
+  pull_request:
+    paths:
+      - 'file-scanner-worker/**'
+      - '.github/workflows/ci-file-scanner-worker.yml'
+
+concurrency:
+  group: ci-file-scanner-worker-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: file-scanner-worker
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # No test suite exists for this service (plain JS, no tsconfig).
+      # node --check parses the file without executing it, catching syntax errors.
+      - name: Syntax check
+        run: node --check consumer.js

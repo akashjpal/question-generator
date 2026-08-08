@@ -12,10 +12,10 @@
                     <p>Detailed insights into your assessment performance</p>
                 </div>
                 <div class="header-actions">
-                    <mat-slide-toggle [checked]="isAutoRefresh" (change)="toggleAutoRefresh()" color="primary">
+                    <mat-slide-toggle [checked]="isAutoRefresh" (change)="toggleAutoRefresh()" color="primary" data-testid="auto-refresh-toggle">
                         Auto Refresh
                     </mat-slide-toggle>
-                    <button class="export-btn">
+                    <button class="export-btn" data-testid="export-all-btn">
                         <mat-icon>download</mat-icon>
                         Export All Data
                     </button>
@@ -25,7 +25,7 @@
 
         <!-- Stats Grid -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card" data-testid="stat-total">
                 <div class="stat-icon purple">
                     <mat-icon>quiz</mat-icon>
                 </div>
@@ -35,7 +35,7 @@
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" data-testid="stat-participants">
                 <div class="stat-icon blue">
                     <mat-icon>group</mat-icon>
                 </div>
@@ -45,7 +45,7 @@
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" data-testid="stat-avg">
                 <div class="stat-icon green">
                     <mat-icon>trending_up</mat-icon>
                 </div>
@@ -55,7 +55,7 @@
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" data-testid="stat-completion">
                 <div class="stat-icon yellow">
                     <mat-icon>check_circle</mat-icon>
                 </div>
@@ -138,12 +138,12 @@
                     <ng-container matColumnDef="action">
                         <th mat-header-cell *matHeaderCellDef>Action</th>
                         <td mat-cell *matCellDef="let row">
-                            <a *ngIf="row.participants > 0; else disabledReportButton" class="view-btn" [routerLink]="['/dashboard/reports', row.id]">
+                            <a *ngIf="row.participants > 0; else disabledReportButton" class="view-btn" [routerLink]="['/dashboard/reports', row.id]" [attr.data-testid]="'view-report-link-' + row.id">
                                 View Report
                                 <mat-icon>arrow_forward</mat-icon>
                             </a>
                             <ng-template #disabledReportButton>
-                                <button class="view-btn disabled" type="button" disabled>
+                                <button class="view-btn disabled" type="button" disabled [attr.data-testid]="'view-report-link-' + row.id">
                                     View Report
                                     <mat-icon>arrow_forward</mat-icon>
                                 </button>

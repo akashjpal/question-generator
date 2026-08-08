@@ -14,15 +14,15 @@
 
         <!-- Navigation Links -->
         <nav class="nav-list">
-            <a class="nav-item" routerLink="/dashboard/my-quizzes" routerLinkActive="active">
+            <a class="nav-item" routerLink="/dashboard/my-quizzes" routerLinkActive="active" data-testid="nav-my-quizzes">
                 <mat-icon>dashboard</mat-icon>
                 <span>My Quizzes</span>
             </a>
-            <a class="nav-item" routerLink="/dashboard/reports" routerLinkActive="active">
+            <a class="nav-item" routerLink="/dashboard/reports" routerLinkActive="active" data-testid="nav-reports">
                 <mat-icon>analytics</mat-icon>
                 <span>Reports</span>
             </a>
-            <a class="nav-item" routerLink="/dashboard/settings" routerLinkActive="active">
+            <a class="nav-item" routerLink="/dashboard/settings" routerLinkActive="active" data-testid="nav-settings">
                 <mat-icon>settings</mat-icon>
                 <span>Settings</span>
             </a>
@@ -30,7 +30,7 @@
 
         <!-- Create Button -->
         <div class="nav-footer">
-            <a class="create-btn" routerLink="/dashboard/create-assessment">
+            <a class="create-btn" routerLink="/dashboard/create-assessment" data-testid="new-assessment-btn">
                 <mat-icon>add</mat-icon>
                 <span>New Assessment</span>
             </a>
@@ -47,7 +47,7 @@
 
             <div class="top-bar-search">
                 <mat-icon>search</mat-icon>
-                <input type="text" placeholder="Search quizzes, reports...">
+                <input type="text" placeholder="Search quizzes, reports..." data-testid="dashboard-search-input">
             </div>
 
             <div class="agentic-toggle" [matTooltip]="'Chat with AI to generate and publish a quiz'">
@@ -57,6 +57,7 @@
                     [checked]="agenticMode.enabled()"
                     (change)="agenticMode.toggle()"
                     aria-label="Toggle agentic mode"
+                    data-testid="agentic-mode-toggle"
                 ></mat-slide-toggle>
             </div>
 
@@ -64,7 +65,7 @@
                 <button mat-icon-button class="action-btn">
                     <mat-icon>notifications</mat-icon>
                 </button>
-                <button mat-icon-button class="action-btn profile-btn">
+                <button mat-icon-button class="action-btn profile-btn" data-testid="profile-btn">
                     <mat-icon>account_circle</mat-icon>
                 </button>
             </div>

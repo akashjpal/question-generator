@@ -1,0 +1,148 @@
+# DISABLED — commented out for now per user request (2026-08-06).
+# GitHub Actions ignores any workflow file with no top-level `on`/`jobs` keys,
+# so this file is inert as-is — nothing will run. To re-enable, uncomment
+# everything below.
+#
+# name: E2E - Playwright (full stack)
+#
+# # Runs the real e2e suite (ai-metimeter-client/e2e/) headless against the full
+# # docker-compose stack. It logs into a dedicated Supabase teacher test account
+# # and exercises LLM-backed flows via OpenRouter, so this intentionally does NOT
+# # run on every push/PR (see ci_pipeline_implementation_plan.md) — only on
+# # pushes to dev/prod, or manually.
+# on:
+#   push:
+#     branches: [dev, prod]
+#   workflow_dispatch: {}
+#
+# concurrency:
+#   group: e2e-playwright-${{ github.ref }}
+#   cancel-in-progress: true
+#
+# env:
+#   EMAIL_TO: palgayatrij786@gmail.com
+#
+# jobs:
+#   e2e:
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 60
+#     steps:
+#       - uses: actions/checkout@v4
+#
+#       - name: Write repo-root .env for docker compose
+#         run: |
+#           cat <<EOF > .env
+#           SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+#           SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+#           SUPABASE_BUCKET_ID=${{ secrets.SUPABASE_BUCKET_ID }}
+#           OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+#           REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+#           DATABASE_CONNECTION_STRING=${{ secrets.DATABASE_CONNECTION_STRING }}
+#           CORS_ORIGIN=http://localhost:4200
+#           FRONTEND_ORIGIN=http://localhost:4200
+#           EOF
+#
+#       - name: Start full stack
+#         run: docker compose up --build -d
+#
+#       - name: Wait for frontend + ClamAV to be ready
+#         run: |
+#           echo "Waiting for frontend on :4200..."
+#           timeout 180 bash -c 'until curl -sf http://localhost:4200 > /dev/null; do sleep 5; done'
+#
+#           echo "Waiting for ClamAV container health..."
+#           cid=$(docker compose ps -q clamav)
+#           timeout 240 bash -c "until [ \"\$(docker inspect -f '{{.State.Health.Status}}' $cid)\" = 'healthy' ]; do sleep 5; done"
+#
+#       - name: Dump container status on failure
+#         if: failure()
+#         run: |
+#           docker compose ps
+#           docker compose logs --tail=200
+#
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: '22'
+#           cache: 'npm'
+#           cache-dependency-path: ai-metimeter-client/package-lock.json
+#
+#       - name: Install client dependencies
+#         working-directory: ai-metimeter-client
+#         run: npm ci
+#
+#       - name: Install Playwright browsers
+#         working-directory: ai-metimeter-client
+#         run: npx playwright install --with-deps chromium
+#
+#       - name: Write .env.test for Playwright
+#         working-directory: ai-metimeter-client
+#         run: |
+#           cat <<EOF > .env.test
+#           TEST_TEACHER_EMAIL=${{ secrets.TEST_TEACHER_EMAIL }}
+#           TEST_TEACHER_PASSWORD=${{ secrets.TEST_TEACHER_PASSWORD }}
+#           PLAYWRIGHT_BASE_URL=http://localhost:4200
+#           EOF
+#
+#       - name: Run Playwright e2e suite
+#         id: playwright
+#         working-directory: ai-metimeter-client
+#         run: npm run test:e2e
+#
+#       - name: Upload Playwright HTML report
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: playwright-report
+#           path: ai-metimeter-client/playwright-report/
+#           retention-days: 14
+#
+#       - name: Zip report for email (skip attaching if too large)
+#         if: always()
+#         working-directory: ai-metimeter-client
+#         run: |
+#           if [ -d playwright-report ]; then
+#             zip -qr /tmp/playwright-report.zip playwright-report
+#             size=$(stat -c%s /tmp/playwright-report.zip)
+#             echo "Report zip size: $size bytes"
+#             if [ "$size" -le 15728640 ]; then
+#               echo "ATTACH_PATH=/tmp/playwright-report.zip" >> "$GITHUB_ENV"
+#             else
+#               echo "Report zip too large to email ($size bytes) — link only."
+#               echo "ATTACH_PATH=" >> "$GITHUB_ENV"
+#             fi
+#           else
+#             echo "ATTACH_PATH=" >> "$GITHUB_ENV"
+#           fi
+#
+#       - name: Determine run status
+#         if: always()
+#         run: |
+#           if [ "${{ steps.playwright.outcome }}" = "success" ]; then
+#             echo "STATUS_EMOJI=PASSED ✅" >> "$GITHUB_ENV"
+#           else
+#             echo "STATUS_EMOJI=FAILED ❌" >> "$GITHUB_ENV"
+#           fi
+#
+#       - name: Email result
+#         if: always()
+#         uses: dawidd6/action-send-mail@v3
+#         with:
+#           server_address: smtp.gmail.com
+#           server_port: 465
+#           username: ${{ secrets.SMTP_USERNAME }}
+#           password: ${{ secrets.SMTP_PASSWORD }}
+#           from: Question Generator CI <${{ secrets.SMTP_USERNAME }}>
+#           to: ${{ env.EMAIL_TO }}
+#           subject: "[Question Generator] E2E ${{ env.STATUS_EMOJI }} — ${{ github.ref_name }} (#${{ github.run_number }})"
+#           body: |
+#             Playwright e2e run on branch "${{ github.ref_name }}" (commit ${{ github.sha }}) finished: ${{ env.STATUS_EMOJI }}
+#
+#             Triggered by: ${{ github.event_name }} (${{ github.actor }})
+#             Full logs and artifact: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+#
+#             The HTML report is attached when small enough to email; otherwise download it from the "playwright-report" artifact on the run page above.
+#           attachments: ${{ env.ATTACH_PATH }}
+#
+#       - name: Tear down stack
+#         if: always()
+#         run: docker compose down -v

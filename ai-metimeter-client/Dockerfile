@@ -20,5 +20,8 @@ ENV PORT=4000
 ENV API_URL=http://localhost:3000
 ENV REPORTS_API_URL=http://localhost:5082
 ENV ATTEMPT_API_URL=http://localhost:5136
+
 EXPOSE 4000
 CMD ["node", "dist/ai-quick-analysis/server/server.mjs"]
+
+
