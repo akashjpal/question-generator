@@ -32,9 +32,17 @@ test.describe('Student mock routes (dead UI, not backend-integrated)', () => {
     await expect(page.getByRole('button', { name: 'Previous' })).toBeDisabled();
 
     // 3 hardcoded questions (see TakeQuiz.questions) — answer through Next, then Submit.
-    while (await page.getByRole('button', { name: 'Next' }).isVisible().catch(() => false)) {
+    // Uses a fixed count + an auto-retrying `expect(...).toBeVisible()` rather than a
+    // one-shot `isVisible()` poll: a single-shot check can read stale DOM mid-transition
+    // (e.g. right as Next swaps for Submit on the last question), causing the loop to
+    // either exit early or click a button that's about to detach — a classic Playwright
+    // flakiness source. `totalQuestions` mirrors `TakeQuiz.questions.length`.
+    const totalQuestions = 3;
+    for (let i = 0; i < totalQuestions - 1; i++) {
       await page.locator('mat-radio-button.option-button').first().click();
-      await page.getByRole('button', { name: 'Next' }).click();
+      const nextBtn = page.getByRole('button', { name: 'Next' });
+      await expect(nextBtn).toBeVisible();
+      await nextBtn.click();
     }
     await page.locator('mat-radio-button.option-button').first().click();
     await page.getByRole('button', { name: 'Submit' }).click();

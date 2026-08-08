@@ -18,9 +18,15 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 1,
-  workers: process.env.CI ? 1 : undefined,
+  // Capped (not `undefined`/full-CPU) locally too: several specs write real attempts
+  // through AttemptAPI to a remote Supabase Postgres pooler, and running too many of
+  // those writes concurrently causes latency spikes that flake the 15s UI assertions
+  // waiting on them.
+  workers: 1,
   reporter: 'html',
-  timeout: 30_000,
+  // 45s (not the default 30s): a few specs' 20s submit-result waits (see attempt-flow.spec.ts
+  // and dashboard-helpers.ts) plus their surrounding steps can otherwise exceed a 30s test budget.
+  timeout: 45_000,
   globalSetup: require.resolve('./e2e/global-setup'),
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4200',

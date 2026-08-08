@@ -29,12 +29,12 @@ public class AttemptController : ControllerBase
         {
             Console.WriteLine($"Received assessment result: {JsonSerializer.Serialize(assessmentResult)}");
             await _assessmentService.SaveAssessment(assessmentResult);
-            return Ok("Assessment saved successfully");
+            return Ok(new { message = "Assessment saved successfully" });
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error saving assessment: {ex.Message}");
-            return BadRequest("Error saving assessment");
+            return BadRequest(new { message = "Error saving assessment" });
         }
     }
 
@@ -45,12 +45,12 @@ public class AttemptController : ControllerBase
         {
             Console.WriteLine($"Received assessment result: {JsonSerializer.Serialize(assessmentResult)}");
             await _assessmentService.SaveAssessment(assessmentResult);
-            return Ok("Assessment submitted successfully");
+            return Ok(new { message = "Assessment submitted successfully" });
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error while submitting assessment: {ex.Message}");
-            return BadRequest("Error while submitting assessment");
+            return BadRequest(new { message = "Error while submitting assessment" });
         }
     }
 }

@@ -223,7 +223,9 @@ app.get("/get-assessments", requireAuth, async(req,res)=>{
   }
 });
 
-app.get("/api/assessments/:id", requireAuth, async (req, res)=>{
+// Public: the student join screen (/attempt/:id) fetches this while unauthenticated
+// (students never log in) to show the title/subject/questions and verify the access code.
+app.get("/api/assessments/:id", async (req, res)=>{
   try {
     const { id } = req.params;
     console.log(id);

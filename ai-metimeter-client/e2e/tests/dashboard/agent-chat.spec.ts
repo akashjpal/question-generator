@@ -32,8 +32,17 @@ test.describe('Agentic Mode chat', () => {
   test('a quiz-creation prompt eventually renders a published-quiz-card', async ({ page }) => {
     test.setTimeout(120_000);
 
+    // The agent only calls its create/publish tool once a source PDF is attached —
+    // without one it just asks the user to upload one (verified by hitting the
+    // agent-api directly). Attach the same fixture the PDF-based generation specs use.
+    await page.locator('input[type="file"]').setInputFiles('e2e/fixtures/sample-lesson.pdf');
+    await expect(page.locator('.attached-chip')).toBeVisible({ timeout: 15_000 });
+
+    // Subject must be included up front — without it the agent asks a clarifying
+    // question instead of calling its create/publish tool, which this single-shot
+    // send-and-wait test isn't set up to answer.
     await page.locator('[data-testid="chat-input"]').fill(
-      'Create and publish a 1 question easy quiz about photosynthesis, 10 minute time limit.',
+      'Create and publish a 1 question easy quiz about photosynthesis, subject Biology, 10 minute time limit.',
     );
     await page.locator('[data-testid="chat-send-btn"]').click();
 

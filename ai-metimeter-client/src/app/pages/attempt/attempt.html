@@ -109,7 +109,7 @@
                 <span class="subject-pill">{{ assessment?.subject }}</span>
             </div>
             <div class="topbar-right">
-                <app-countdown-timer *ngIf="assessment?.timeLimit && timeLeft > 0" [totalSeconds]="timeLeft"
+                <app-countdown-timer *ngIf="assessment?.timeLimit" [totalSeconds]="timeLeft"
                     (timerEnd)="submitQuiz()" (timeUpdate)="timeLeft = $event">
                 </app-countdown-timer>
                 <button class="flag-topbar-btn" (click)="toggleFlag()"

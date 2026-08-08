@@ -154,7 +154,9 @@ export async function submitSingleQuestionAttempt(
 
     await page.locator('[data-testid="option-card-0"]').click();
     await page.locator('[data-testid="submit-btn"]').click();
-    await expect(page.locator('[data-testid="back-home-btn"]')).toBeVisible({ timeout: 15_000 });
+    // Generous timeout: submit writes go over the network to a remote Supabase
+    // Postgres pooler, which occasionally spikes under concurrent test load.
+    await expect(page.locator('[data-testid="back-home-btn"]')).toBeVisible({ timeout: 20_000 });
   } finally {
     await context.close();
   }

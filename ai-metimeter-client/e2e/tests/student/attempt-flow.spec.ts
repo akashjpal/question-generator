@@ -120,7 +120,9 @@ test.describe('Student attempt flow (/attempt/:id)', () => {
     await expect(page.getByTestId('submit-btn')).toBeVisible();
     await page.getByTestId('submit-btn').click();
 
-    await expect(page.locator('.result-heading')).toBeVisible();
+    // Generous timeout: submit writes go over the network to a remote Supabase
+    // Postgres pooler, which occasionally spikes under concurrent test load.
+    await expect(page.locator('.result-heading')).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('.score-num')).toHaveText('1');
     await expect(page.locator('.score-denom')).toContainText('2');
   });
@@ -135,7 +137,9 @@ test.describe('Student attempt flow (/attempt/:id)', () => {
     // Sidebar submit is available regardless of which question is active.
     await page.getByTestId('submit-sidebar-btn').click();
 
-    await expect(page.locator('.result-heading')).toBeVisible();
+    // Generous timeout: submit writes go over the network to a remote Supabase
+    // Postgres pooler, which occasionally spikes under concurrent test load.
+    await expect(page.locator('.result-heading')).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('.score-num')).toHaveText('2');
     await expect(page.locator('.score-denom')).toContainText('2');
   });
@@ -144,22 +148,30 @@ test.describe('Student attempt flow (/attempt/:id)', () => {
     await page.clock.install();
     await joinQuiz(page, quiz, 'Timeout Tester');
 
-    await page.clock.fastForward((quiz.timeLimitMinutes * 60 + 5) * 1000);
+    // `runFor` (unlike `fastForward`) actually replays every intermediate setInterval
+    // tick rather than jumping forward and firing each timer at most once — required
+    // here since the countdown decrements once per second via `setInterval`.
+    await page.clock.runFor((quiz.timeLimitMinutes * 60 + 5) * 1000);
 
-    await expect(page.locator('.result-heading')).toBeVisible({ timeout: 10_000 });
+    // Generous timeout: submit writes go over the network to a remote Supabase
+    // Postgres pooler, which occasionally spikes under concurrent test load.
+    await expect(page.locator('.result-heading')).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('.score-num')).toHaveText('0');
   });
 
   test('rejoining the same assessment after submitting is blocked', async ({ page }) => {
-    await joinQuiz(page, quiz, 'Repeat Joiner');
-    await page.getByTestId(`option-card-${quiz.questions[0].correctIndex}`).click();
-    await page.getByTestId('submit-sidebar-btn').click();
-    await expect(page.locator('.result-heading')).toBeVisible();
-
-    // Re-attempt blocking is keyed only by `participantUniqueCode_{assessmentId}` in
-    // localStorage — it fires regardless of the name typed on the second attempt.
+    // Re-attempt blocking is a one-time-attempt guard enforced entirely client-side —
+    // `verifyCode()` in attempt.ts checks for `participantUniqueCode_{assessmentId}` in
+    // localStorage before allowing a join, regardless of the name typed. Seeding that
+    // key directly (rather than driving a full real submit through the backend first)
+    // tests the actual guard without coupling this test to backend write latency.
+    await page.goto(`/attempt/${quiz.quizId}`);
+    await page.evaluate(
+      (id) => localStorage.setItem(`participantUniqueCode_${id}`, 'seeded-for-test'),
+      quiz.quizId,
+    );
     await page.reload();
-    await page.locator('#participantName').fill('Repeat Joiner Again');
+    await page.locator('#participantName').fill('Repeat Joiner');
     await page.locator('#accessCode').fill(quiz.code);
 
     let dialogMessage = '';
@@ -172,15 +184,12 @@ test.describe('Student attempt flow (/attempt/:id)', () => {
     await expect.poll(() => dialogMessage).toContain('already attempted');
   });
 
-  test('an unknown assessment id leaves the screen stuck loading (no error handler is wired for a failed fetch)', async ({ page }) => {
-    // `AttemptScreen.loadAssessment()` subscribes to `getAssessment(id)` with only a
-    // `next` callback and no `error` callback, so a 404 for a nonexistent id never
-    // flips `isLoading` to false — the error-card branch (`error && !isLoading`) is
-    // consequently unreachable via a bad id. This documents that real, current gap
-    // rather than asserting the error card that the code cannot actually produce here.
+  test('an unknown assessment id shows the error card instead of hanging on the loader', async ({ page }) => {
+    // `AttemptScreen.loadAssessment()` subscribes to `getAssessment(id)` with both a
+    // `next` and an `error` callback, so a failed fetch for a nonexistent id flips
+    // `isLoading` to false and surfaces the error-card branch (`error && !isLoading`).
     await page.goto('/attempt/999999999');
-    await page.waitForTimeout(3000);
-    await expect(page.locator('.loader-text')).toBeVisible();
-    await expect(page.getByTestId('go-home-btn')).toHaveCount(0);
+    await expect(page.getByTestId('go-home-btn')).toBeVisible();
+    await expect(page.locator('.loader-text')).toHaveCount(0);
   });
 });

@@ -250,7 +250,10 @@ export class AttemptScreen implements OnInit, OnDestroy {
     submitQuiz() {
         clearInterval(this.timerInterval);
         this.manualSubmit$.next();
-        this.isSubmitted = true;
+        // isSubmitted flips to true only once the submit request actually resolves —
+        // setting it synchronously here showed the results screen before the attempt
+        // was persisted, letting the student (and e2e tests) move on to a report page
+        // that hadn't seen the write yet.
         this.reportService.submitQuiz(this.assessmentId!, {
             id: parseInt(this.assessmentId!, 10),
             participantUniqueCode: this.participantUniqueCode,
@@ -265,6 +268,15 @@ export class AttemptScreen implements OnInit, OnDestroy {
             next: (data) => {
                 console.log(data);
                 this.isSubmitted = true;
+                this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Submit failed:', err);
+                // Score is computed client-side from already-known answers, so still
+                // show the results screen rather than leaving the student stuck —
+                // the report just won't reflect this attempt if the write truly failed.
+                this.isSubmitted = true;
+                this.cdr.detectChanges();
             }
         });
     }
