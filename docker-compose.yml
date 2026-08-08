@@ -118,6 +118,72 @@ services:
       - "5082"
     restart: unless-stopped
 
+  # ── MiniStack (LocalStack-compatible AWS emulator) ───────────
+  ministack:
+    image: ministackorg/ministack
+    environment:
+      - S3_PERSIST=1
+      - S3_DATA_DIR=/var/lib/ministack/s3
+      - GATEWAY_PORT=4566
+    ports:
+      - "4566:4566"
+    volumes:
+      - ministack-data:/var/lib/ministack
+      - ./lambda:/lambda-src:ro
+    depends_on:
+      clamav:
+        condition: service_healthy
+    healthcheck:
+      # No curl/wget in this image (verified via `docker exec ... which curl` — neither
+      # exists). busybox `nc -z` was also tried and is unreliable here — it reports the
+      # gateway port closed even when a plain Python socket connect succeeds — so this
+      # uses Python directly (present, since the image itself is Python-based).
+      test: ["CMD", "python3", "-c", "import socket; socket.create_connection(('localhost', 4566), timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  # ── MiniStack init (watches ministack, (re)provisions Lambda/IAM/buckets) ──
+  # A persistent sidecar, not a one-shot job and not MiniStack's own
+  # docker-entrypoint-initaws.d hook (that hook runs as a *blocking* part of
+  # MiniStack's own ASGI startup, before the gateway can answer HTTP requests,
+  # which deadlocks against itself — observed directly: LifespanTimeoutError).
+  # It has to stay running: the Lambda function/IAM role/notification config
+  # cannot survive a `ministack` container restart in this build (no
+  # persistence mechanism for them at all), so this loop keeps watching and
+  # re-provisions them every time it notices ministack came back up without
+  # the Lambda function already present — not just once at stack startup.
+  ministack-init:
+    image: amazon/aws-cli:2.17.62
+    entrypoint: ["/bin/sh", "/init/init-lambda.sh"]
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - ./ministack/init:/init:ro
+      - ./lambda:/lambda-src:ro
+    depends_on:
+      ministack:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── StackPort (MiniStack resource browser UI) ────────────────
+  stackport:
+    image: davireis/stackport
+    environment:
+      - AWS_ENDPOINT_URL=http://ministack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ministack
+    restart: unless-stopped
+
   # ── Redis ────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
@@ -148,7 +214,7 @@ services:
     volumes:
       - clamav-data:/var/lib/clamav
     healthcheck:
-      test: ["CMD", "clamdscan", "--ping"]
+      test: ["CMD", "clamdscan", "--ping", "1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -158,3 +224,4 @@ services:
 volumes:
   redis-data:
   clamav-data:
+  ministack-data:

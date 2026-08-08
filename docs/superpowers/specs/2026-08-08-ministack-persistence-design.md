@@ -115,6 +115,20 @@ aws $ENDPOINT s3api put-bucket-notification-configuration \
 - Step 6 (`update-function-code` / `update-function-configuration`) remains manual — it's for iterating on Lambda code during active development, not startup provisioning, and doesn't fit the init-script model since it's an update, not idempotent creation.
 - Steps 8–9 (manual invoke, reading logs) unchanged.
 
+## Implementation Notes (as built)
+
+Four things changed from the design above during implementation, all discovered by actually running it:
+
+1. **No curl/wget in the `ministack` image** (`docker exec ... which curl` / `which wget` both came back empty — only `nc` exists, and even busybox `nc -z` proved unreliable, reporting the gateway port closed when a plain Python socket connect succeeded). The healthcheck uses a Python one-liner instead: `python3 -c "import socket; socket.create_connection(('localhost', 4566), timeout=2)"` — safe to assume present, since the image itself is a Python app.
+
+2. **MiniStack's own `docker-entrypoint-initaws.d` hook deadlocks against its own startup.** This build runs init scripts as a *blocking* part of its ASGI lifespan startup — before the gateway can answer HTTP requests. An init script that calls the gateway (which is the entire point of an init script) therefore blocks the very startup step it's part of, and reliably trips hypercorn's `LifespanTimeoutError`. Confirmed directly: a baseline start with the init script removed reached "Ready" in ~2 seconds; with it present, startup crash-looped repeatedly. **Fix:** provisioning moved out of MiniStack entirely, into a separate `ministack-init` Compose service (image `amazon/aws-cli:2.17.62`) that talks to `ministack` over the Compose network (`http://ministack:4566`) and is gated on `depends_on: ministack: condition: service_healthy` — so it only ever runs against a gateway that's actually answering.
+
+3. **`ministack-init` has to be a persistent watcher, not a one-shot job.** The original design implied it just needed to run once per `docker compose up`. But the whole reason it exists is that Lambda/IAM/notification config get wiped on every `ministack` *restart* — and a one-shot container that already exited successfully does not re-run just because a sibling service restarted; Compose has no such trigger. So `ministack-init` runs `restart: unless-stopped` with a script that loops forever: wait for the gateway to respond, check whether `my-first-lambda` exists, and only re-provision when it doesn't (idempotency check via `aws lambda get-function`). This makes it self-healing across any number of `ministack` restarts, not just the first boot.
+
+4. **Pre-existing, unrelated bug found and fixed en route: ClamAV's healthcheck was malformed.** `clamdscan --ping` (no argument) always fails — `--ping` requires an attempt count (`clamdscan --ping 1`). This isn't part of the ministack fix, but it silently blocked `ministack`'s `depends_on: clamav: condition: service_healthy` (added per point 2 above, since the Lambda's ClamAV scanning needs `clamav` reachable), so it had to be fixed to unblock verification. Changed `docker-compose.yml`'s `clamav` healthcheck test to `["CMD", "clamdscan", "--ping", "1"]`.
+
+All four were verified against a running stack: fresh `docker compose up` provisions everything (buckets, IAM role, Lambda, permission, notification config) within seconds, and `docker compose restart ministack` — the exact failure mode from the RCA — results in S3 data (buckets and a test object, with its original timestamp intact) surviving, and the watcher re-creating Lambda/IAM/notification config automatically within seconds of the gateway coming back.
+
 ## Testing Plan
 
 1. `docker compose down -v` on ministack's volume (clean slate), then `docker compose up ministack stackport`.
