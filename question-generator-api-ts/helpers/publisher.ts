@@ -149,8 +149,9 @@ export class Publisher {
     try{
       const {data, error} = await supabase
         .from("assessment_table")
-        .update({status: 'published'})
-        .eq("id", id);
+        .update({status: AssessmentStatus.published})
+        .eq("id", id)
+        .select();
       if (error) {
         throw error;
       }

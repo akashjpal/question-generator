@@ -174,10 +174,11 @@ app.post("/api/assessments/:id/publish", requireAuth, async (req, res)=>{
   try{
     const {id} = req.params;
     const publisher = new Publisher();
-    const assessment: Assessment | undefined = await publisher.getAssessment(parseInt(id));
-    if(assessment) {
-      // await publisher.handleAssessmentPublishing(assessment);
-      console.log(assessment);
+    const updated = await publisher.updateAssessmentStatus(parseInt(id));
+    if (!updated) {
+      return res.status(404).json({
+        message: "assessment not found"
+      });
     }
     return res.status(200).json({
       message: "published successfully"

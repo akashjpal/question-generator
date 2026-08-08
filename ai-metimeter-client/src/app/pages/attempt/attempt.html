@@ -16,7 +16,7 @@
             </div>
             <h2>Something went wrong</h2>
             <p>{{ error }}</p>
-            <button class="btn btn-primary" routerLink="/">
+            <button class="btn btn-primary" routerLink="/" data-testid="go-home-btn">
                 <mat-icon>home</mat-icon>
                 Go Home
             </button>
@@ -87,7 +87,7 @@
                 </div>
 
                 <button class="btn btn-join" (click)="verifyCode()"
-                    [disabled]="!participantName.trim() || !accessCode.trim()">
+                    [disabled]="!participantName.trim() || !accessCode.trim()" data-testid="join-btn">
                     <span>Join Assessment</span>
                     <mat-icon>arrow_forward</mat-icon>
                 </button>
@@ -113,7 +113,7 @@
                     (timerEnd)="submitQuiz()" (timeUpdate)="timeLeft = $event">
                 </app-countdown-timer>
                 <button class="flag-topbar-btn" (click)="toggleFlag()"
-                    [class.flag-active]="isQuestionFlagged(currentQuestionIndex)">
+                    [class.flag-active]="isQuestionFlagged(currentQuestionIndex)" data-testid="flag-btn">
                     <mat-icon>{{ isQuestionFlagged(currentQuestionIndex) ? 'flag' : 'outlined_flag' }}</mat-icon>
                     <span>Flag</span>
                 </button>
@@ -149,7 +149,8 @@
                     <div class="options-grid">
                         <button class="option-card"
                             *ngFor="let opt of assessment?.questions?.[currentQuestionIndex]?.filteredOptions; let i = index"
-                            [class.option-selected]="answers[currentQuestionIndex] === i" (click)="selectOption(i)">
+                            [class.option-selected]="answers[currentQuestionIndex] === i" (click)="selectOption(i)"
+                            [attr.data-testid]="'option-card-' + i">
                             <span class="option-marker">{{ ['A','B','C','D'][i] }}</span>
                             <span class="option-text">{{ opt }}</span>
                             <span class="option-check" *ngIf="answers[currentQuestionIndex] === i">
@@ -161,21 +162,21 @@
                     <!-- Navigation -->
                     <div class="question-nav">
                         <button class="btn btn-outline" (click)="prevQuestion()"
-                            [disabled]="currentQuestionIndex === 0">
+                            [disabled]="currentQuestionIndex === 0" data-testid="prev-btn">
                             <mat-icon>chevron_left</mat-icon>
                             Previous
                         </button>
 
                         <button class="btn btn-primary"
                             *ngIf="currentQuestionIndex < (assessment?.questions?.length || 0) - 1"
-                            (click)="nextQuestion()">
+                            (click)="nextQuestion()" data-testid="next-btn">
                             Next
                             <mat-icon>chevron_right</mat-icon>
                         </button>
 
                         <button class="btn btn-accent"
                             *ngIf="currentQuestionIndex === (assessment?.questions?.length || 0) - 1"
-                            (click)="submitQuiz()">
+                            (click)="submitQuiz()" data-testid="submit-btn">
                             <mat-icon>send</mat-icon>
                             Submit
                         </button>
@@ -195,7 +196,7 @@
                         <button class="nav-dot" *ngFor="let q of assessment?.questions; let i = index"
                             [class.nav-current]="i === currentQuestionIndex"
                             [class.nav-answered]="isQuestionAnswered(i)" [class.nav-flagged]="isQuestionFlagged(i)"
-                            (click)="goToQuestion(i)">
+                            (click)="goToQuestion(i)" [attr.data-testid]="'nav-dot-' + i">
                             {{ i + 1 }}
                             <span class="flag-indicator" *ngIf="isQuestionFlagged(i)"></span>
                         </button>
@@ -233,7 +234,7 @@
                         </div>
                     </div>
 
-                    <button class="btn btn-submit-sidebar" (click)="submitQuiz()">
+                    <button class="btn btn-submit-sidebar" (click)="submitQuiz()" data-testid="submit-sidebar-btn">
                         <mat-icon>send</mat-icon>
                         Submit Assessment
                     </button>
@@ -277,7 +278,7 @@
                 </div>
             </div>
 
-            <button class="btn btn-primary" routerLink="/">
+            <button class="btn btn-primary" routerLink="/" data-testid="back-home-btn">
                 <mat-icon>home</mat-icon>
                 Back to Home
             </button>

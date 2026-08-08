@@ -89,6 +89,12 @@ export class AttemptScreen implements OnInit, OnDestroy {
                 this.initAssessment(data);
                 this.isLoading = false;
                 this.cdr.detectChanges();
+            },
+            error: (err) => {
+                console.error('Failed to load assessment:', err);
+                this.error = 'We could not load this assessment. It may not exist or is no longer available.';
+                this.isLoading = false;
+                this.cdr.detectChanges();
             }
         });
         // Load dummy data directly (no backend needed)

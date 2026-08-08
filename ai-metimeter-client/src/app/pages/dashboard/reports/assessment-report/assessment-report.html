@@ -1,7 +1,7 @@
 <div class="report-page">
     <!-- Back Button -->
     <div class="back-nav">
-        <a routerLink="/dashboard/reports" class="back-btn">
+        <a routerLink="/dashboard/reports" class="back-btn" data-testid="back-link">
             <mat-icon>arrow_back</mat-icon>
             Back to Reports
         </a>
@@ -17,14 +17,14 @@
                     <p class="date">{{ assessmentDetails.date }}</p>
                 </div>
                 <div class="header-actions">
-                    <mat-slide-toggle [checked]="isAutoRefresh" (change)="toggleAutoRefresh()" color="primary">
+                    <mat-slide-toggle [checked]="isAutoRefresh" (change)="toggleAutoRefresh()" color="primary" data-testid="auto-refresh-toggle">
                         Auto Refresh
                     </mat-slide-toggle>
-                    <button class="action-btn" (click)="downloadPDF()">
+                    <button class="action-btn" (click)="downloadPDF()" data-testid="download-pdf-btn">
                         <mat-icon>picture_as_pdf</mat-icon>
                         Download PDF
                     </button>
-                    <button class="action-btn primary" (click)="exportCSV()">
+                    <button class="action-btn primary" (click)="exportCSV()" data-testid="export-csv-btn">
                         <mat-icon>download</mat-icon>
                         Export CSV
                     </button>
@@ -34,31 +34,31 @@
     
         <!-- Stats Cards -->
         <div class="stats-grid">
-            <div class="stat-card blue">
+            <div class="stat-card blue" data-testid="stat-avg-score">
                 <div class="stat-bg-icon">
                     <mat-icon>show_chart</mat-icon>
                 </div>
                 <div class="stat-value">{{ assessmentDetails.avgScore }}%</div>
                 <div class="stat-label">Average Score</div>
             </div>
-    
-            <div class="stat-card green">
+
+            <div class="stat-card green" data-testid="stat-participants">
                 <div class="stat-bg-icon">
                     <mat-icon>people</mat-icon>
                 </div>
                 <div class="stat-value">{{ assessmentDetails.participants }}</div>
                 <div class="stat-label">Participants</div>
             </div>
-    
-            <div class="stat-card purple">
+
+            <div class="stat-card purple" data-testid="stat-highest-score">
                 <div class="stat-bg-icon">
                     <mat-icon>emoji_events</mat-icon>
                 </div>
                 <div class="stat-value">{{ assessmentDetails.highestScore }}%</div>
                 <div class="stat-label">Highest Score</div>
             </div>
-    
-            <div class="stat-card orange">
+
+            <div class="stat-card orange" data-testid="stat-lowest-score">
                 <div class="stat-bg-icon">
                     <mat-icon>warning</mat-icon>
                 </div>
@@ -73,7 +73,7 @@
                 <h2>Participant Results</h2>
                 <div class="search-box">
                     <mat-icon>search</mat-icon>
-                    <input type="text" placeholder="Search participants...">
+                    <input type="text" placeholder="Search participants..." data-testid="participant-search-input">
                 </div>
             </div>
     

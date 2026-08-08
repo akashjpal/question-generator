@@ -1,0 +1,35 @@
+name: CI - Question Generator API (Bun)
+
+on:
+  push:
+    paths:
+      - 'question-generator-api-ts/**'
+      - '.github/workflows/ci-question-generator-api.yml'
+  pull_request:
+    paths:
+      - 'question-generator-api-ts/**'
+      - '.github/workflows/ci-question-generator-api.yml'
+
+concurrency:
+  group: ci-qgen-api-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: question-generator-api-ts
+
+jobs:
+  build-and-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Type check
+        run: bunx tsc --noEmit

@@ -20,9 +20,10 @@
             [disabled]="disabled()"
             placeholder="Describe the quiz you want, e.g. '10 medium questions on this PDF, 20 min limit'…"
             rows="1"
+            data-testid="chat-input"
         ></textarea>
 
-        <button mat-icon-button color="primary" (click)="onSend()" [disabled]="disabled() || !text().trim()" aria-label="Send">
+        <button mat-icon-button color="primary" (click)="onSend()" [disabled]="disabled() || !text().trim()" aria-label="Send" data-testid="chat-send-btn">
             <mat-icon>send</mat-icon>
         </button>
     </div>
