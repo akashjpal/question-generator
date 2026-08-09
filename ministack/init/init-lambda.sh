@@ -13,6 +13,29 @@
 # startup (observed directly: hypercorn LifespanTimeoutError).
 
 ENDPOINT="--endpoint-url=http://ministack:4566 --cli-connect-timeout 3 --cli-read-timeout 15"
+QUEUE_BASE="http://ministack:4566/000000000000"
+
+# SQS: main + DLQ for question generation jobs. Called on every loop tick
+# (not gated behind the Lambda-missing check below) since create-queue and
+# set-queue-attributes are both idempotent, and this way the queues self-heal
+# regardless of whether ministack's general PERSIST_STATE actually survives
+# a restart for SQS specifically — same "assume nothing persists, keep
+# re-asserting desired state" approach as the Lambda/IAM provisioning below.
+provision_sqs() {
+  aws $ENDPOINT sqs create-queue --queue-name question-generator-dlq >/dev/null 2>&1 || true
+  aws $ENDPOINT sqs create-queue --queue-name question-generator >/dev/null 2>&1 || true
+
+  DLQ_ARN=$(aws $ENDPOINT sqs get-queue-attributes \
+    --queue-url "$QUEUE_BASE/question-generator-dlq" \
+    --attribute-names QueueArn --query "Attributes.QueueArn" --output text 2>/dev/null)
+
+  if [ -n "$DLQ_ARN" ]; then
+    aws $ENDPOINT sqs set-queue-attributes \
+      --queue-url "$QUEUE_BASE/question-generator" \
+      --attributes "{\"VisibilityTimeout\":\"900\",\"RedrivePolicy\":\"{\\\"deadLetterTargetArn\\\":\\\"$DLQ_ARN\\\",\\\"maxReceiveCount\\\":\\\"3\\\"}\"}" \
+      >/dev/null 2>&1
+  fi
+}
 
 provision() {
   # Buckets: idempotent, since S3_PERSIST=1 means these may already exist after a restart
@@ -51,6 +74,8 @@ while true; do
   until aws $ENDPOINT s3 ls >/dev/null 2>&1; do
     sleep 2
   done
+
+  provision_sqs
 
   # Only (re)provision if the Lambda isn't there — i.e. first boot, or
   # ministack just restarted and wiped its unpersisted Lambda/IAM state.

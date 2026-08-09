@@ -259,6 +259,11 @@ def save_questions_to_db(questions: list[dict], job_id: str) -> list[dict]:
         for q in questions
     ]
 
+    # Idempotency: an SQS-redelivered job re-runs the whole pipeline, so clear
+    # any rows a previous (failed-after-save) attempt already inserted for this
+    # job_id before inserting again — otherwise retries duplicate questions.
+    supabase.table("ai-generated-questions").delete().eq("jobId", job_id).execute()
+
     result = supabase.table("ai-generated-questions").insert(rows).execute()
     logger.info("[DB] Saved %d questions for job_id=%s", len(result.data), job_id)
     return result.data
