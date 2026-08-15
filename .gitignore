@@ -23,9 +23,19 @@ question-generator-worker/__pycache__
 question-generator-worker/helpers/__pycache__
 question-generator-worker/models/__pycache__
 question-generator-worker/.venv
+__pycache__/
 .env
+.env.test
 *.log
 lambda/node_modules
-.agent/*
-.claude/*
 Testing/*
+
+ai-metimeter-client/playwright-report
+ai-metimeter-client/test-results
+ai-metimeter-client/e2e
+
+# ECS task definitions hold plaintext env values (Supabase keys etc.) until
+# they're moved to Secrets Manager references.
+ecs/taskdef-*.json
+
+

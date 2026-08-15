@@ -31,6 +31,7 @@ services:
   # ── Question Generator Node/Bun API ─────────────────────────
   question-generator-api:
     build: ./question-generator-api-ts
+    image: localhost:4566/question-generator/api:latest
     environment:
       - PORT=3000
       - SUPABASE_URL=${SUPABASE_URL}
@@ -39,25 +40,58 @@ services:
       - REDIS_URL=redis://redis:6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:4200}
-      - QUESTION_GENERATOR_WORKER_URL=http://fastapi-worker:8000
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-test}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-test}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ENDPOINT=${AWS_ENDPOINT:-http://ministack:4566}
+      - AWS_BUCKET_ALL=${AWS_BUCKET_ALL:-all-files}
+      - AWS_BUCKET_CORRECT=${AWS_BUCKET_CORRECT:-correct-files}
+      - AWS_BUCKET_INFECTED=${AWS_BUCKET_INFECTED:-infected-files}
+      - AWS_SQS_PUBLISH_QUEUE_URL=${AWS_SQS_PUBLISH_QUEUE_URL:-http://ministack:4566/000000000000/question-generator}
+      - AWS_SQS_DEAD_LETTER_QUEUE_URL=${AWS_SQS_DEAD_LETTER_QUEUE_URL:-http://ministack:4566/000000000000/question-generator-dlq}
     expose:
       - "3000"
     depends_on:
-      - redis
-      - fastapi-worker
+      redis:
+        condition: service_started
+      ministack:
+        condition: service_healthy
     restart: unless-stopped
 
-  # ── FastAPI Question Generator Worker ────────────────────────
+  # ── Question Worker (async LangGraph SQS consumer, no HTTP surface) ──
+  # Replaces the old question-generator-worker/fastapi-worker service — see
+  # question_worker_implementation_plan.md. That directory is left on disk,
+  # untouched, in case of rollback; it's simply no longer built/run here.
   fastapi-worker:
-    build: ./question-generator-worker
+    build: ./question-worker
     environment:
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-moonshotai/kimi-k2}
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:4200}
-    expose:
-      - "8000"
+      - LLM_MODEL=${OPENROUTER_MODEL:-moonshotai/kimi-k2}
+      - JUDGE_MODEL=${OPENROUTER_MODEL:-moonshotai/kimi-k2}
+      - EMBEDDING_MODEL=${OPENROUTER_EMBEDDING_MODEL:-openai/text-embedding-3-small}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-test}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-test}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ENDPOINT=${AWS_ENDPOINT:-http://ministack:4566}
+      - AWS_BUCKET_CORRECT=${AWS_BUCKET_CORRECT:-correct-files}
+      - SQS_QUEUE_URL=${SQS_QUEUE_URL:-http://ministack:4566/000000000000/question-generator}
+      - SQS_DLQ_URL=${SQS_DLQ_URL:-http://ministack:4566/000000000000/question-generator-dlq}
+      - SQS_MAX_MESSAGES=${SQS_MAX_MESSAGES:-5}
+      - SQS_WAIT_TIME=${SQS_WAIT_TIME:-20}
+      - SQS_VISIBILITY_TIMEOUT=${SQS_VISIBILITY_TIMEOUT:-120}
+      - SQS_MAX_RECEIVE_COUNT=${SQS_MAX_RECEIVE_COUNT:-3}
+      - VISIBILITY_HEARTBEAT_INTERVAL=${VISIBILITY_HEARTBEAT_INTERVAL:-60}
+      - WORKER_CONCURRENCY=${WORKER_CONCURRENCY:-3}
+      - MAX_REGENERATION_ROUNDS=${MAX_REGENERATION_ROUNDS:-3}
+      - DUPLICATE_SIMILARITY_THRESHOLD=${DUPLICATE_SIMILARITY_THRESHOLD:-0.90}
+      - MIN_EXTRACTED_CHARS=${MIN_EXTRACTED_CHARS:-200}
+      - MIN_CHARS_PER_QUESTION=${MIN_CHARS_PER_QUESTION:-400}
+    depends_on:
+      ministack:
+        condition: service_healthy
+    stop_grace_period: 30s
     restart: unless-stopped
 
   # ── Agentic Chatbot (FastAPI + LangGraph) ────────────────────
@@ -125,11 +159,18 @@ services:
       - S3_PERSIST=1
       - S3_DATA_DIR=/var/lib/ministack/s3
       - GATEWAY_PORT=4566
+      # General persistence switch (covers SQS, among other services) — separate
+      # from S3_PERSIST above. Lambda/IAM/notification config still has no
+      # persistence mechanism in this build regardless (see RCA_Bug_MinistackDataLoss.md),
+      # which is why ministack-init keeps re-provisioning those unconditionally.
+      - PERSIST_STATE=1
+      - STATE_DIR=/var/lib/ministack/state
     ports:
       - "4566:4566"
     volumes:
       - ministack-data:/var/lib/ministack
       - ./lambda:/lambda-src:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       clamav:
         condition: service_healthy
