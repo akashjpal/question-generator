@@ -7,6 +7,8 @@ import cors from "cors";
 import { SupabaseOperator } from "./helpers/supabseOperator.js";
 import type { Assessment } from "./models/assessment.models.js";
 import { requireAuth } from "./helpers/requireAuth.js";
+import { s3Client } from "./helpers/s3Client.ts";
+import { sqsClient } from "./helpers/sqsClient.ts";
 
 dotenv.config();
 
@@ -41,11 +43,8 @@ app.post("/file-upload", requireAuth, async (req, res) => {
     if (!fileBuffer && fileBuffer.length === 0) {
       return res.status(400).json({ error: "No file uploaded." });
     }
-    const uploader = new FileUploader();
-    const publisher = new Publisher();
-    const {fileId, fileName} = await uploader.storeFileInSupabase(fileBuffer, filename);
-    console.log(fileId, fileName);
-    await publisher.publish({ fileName: fileName, fileId: fileId });
+    const s3 = new s3Client();
+    const { fileId, fileName } = await s3.storeFileInAwsBucket(fileBuffer, filename);
     console.log("✅ Received filename:", filename);
     console.log("📦 File size:", fileSize, "MB");
     res.json({ message: "File received", filename, fileId });
@@ -64,11 +63,18 @@ app.post("/generate-questions", requireAuth,async (req, res) => {
       difficulty,
       topic
     } = req.body;
-    console.log('Topic');
-    console.log(topic);
     const publisher = new Publisher();
+    const sqsClient1 = new sqsClient();
     const jobId = await publisher.updateQuestionGenerationStatus(0);
-    await publisher.publishToQuestionGenerationQueue({ fileName: fileName, fileId: fileId, bucketId: process.env.APPWRITE_BUCKET_ID, numberOfQuestions: noOfQuestion, jobId: String(jobId), difficultyLevel: difficulty, topic: topic });
+    const payload = {
+      fileName,
+      fileId,
+      noOfQuestion,
+      difficulty,
+      topic,
+      jobId
+    }
+    await sqsClient1.publishMessage(payload);
     res.json({ message: "Question generation job queued.", jobId: jobId, topic: topic });
   } catch (error) {
     console.error("❌ Error generating questions:", error);
