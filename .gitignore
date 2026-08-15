@@ -38,4 +38,6 @@ ai-metimeter-client/e2e
 # they're moved to Secrets Manager references.
 ecs/taskdef-*.json
 
+RCA_*.md
+
 
