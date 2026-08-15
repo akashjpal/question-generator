@@ -40,4 +40,24 @@ ecs/taskdef-*.json
 
 RCA_*.md
 
+# Session working docs (per CLAUDE.md's workflow) — local reference only,
+# not meant for the shared repo.
+*_implementation_plan.md
+*_walkthrough.md
+*_todo.md
+*_design.md
+todo.md
+todo_*.md
+CLAUDE.md
+issues.md
+roadmap.txt
+reports_optimization.md
+client_approach.md
+client_angular_approach.md
+
+# Stray scratch files, not part of this project
+add_two_numbers*
+/output.json
+\# Question Generator Worker*.md
+
 

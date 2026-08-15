@@ -1,8 +1,0 @@
-#AI Question Generation
-Supabase to ministack
-- python question generator worker - amazon queue(most likely sqs) - question generation
-- supabase to full ministack (db migration)
-
-Logic change
-- question publish method also need to change - working on it
-- python question generator logic change
