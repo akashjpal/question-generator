@@ -1,0 +1,42 @@
+name: CI - Question Generator Worker (Python)
+
+on:
+  push:
+    paths:
+      - 'question-generator-worker/**'
+      - '.github/workflows/ci-question-generator-worker.yml'
+  pull_request:
+    paths:
+      - 'question-generator-worker/**'
+      - '.github/workflows/ci-question-generator-worker.yml'
+
+concurrency:
+  group: ci-qgen-worker-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: question-generator-worker
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: question-generator-worker/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # No test suite exists for this service. helpers/supabase_client.py calls
+      # create_client() at import time, so importing main.py (or running pytest)
+      # without real Supabase credentials would crash. compileall is a syntax-only
+      # check that doesn't execute any module-level code, so it's safe to run
+      # without secrets while still catching syntax errors.
+      - name: Byte-compile (syntax check)
+        run: python -m compileall -q .

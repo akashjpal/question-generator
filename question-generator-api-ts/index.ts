@@ -180,10 +180,11 @@ app.post("/api/assessments/:id/publish", requireAuth, async (req, res)=>{
   try{
     const {id} = req.params;
     const publisher = new Publisher();
-    const assessment: Assessment | undefined = await publisher.getAssessment(parseInt(id));
-    if(assessment) {
-      // await publisher.handleAssessmentPublishing(assessment);
-      console.log(assessment);
+    const updated = await publisher.updateAssessmentStatus(parseInt(id));
+    if (!updated) {
+      return res.status(404).json({
+        message: "assessment not found"
+      });
     }
     return res.status(200).json({
       message: "published successfully"
@@ -228,7 +229,9 @@ app.get("/get-assessments", requireAuth, async(req,res)=>{
   }
 });
 
-app.get("/api/assessments/:id", requireAuth, async (req, res)=>{
+// Public: the student join screen (/attempt/:id) fetches this while unauthenticated
+// (students never log in) to show the title/subject/questions and verify the access code.
+app.get("/api/assessments/:id", async (req, res)=>{
   try {
     const { id } = req.params;
     console.log(id);

@@ -18,19 +18,19 @@
                         <div class="form-grid">
                             <mat-form-field appearance="outline" class="full-width">
                                 <mat-label>Assessment Title</mat-label>
-                                <input matInput [(ngModel)]="assessmentData.title" placeholder="e.g. World War II">
+                                <input matInput [(ngModel)]="assessmentData.title" placeholder="e.g. World War II" data-testid="title-input">
                             </mat-form-field>
 
                             <mat-form-field appearance="outline">
                                 <mat-label>Subject</mat-label>
-                                <mat-select [(ngModel)]="assessmentData.subject">
+                                <mat-select [(ngModel)]="assessmentData.subject" data-testid="subject-select">
                                     <mat-option *ngFor="let s of subjects" [value]="s">{{s}}</mat-option>
                                 </mat-select>
                             </mat-form-field>
 
                             <mat-form-field appearance="outline">
                                 <mat-label>Difficulty</mat-label>
-                                <mat-select [(ngModel)]="assessmentData.difficulty">
+                                <mat-select [(ngModel)]="assessmentData.difficulty" data-testid="difficulty-select">
                                     <mat-option *ngFor="let d of difficulties" [value]="d">{{d}}</mat-option>
                                 </mat-select>
                             </mat-form-field>
@@ -38,23 +38,23 @@
                             <mat-form-field appearance="outline" class="full-width">
                                 <mat-label>Topic / Prompt</mat-label>
                                 <textarea matInput rows="3" [(ngModel)]="assessmentData.topic"
-                                    placeholder="Describe what the quiz should be about..."></textarea>
+                                    placeholder="Describe what the quiz should be about..." data-testid="topic-textarea"></textarea>
                             </mat-form-field>
 
                             <div class="row-fields">
                                 <mat-form-field appearance="outline">
                                     <mat-label>Time Limit (mins)</mat-label>
                                     <input matInput type="number" [(ngModel)]="assessmentData.timeLimit" min="1"
-                                        max="30" placeholder="Max 30">
+                                        max="30" placeholder="Max 30" data-testid="time-limit-input">
                                     <mat-hint>Max 30 mins</mat-hint>
                                 </mat-form-field>
 
                                 <mat-form-field appearance="outline">
                                     <mat-label>Access Code</mat-label>
                                     <input matInput [(ngModel)]="assessmentData.code" placeholder="e.g. A1B2C3"
-                                        maxlength="6">
+                                        maxlength="6" data-testid="access-code-input">
                                     <button mat-icon-button matSuffix (click)="generateCode()"
-                                        matTooltip="Generate Code">
+                                        matTooltip="Generate Code" data-testid="access-code-refresh-btn">
                                         <mat-icon>refresh</mat-icon>
                                     </button>
                                     <mat-hint>6-digit code</mat-hint>
@@ -64,13 +64,13 @@
                             <div class="file-upload-section full-width">
                                 <span class="label">Upload Material (Optional)</span>
                                 <div class="upload-box" [class.disabled]="isEditMode"
-                                    (click)="!isEditMode && fileInput.click()" *ngIf="!selectedFile">
+                                    (click)="!isEditMode && fileInput.click()" *ngIf="!selectedFile" data-testid="pdf-upload-box">
                                     <mat-icon>cloud_upload</mat-icon>
                                     <span class="text" *ngIf="!isEditMode">Click to upload PDF</span>
                                     <span class="text" *ngIf="isEditMode">Upload disabled in edit mode</span>
                                     <span class="sub-text" *ngIf="!isEditMode">Max 5MB • PDF only</span>
                                     <input #fileInput type="file" accept="application/pdf"
-                                        (change)="onFileSelected($event)" hidden>
+                                        (change)="onFileSelected($event)" hidden data-testid="pdf-file-input">
                                 </div>
 
                                 <div class="file-preview" *ngIf="selectedFile">
@@ -80,27 +80,27 @@
                                         <span class="size">{{(selectedFile.size / 1024 / 1024) | number:'1.1-2'}}
                                             MB</span>
                                     </div>
-                                    <button mat-icon-button color="warn" (click)="removeFile()">
+                                    <button mat-icon-button color="warn" (click)="removeFile()" data-testid="file-remove-btn">
                                         <mat-icon>close</mat-icon>
                                     </button>
                                 </div>
-                                <mat-error *ngIf="fileError" class="file-error">{{fileError}}</mat-error>
+                                <mat-error *ngIf="fileError" class="file-error" data-testid="file-error">{{fileError}}</mat-error>
                             </div>
 
                             <mat-form-field appearance="outline">
                                 <mat-label>Question Count</mat-label>
                                 <input matInput type="number" [(ngModel)]="assessmentData.questionsCount" min="1"
-                                    max="10">
+                                    max="10" data-testid="question-count-input">
                             </mat-form-field>
                         </div>
                     </mat-card-content>
                     <mat-card-actions align="end">
                         <button mat-raised-button color="primary" (click)="generateQuestions(); stepper.next()"
-                            [disabled]="isGenerating">
+                            [disabled]="isGenerating || isUploading" data-testid="generate-questions-btn">
                             <mat-icon>auto_awesome</mat-icon>
-                            {{ isGenerating ? 'Generating...' : 'Generate Questions' }}
+                            {{ isGenerating ? 'Generating...' : (isUploading ? 'Uploading...' : 'Generate Questions') }}
                         </button>
-                        <button mat-button (click)="stepper.next()">
+                        <button mat-button (click)="stepper.next()" data-testid="step-next-btn">
                             Next <mat-icon>navigate_next</mat-icon>
                         </button>
                     </mat-card-actions>
@@ -117,7 +117,7 @@
                 </div>
                 <div *ngIf="!isGenerating" class="questions-list">
                     <mat-accordion multi>
-                        <mat-expansion-panel *ngFor="let q of questions; let i = index; trackBy: trackByIndex" [expanded]="true">
+                        <mat-expansion-panel *ngFor="let q of questions; let i = index; trackBy: trackByIndex" [expanded]="true" [attr.data-testid]="'question-panel-' + i">
                             <mat-expansion-panel-header>
                                 <mat-panel-title>
                                     Question {{i + 1}}
@@ -130,7 +130,7 @@
                             <div class="question-editor">
                                 <mat-form-field appearance="outline" class="full-width">
                                     <mat-label>Question Text</mat-label>
-                                    <textarea matInput [(ngModel)]="q.question_text"></textarea>
+                                    <textarea matInput [(ngModel)]="q.question_text" [attr.data-testid]="'question-text-' + i"></textarea>
                                 </mat-form-field>
 
                                 <div class="options-grid">
@@ -139,13 +139,14 @@
                                         [ngModelOptions]="{standalone: true}">
                                         <div class="option-row"
                                             *ngFor="let opt of q.filteredOptions; let optIndex = index; trackBy: trackByIndex">
-                                            <mat-radio-button [value]="optIndex"></mat-radio-button>
+                                            <mat-radio-button #radioBtn [value]="optIndex" [attr.data-radio-testid]="'correct-radio-' + i + '-' + optIndex"></mat-radio-button>
                                             <mat-form-field appearance="outline" class="option-input">
                                                 <mat-label>Option {{optIndex + 1}}</mat-label>
                                                 <input matInput
                                                     [ngModel]="q.filteredOptions[optIndex]"
                                                     (ngModelChange)="updateOption(q, optIndex, $event)"
-                                                    [ngModelOptions]="{standalone: true}">
+                                                    [ngModelOptions]="{standalone: true}"
+                                                    [attr.data-testid]="'option-input-' + i + '-' + optIndex">
                                             </mat-form-field>
                                         </div>
                                     </mat-radio-group>
@@ -154,25 +155,25 @@
                                 <mat-form-field appearance="outline" class="full-width explanation-field">
                                     <mat-label>Explanation</mat-label>
                                     <textarea matInput [(ngModel)]="q.explanation" rows="3"
-                                        placeholder="Explain why the correct answer is right..."></textarea>
+                                        placeholder="Explain why the correct answer is right..." [attr.data-testid]="'explanation-textarea-' + i"></textarea>
                                     <mat-icon matPrefix>lightbulb</mat-icon>
                                 </mat-form-field>
 
                                 <div class="action-row">
-                                    <button mat-button color="warn" (click)="removeQuestion(i)">Delete Question</button>
+                                    <button mat-button color="warn" (click)="removeQuestion(i)" [attr.data-testid]="'delete-question-btn-' + i">Delete Question</button>
                                 </div>
                             </div>
                         </mat-expansion-panel>
                     </mat-accordion>
 
-                    <button mat-stroked-button class="add-btn" (click)="addQuestion()">
+                    <button mat-stroked-button class="add-btn" (click)="addQuestion()" data-testid="add-manual-question-btn">
                         <mat-icon>add</mat-icon> Add Manual Question
                     </button>
                 </div>
 
                 <div class="step-actions">
                     <button mat-button matStepperPrevious>Back</button>
-                    <button mat-raised-button color="primary" matStepperNext disabled="isGenerating">Next:
+                    <button mat-raised-button color="primary" matStepperNext [disabled]="isGenerating">Next:
                         Preview</button>
                 </div>
             </div>
@@ -202,7 +203,7 @@
                     </mat-card-content>
                     <mat-card-actions align="end">
                         <button mat-button matStepperPrevious>Back</button>
-                        <button mat-raised-button color="primary" (click)="publishAssessment()">
+                        <button mat-raised-button color="primary" (click)="publishAssessment()" data-testid="publish-btn">
                             <mat-icon>{{ isEditMode ? 'save' : 'publish' }}</mat-icon>
                             {{ isEditMode ? 'Update Assessment' : 'Publish Assessment' }}
                         </button>

@@ -34,18 +34,11 @@ export class AgentChat implements OnInit {
         this.initSession();
     }
 
+    // Always starts a brand-new session rather than resuming a previous "active" one —
+    // the backend only ever marks a session "completed" when a quiz gets published, so a
+    // plain Q&A session would otherwise stay resumable (with its old messages) forever.
     private initSession(): void {
-        this.agentChatService.listSessions().subscribe({
-            next: (sessions) => {
-                const active = sessions.find(s => s.status === 'active');
-                if (active) {
-                    this.resumeSession(active.id);
-                } else {
-                    this.createNewSession();
-                }
-            },
-            error: (err) => this.createNewSession(err),
-        });
+        this.createNewSession();
     }
 
     private createNewSession(priorError?: unknown): void {
@@ -59,25 +52,6 @@ export class AgentChat implements OnInit {
                 this.loadingSession.set(false);
                 this.sessionError.set(this.describeHttpError(err ?? priorError));
             },
-        });
-    }
-
-    private resumeSession(id: string): void {
-        this.agentChatService.getSession(id).subscribe({
-            next: (detail) => {
-                this.sessionId.set(id);
-                this.sessionError.set(null);
-                this.bubbles.set(this.bubblesFromMessages(detail.messages));
-                this.loadingSession.set(false);
-                if (detail.session.processing) {
-                    // A turn was still running when the page loaded/refreshed —
-                    // SSE's long-lived connection implicitly covered this before;
-                    // polling must explicitly re-arm it.
-                    this.sending.set(true);
-                    this.pollTurn(id, null);
-                }
-            },
-            error: () => this.createNewSession(),
         });
     }
 
@@ -190,10 +164,6 @@ export class AgentChat implements OnInit {
             pending: false,
             published: (m.tool_payload as PublishedQuizSummary) ?? undefined,
         };
-    }
-
-    private bubblesFromMessages(messages: AgentChatMessage[]): AgentChatBubble[] {
-        return messages.filter(m => m.role !== 'tool').map(m => this.toBubble(m));
     }
 
     private updateBubble(id: string, updater: (b: AgentChatBubble) => AgentChatBubble): void {

@@ -1,0 +1,35 @@
+name: CI - Reports API (.NET)
+
+on:
+  push:
+    paths:
+      - 'ReportsAPI/**'
+      - '.github/workflows/ci-reports-api.yml'
+  pull_request:
+    paths:
+      - 'ReportsAPI/**'
+      - '.github/workflows/ci-reports-api.yml'
+
+concurrency:
+  group: ci-reports-api-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: ReportsAPI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
