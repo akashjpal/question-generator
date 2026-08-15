@@ -10,6 +10,10 @@
 /ai-metimeter-client/backend_requirements.md
 /ai-metimeter-client/.editorconfig
 /ai-metimeter-client/.angular
+/ai-metimeter-client/e2e/.auth
+/ai-metimeter-client/playwright-report
+/ai-metimeter-client/test-results
+/ai-metimeter-client/.env.test
 /question-generator-api-ts/node_modules
 /question-generator-api-ts/.env
 /AttemptAPI/bin
@@ -19,9 +23,46 @@
 .dotnet/*
 .vscode/*
 .github/*
+!.github/workflows/
 question-generator-worker/__pycache__
 question-generator-worker/helpers/__pycache__
 question-generator-worker/models/__pycache__
 question-generator-worker/.venv
+__pycache__/
 .env
+.env.test
 *.log
+lambda/node_modules
+Testing/*
+
+ai-metimeter-client/playwright-report
+ai-metimeter-client/test-results
+ai-metimeter-client/e2e
+
+# ECS task definitions hold plaintext env values (Supabase keys etc.) until
+# they're moved to Secrets Manager references.
+ecs/taskdef-*.json
+
+RCA_*.md
+
+# Session working docs (per CLAUDE.md's workflow) — local reference only,
+# not meant for the shared repo.
+*_implementation_plan.md
+*_walkthrough.md
+*_todo.md
+*_design.md
+todo.md
+todo_*.md
+CLAUDE.md
+issues.md
+roadmap.txt
+reports_optimization.md
+client_approach.md
+client_angular_approach.md
+
+# Stray scratch files, not part of this project
+add_two_numbers*
+/output.json
+\# Question Generator Worker*.md
+
+

@@ -26,24 +26,24 @@
     <!-- Actions Bar -->
     <div class="actions-bar">
         <div class="filter-tabs">
-            <button class="filter-tab" [class.active]="selectedFilter === 'All'" (click)="setFilter('All')">
+            <button class="filter-tab" [class.active]="selectedFilter === 'All'" (click)="setFilter('All')" data-testid="filter-all">
                 All
             </button>
-            <button class="filter-tab" [class.active]="selectedFilter === 'Published'" (click)="setFilter('Published')">
+            <button class="filter-tab" [class.active]="selectedFilter === 'Published'" (click)="setFilter('Published')" data-testid="filter-published">
                 Published
             </button>
-            <button class="filter-tab" [class.active]="selectedFilter === 'Draft'" (click)="setFilter('Draft')">
+            <button class="filter-tab" [class.active]="selectedFilter === 'Draft'" (click)="setFilter('Draft')" data-testid="filter-draft">
                 Drafts
             </button>
         </div>
 
         <div class="view-actions">
             <button class="view-btn" [class.active]="viewMode === 'grid'" (click)="setViewMode('grid')"
-                title="Grid view">
+                title="Grid view" data-testid="view-grid-btn">
                 <mat-icon>grid_view</mat-icon>
             </button>
             <button class="view-btn" [class.active]="viewMode === 'list'" (click)="setViewMode('list')"
-                title="List view">
+                title="List view" data-testid="view-list-btn">
                 <mat-icon>view_list</mat-icon>
             </button>
         </div>
@@ -70,7 +70,7 @@
 
     <!-- Quizzes Grid View -->
     <div class="quizzes-grid" *ngIf="!isLoading && displayedQuizzes.length > 0 && viewMode === 'grid'">
-        <div class="quiz-card" *ngFor="let quiz of displayedQuizzes">
+        <div class="quiz-card" *ngFor="let quiz of displayedQuizzes" [attr.data-testid]="'quiz-card-' + quiz.id">
             <!-- Status Indicator -->
             <div class="card-status" [class.published]="quiz.status === 'Published'"
                 [class.draft]="quiz.status === 'Draft'">
@@ -79,15 +79,15 @@
             </div>
 
             <!-- Card Menu -->
-            <button class="card-menu-btn" [matMenuTriggerFor]="menu">
+            <button class="card-menu-btn" [matMenuTriggerFor]="menu" [attr.data-testid]="'card-menu-btn-' + quiz.id">
                 <mat-icon>more_horiz</mat-icon>
             </button>
             <mat-menu #menu="matMenu" class="card-menu">
-                <button mat-menu-item *ngIf="quiz.status === 'Draft'" (click)="publishQuiz(quiz)">
+                <button mat-menu-item *ngIf="quiz.status === 'Draft'" (click)="publishQuiz(quiz)" [attr.data-testid]="'publish-action-' + quiz.id">
                     <mat-icon>publish</mat-icon>
                     <span>Publish</span>
                 </button>
-                <button mat-menu-item (click)="editQuiz(quiz)">
+                <button mat-menu-item (click)="editQuiz(quiz)" [attr.data-testid]="'edit-action-' + quiz.id">
                     <mat-icon>edit</mat-icon>
                     <span>Edit</span>
                 </button>
@@ -100,16 +100,16 @@
                     <mat-icon>share</mat-icon>
                     <span>Share</span>
                 </button> -->
-                <button mat-menu-item (click)="createAttemptLink(quiz)">
+                <button mat-menu-item (click)="createAttemptLink(quiz)" [attr.data-testid]="'create-attempt-link-action-' + quiz.id">
                     <mat-icon>link</mat-icon>
                     <span>Create Attempt Link</span>
                 </button>
-                <button mat-menu-item [routerLink]="['/dashboard/reports', quiz.id]" [disabled]="!hasAttempts(quiz)">
+                <button mat-menu-item [routerLink]="['/dashboard/reports', quiz.id]" [disabled]="!hasAttempts(quiz)" [attr.data-testid]="'view-report-action-' + quiz.id">
                     <mat-icon>analytics</mat-icon>
                     <span>View Report</span>
                 </button>
                 <mat-divider></mat-divider>
-                <button mat-menu-item class="delete-action" (click)="deleteQuiz(quiz)">
+                <button mat-menu-item class="delete-action" (click)="deleteQuiz(quiz)" [attr.data-testid]="'delete-action-' + quiz.id">
                     <mat-icon>delete</mat-icon>
                     <span>Delete</span>
                 </button>
@@ -148,7 +148,7 @@
                     <span>Attempt Link</span>
                 </div>
                 <div class="link-actions">
-                    <button class="copy-btn" (click)="copyLink(quiz, $event)" title="Copy Attempt Link">
+                    <button class="copy-btn" (click)="copyLink(quiz, $event)" title="Copy Attempt Link" [attr.data-testid]="'copy-link-btn-' + quiz.id">
                         <mat-icon>content_copy</mat-icon>
                     </button>
                 </div>
@@ -160,7 +160,7 @@
                     <span class="code-value">{{ quiz.code }}</span>
                 </div>
                 <div class="assessment-code-copy-button">
-                    <button class="copy-btn" (click)="copyCode(quiz, $event)" title="Copy Assessment Code">
+                    <button class="copy-btn" (click)="copyCode(quiz, $event)" title="Copy Assessment Code" [attr.data-testid]="'copy-code-btn-' + quiz.id">
                         <mat-icon>content_copy</mat-icon>
                     </button>
                 </div>
@@ -184,7 +184,7 @@
 
     <!-- Quizzes List View -->
     <div class="quizzes-list" *ngIf="!isLoading && displayedQuizzes.length > 0 && viewMode === 'list'">
-        <div class="quiz-list-item" *ngFor="let quiz of displayedQuizzes">
+        <div class="quiz-list-item" *ngFor="let quiz of displayedQuizzes" [attr.data-testid]="'quiz-list-item-' + quiz.id">
             <!-- Icon -->
             <div class="list-item-icon" [attr.data-subject]="getSubjectClass(quiz.subject)">
                 <mat-icon>{{ getSubjectIcon(quiz.subject) }}</mat-icon>
@@ -266,7 +266,7 @@
 
     <!-- Load More Button -->
     <div class="load-more-section" *ngIf="hasMoreQuizzes">
-        <button class="load-more-btn" (click)="loadMore()">
+        <button class="load-more-btn" (click)="loadMore()" data-testid="load-more-btn">
             <mat-icon>expand_more</mat-icon>
             Load More ({{ remainingCount }} remaining)
         </button>

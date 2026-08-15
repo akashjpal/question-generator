@@ -1,14 +1,16 @@
 import { createClient as createRedisClient } from "redis";
 import supabase from "./supabaseClient.ts";
+import { sqsClient as SqsClient } from "./sqsClient.ts";
 import { AssessmentStatus, type Assessment, type AssessmentPublishModel, type PublishQuestionModel, type Question } from "../models/assessment.models.ts";
 export class Publisher {
   redisClient;
-  constructor() {
+  sqsClient: Pick<SqsClient, "publishMessage">;
+  constructor(sqsClient: Pick<SqsClient, "publishMessage"> = new SqsClient()) {
     this.redisClient = createRedisClient({
       url: process.env.REDIS_URL || "redis://localhost:6379",
       password: process.env.REDIS_PASSWORD || "myStrongPassword",
     });
-    
+    this.sqsClient = sqsClient;
   }
 
   async connect() {
@@ -49,17 +51,8 @@ export class Publisher {
 
   // TODO: remove any
   async publishToQuestionGenerationQueue(job: any) {
-    const workerUrl = process.env.QUESTION_GENERATOR_WORKER_URL ?? "http://localhost:8000";
-    const response = await fetch(`${workerUrl}/generate-questions`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(job),
-    });
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Worker rejected job (${response.status}): ${text}`);
-    }
-    console.log("✅ Job dispatched to question-generator-worker:", job);
+    await this.sqsClient.publishMessage(job);
+    console.log("✅ Job dispatched to question-generator-worker via SQS:", job);
   }
 
   async disconnect() {
@@ -149,8 +142,9 @@ export class Publisher {
     try{
       const {data, error} = await supabase
         .from("assessment_table")
-        .update({status: 'published'})
-        .eq("id", id);
+        .update({status: AssessmentStatus.published})
+        .eq("id", id)
+        .select();
       if (error) {
         throw error;
       }

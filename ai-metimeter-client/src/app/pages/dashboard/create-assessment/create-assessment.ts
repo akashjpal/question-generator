@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, QueryList, Renderer2, ViewChildren } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -12,7 +12,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
-import { Subject, interval } from 'rxjs';
+import { Subject, interval, firstValueFrom } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 import { AssessmentService } from '../../../services/assessment.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -45,7 +45,7 @@ import { AuthService } from '../../../services/auth.service';
     templateUrl: './create-assessment.html',
     styleUrls: ['./create-assessment.scss']
 })
-export class CreateAssessment implements OnInit, OnDestroy {
+export class CreateAssessment implements OnInit, OnDestroy, AfterViewInit {
     isEditMode = false;
     editId: number | null = null;
 
@@ -55,14 +55,43 @@ export class CreateAssessment implements OnInit, OnDestroy {
     private readonly questionGeneratorApiUrl = environment.questionGeneratorApiUrl;
     private accessToken: string | null = null;
 
+    // Each mat-radio-button host carries a [attr.data-radio-testid] marker (see
+    // template) since Angular Material's mat-radio-button doesn't forward
+    // arbitrary attributes to the native <input> it renders internally — only
+    // the host element receives template attribute bindings. We resolve these
+    // markers to their real <input> here and stamp the actual data-testid onto
+    // it, so Playwright locators (which need the real input for
+    // toBeChecked()/toBeChecked-style assertions) resolve correctly.
+    @ViewChildren('radioBtn', { read: ElementRef }) private radioButtons!: QueryList<ElementRef<HTMLElement>>;
+
     constructor(
         private assessmentService: AssessmentService,
         private cdr: ChangeDetectorRef,
         private snackBar: MatSnackBar,
         private router: Router,
         private route: ActivatedRoute,
-        private authService: AuthService
+        private authService: AuthService,
+        private renderer: Renderer2
     ) { }
+
+    ngAfterViewInit(): void {
+        this.syncRadioTestIds();
+        this.radioButtons.changes
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(() => this.syncRadioTestIds());
+    }
+
+    private syncRadioTestIds(): void {
+        this.radioButtons?.forEach(ref => {
+            const hostEl = ref.nativeElement;
+            const key = hostEl.getAttribute('data-radio-testid');
+            if (!key) return;
+            const inputEl = hostEl.querySelector('input');
+            if (inputEl && inputEl.getAttribute('data-testid') !== key) {
+                this.renderer.setAttribute(inputEl, 'data-testid', key);
+            }
+        });
+    }
 
     ngOnInit(): void {
         this.route.paramMap.subscribe(params => {
@@ -199,9 +228,15 @@ export class CreateAssessment implements OnInit, OnDestroy {
     fileError: string = '';
 
     isGenerating = false;
+    isUploading = false;
 
     fileId: string = '';
     fileName: string = '';
+
+    // Tracks the in-flight /file-upload request so generateQuestions() can
+    // wait for it to resolve instead of racing it (fileId is only populated
+    // once uploadFile() completes).
+    private fileUploadPromise: Promise<void> | null = null;
 
     async onFileSelected(event: any) {
         const file: File = event.target.files[0];
@@ -222,29 +257,40 @@ export class CreateAssessment implements OnInit, OnDestroy {
 
             this.selectedFile = file;
         }
-        await this.uploadFile();
+        // Assigned synchronously (before any await) so that a Generate click
+        // firing immediately after file selection can still find and await
+        // this promise rather than racing ahead with an empty fileId.
+        this.fileUploadPromise = this.uploadFile();
+        await this.fileUploadPromise;
     }
 
     async uploadFile() {
         if (!this.selectedFile) return;
-        const res = await fetch(`${this.questionGeneratorApiUrl}/file-upload`, {
-            method: 'POST',
-            body: this.selectedFile,
-            headers: {
-                'Content-Type': this.selectedFile.type,
-                'x-filename': this.selectedFile.name,
-                'content-length': this.selectedFile.size.toString(),
-                "authorization": `Bearer ${this.accessToken}`
-            }
-        });
+        this.isUploading = true;
+        this.cdr.detectChanges();
+        try {
+            const res = await fetch(`${this.questionGeneratorApiUrl}/file-upload`, {
+                method: 'POST',
+                body: this.selectedFile,
+                headers: {
+                    'Content-Type': this.selectedFile.type,
+                    'x-filename': this.selectedFile.name,
+                    'content-length': this.selectedFile.size.toString(),
+                    "authorization": `Bearer ${this.accessToken}`
+                }
+            });
 
-        console.log(res);
-        if (res.ok) {
-            const data = await res.json();
-            this.fileId = data.fileId;
-            this.fileName = this.selectedFile.name;
-            this.assessmentData.fileId = this.fileId;
-            console.log('File uploaded with ID:', this.fileId);
+            console.log(res);
+            if (res.ok) {
+                const data = await res.json();
+                this.fileId = data.fileId;
+                this.fileName = this.selectedFile.name;
+                this.assessmentData.fileId = this.fileId;
+                console.log('File uploaded with ID:', this.fileId);
+            }
+        } finally {
+            this.isUploading = false;
+            this.cdr.detectChanges();
         }
     }
 
@@ -262,6 +308,13 @@ export class CreateAssessment implements OnInit, OnDestroy {
         this.isGenerating = true;
 
         try {
+            // A file may still be uploading (fileId is only populated once
+            // uploadFile() resolves) — wait for it so we never dispatch a
+            // generate-questions job with an empty fileId.
+            if (this.fileUploadPromise) {
+                await this.fileUploadPromise;
+            }
+
             const res = await fetch(`${this.questionGeneratorApiUrl}/generate-questions`, {
                 method: 'POST',
                 headers: {
@@ -417,12 +470,17 @@ export class CreateAssessment implements OnInit, OnDestroy {
     async updateAssessment() {
         if (!this.editId) return;
 
-        this.assessmentService.updateAssessment(this.editId, this.assessmentData).subscribe({
-            next: () => {
-                console.log('Assessment updated');
-            },
-            error: (err) => console.error(err)
-        });
+        // Previously this called .subscribe(...) without awaiting the Observable,
+        // so the async function resolved immediately (there was no `await`
+        // inside it) instead of waiting for the PUT to actually complete. That
+        // let publishAssessment() show the "updated successfully" toast and
+        // navigate to /dashboard/my-quizzes before the write had landed,
+        // causing an intermittent race: the quiz list would sometimes reload
+        // before the backend update was persisted. firstValueFrom() makes this
+        // genuinely await completion (and rejects on error so the existing
+        // try/catch in publishAssessment() handles failures correctly).
+        await firstValueFrom(this.assessmentService.updateAssessment(this.editId, this.assessmentData));
+        console.log('Assessment updated');
     }
 
     async getGeneratedQuestions(jobId: string): Promise<Question[]> {

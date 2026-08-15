@@ -1,0 +1,20 @@
+info:
+  name: file-upload-testing-aws
+  type: http
+
+http:
+  method: POST
+  url: http://localhost:3000/file-upload
+  body:
+    type: file
+    data:
+      - filePath: c:\Users\palga\Downloads\Akash_Resume_Final_v4.pdf
+        contentType: application/pdf
+        selected: true
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

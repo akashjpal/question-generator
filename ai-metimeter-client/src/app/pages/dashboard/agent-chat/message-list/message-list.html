@@ -6,8 +6,8 @@
         </div>
     }
 
-    @for (bubble of bubbles(); track bubble.id) {
-        <div class="bubble-row" [class.user]="bubble.role === 'user'">
+    @for (bubble of bubbles(); track bubble.id; let i = $index) {
+        <div class="bubble-row" [class.user]="bubble.role === 'user'" [attr.data-testid]="'chat-message-' + i">
             <div class="bubble" [class.user]="bubble.role === 'user'" [class.error]="!!bubble.error">
                 @if (bubble.text) {
                     <div class="bubble-text">{{ bubble.text }}</div>
