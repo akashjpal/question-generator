@@ -1,10 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
+import { getSecret } from "./secretClient";
 
 dotenv.config();
 
-const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+const supabaseKey = await getSecret("supabase-service-role-key");
 if (!supabaseKey) {
   console.warn(
     "⚠️ No Supabase key found in environment. Set SUPABASE_SERVICE_ROLE_KEY for server inserts.",

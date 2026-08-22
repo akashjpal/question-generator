@@ -4,6 +4,7 @@ import signal
 from src.config import get_settings
 from src.consumer.sqs_consumer import SQSConsumer
 from src.graph.build import build_graph
+from src.secrets_bootstrap import load_secrets_into_env
 from src.services.container import build_services
 from src.utils.logging import configure_logging, get_logger
 
@@ -12,6 +13,7 @@ logger = get_logger()
 
 async def main() -> None:
     configure_logging()
+    await load_secrets_into_env()
     settings = get_settings()
     services = build_services(settings)
     graph = build_graph(services)
