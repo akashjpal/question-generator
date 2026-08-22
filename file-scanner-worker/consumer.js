@@ -2,7 +2,7 @@ import { createClient } from "redis";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import NodeClam from "clamscan";
 import fs from "fs";
-import dotenv from "dotenv";
+import dotenv from "dotenv"; 
 
 dotenv.config();
 
