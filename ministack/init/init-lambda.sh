@@ -69,6 +69,21 @@ provision() {
   echo "ministack-init: provisioning complete ($(date -u +%Y-%m-%dT%H:%M:%SZ))."
 }
 
+provision_secrets() {
+  for name in supabase-service-role-key openrouter-api-key database-connection-string; do
+    value=""
+    case "$name" in
+      supabase-service-role-key) value="$SUPABASE_SERVICE_ROLE_KEY" ;;
+      openrouter-api-key) value="$OPENROUTER_API_KEY" ;;
+      database-connection-string) value="$DATABASE_CONNECTION_STRING" ;;
+    esac
+    aws $ENDPOINT secretsmanager create-secret \
+      --name "question-generator/$name" --secret-string "$value" >/dev/null 2>&1 || \
+    aws $ENDPOINT secretsmanager put-secret-value \
+      --secret-id "question-generator/$name" --secret-string "$value" >/dev/null 2>&1
+  done
+}
+
 while true; do
   # Wait until the gateway genuinely answers (not just accepts TCP).
   until aws $ENDPOINT s3 ls >/dev/null 2>&1; do
@@ -76,6 +91,7 @@ while true; do
   done
 
   provision_sqs
+  provision_secrets
 
   # Only (re)provision if the Lambda isn't there — i.e. first boot, or
   # ministack just restarted and wiped its unpersisted Lambda/IAM state.

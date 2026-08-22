@@ -35,7 +35,6 @@ services:
     environment:
       - PORT=3000
       - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - SUPABASE_BUCKET_ID=${SUPABASE_BUCKET_ID}
       - REDIS_URL=redis://redis:6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -66,8 +65,6 @@ services:
     build: ./question-worker
     environment:
       - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - LLM_MODEL=${OPENROUTER_MODEL:-moonshotai/kimi-k2}
       - JUDGE_MODEL=${OPENROUTER_MODEL:-moonshotai/kimi-k2}
       - EMBEDDING_MODEL=${OPENROUTER_EMBEDDING_MODEL:-openai/text-embedding-3-small}
@@ -100,33 +97,20 @@ services:
     environment:
       - PORT=8010
       - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - QUESTION_GENERATOR_API_URL=http://question-generator-api:3000
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - AGENT_OPENROUTER_MODEL=${AGENT_OPENROUTER_MODEL:-moonshotai/kimi-k2}
       - FRONTEND_ORIGIN=${FRONTEND_ORIGIN:-http://localhost:4200}
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:4200}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-test}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-test}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ENDPOINT=${AWS_ENDPOINT:-http://ministack:4566}
     expose:
       - "8010"
     depends_on:
-      - question-generator-api
-    restart: unless-stopped
-
-  # ── File Scanner Worker ──────────────────────────────────────
-  file-scanner-worker:
-    build: ./file-scanner-worker
-    environment:
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-      - SUPABASE_BUCKET_ID=${SUPABASE_BUCKET_ID}
-      - REDIS_URL=redis://redis:6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - CLAMAV_HOST=clamav
-      - CLAMAV_PORT=3310
-    depends_on:
-      redis:
-        condition: service_healthy
-      clamav:
+      question-generator-api:
+        condition: service_started
+      ministack:
         condition: service_healthy
     restart: unless-stopped
 
@@ -135,10 +119,16 @@ services:
     build: ./AttemptAPI
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING}
       - CorsOrigins=${CORS_ORIGIN:-http://localhost:4200}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-test}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-test}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ENDPOINT=${AWS_ENDPOINT:-http://ministack:4566}
     expose:
       - "5136"
+    depends_on:
+      ministack:
+        condition: service_healthy
     restart: unless-stopped
 
   # ── Reports API (.NET) ──────────────────────────────────────
@@ -146,10 +136,16 @@ services:
     build: ./ReportsAPI
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING}
       - CorsOrigins=${CORS_ORIGIN:-http://localhost:4200}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-test}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-test}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ENDPOINT=${AWS_ENDPOINT:-http://ministack:4566}
     expose:
       - "5082"
+    depends_on:
+      ministack:
+        condition: service_healthy
     restart: unless-stopped
 
   # ── MiniStack (LocalStack-compatible AWS emulator) ───────────
@@ -203,6 +199,9 @@ services:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_DEFAULT_REGION=us-east-1
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - DATABASE_CONNECTION_STRING=${DATABASE_CONNECTION_STRING}
     volumes:
       - ./ministack/init:/init:ro
       - ./lambda:/lambda-src:ro
