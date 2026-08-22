@@ -1,7 +1,23 @@
 using ReportsAPI.Repository;
 using ReportsAPI.Services;
 using Npgsql;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
+using Amazon.Runtime;
 var builder = WebApplication.CreateBuilder(args);
+
+using (var secretsClient = new AmazonSecretsManagerClient(
+    new BasicAWSCredentials(
+        builder.Configuration["AWS_ACCESS_KEY_ID"],
+        builder.Configuration["AWS_SECRET_ACCESS_KEY"]),
+    new AmazonSecretsManagerConfig { ServiceURL = builder.Configuration["AWS_ENDPOINT"] }))
+{
+    var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
+    {
+        SecretId = "question-generator/database-connection-string"
+    });
+    builder.Configuration["ConnectionStrings:DefaultConnection"] = secretResponse.SecretString;
+}
 
 // Add services to the container.
 

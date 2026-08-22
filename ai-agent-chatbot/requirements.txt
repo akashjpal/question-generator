@@ -5,6 +5,7 @@ python-dotenv==1.2.2
 python-multipart==0.0.22
 httpx==0.28.1
 supabase==2.28.3
+aioboto3==13.4.0
 
 # Agent / LangGraph
 langgraph==0.6.6
